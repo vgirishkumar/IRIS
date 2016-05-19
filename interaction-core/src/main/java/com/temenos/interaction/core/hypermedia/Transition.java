@@ -184,7 +184,14 @@ public class Transition {
 	public boolean isType(int type) {
 		return (command.getFlags() & type) == type;
 	}
-	
+
+	public boolean isAnyOfTypes(int... types) {
+		for(int type : types) {
+			if (isType(type)) return true;
+		}
+		return false;
+	}
+
 	public int hashCode() {
 		return (source != null ? source.getName().hashCode() : 0)
 				+ (target != null ? target.getName().hashCode() : 0)

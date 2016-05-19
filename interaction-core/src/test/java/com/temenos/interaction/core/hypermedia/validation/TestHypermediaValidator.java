@@ -288,35 +288,64 @@ public class TestHypermediaValidator {
 		Metadata metadata = new Metadata("");
 		metadata.setEntityMetadata(new EntityMetadata("SERVICE_ROOT"));
 		
-		String result = HypermediaValidator.createValidator(serviceDocumentSM, metadata).graph();
-		System.out.println("DOTTransitionToStateMachine: \n" + result);
+		String dotGraph = HypermediaValidator.createValidator(serviceDocumentSM, metadata).graph();
+		System.out.println("DOTTransitionToStateMachine: \n" + dotGraph);
 
-		String expected = "digraph SERVICE_ROOT {\n"
-				+ "    SERVICE_ROOThome[shape=circle, width=.25, label=\"\", color=black, style=filled]\n"
-				+ "    taskcomplete[label=\"task.complete /completed\"]\n"
-				+ "    taskacquired[label=\"task.acquired /acquired\"]\n"
-				+ "    taskabandoned[label=\"task.abandoned /acquired\"]\n"
-				+ "    processtaskAvailable[label=\"process.taskAvailable /processes/nextTask\"]\n"
-				+ "    processprocesses[label=\"process.processes /processes\"]\n"
-				+ "    processnew[label=\"process.new /processes/new\"]\n"
-				+ "    processinitialProcess[label=\"process.initialProcess /processes/{id}\"]\n"
-				+ "    processcompletedProcess[label=\"process.completedProcess /processes/{id}\"]\n"
-				+ "    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
-				+ "    taskcomplete->final[label=\"\"]\n"
-				+ "    taskacquired->taskabandoned[label=\"DELETE /acquired\"]\n"
-				+ "    taskacquired->taskcomplete[label=\"PUT /completed\"]\n"
-				+ "    final1[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
-				+ "    taskabandoned->final1[label=\"\"]\n"
-				+ "    processtaskAvailable->taskacquired[label=\"PUT /acquired\"]\n"
-				+ "    processprocesses->processnew[label=\"POST /processes/new\"]\n"
-				+ "    processnew->processinitialProcess[label=\"PUT /processes/{id}\"]\n"
-				+ "    processinitialProcess->processtaskAvailable[label=\"GET /processes/nextTask\"]\n"
-				+ "    processinitialProcess->processcompletedProcess[label=\"DELETE /processes/{id}\"]\n"
-				+ "    final2[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n"
-			    + "    processcompletedProcess->final2[label=\"\"]\n"
-			    + "    SERVICE_ROOThome->processprocesses[label=\"GET /processes\"]\n"
-				+ "}";
-		assertEquals(expected, result);
+        // we cannot directly compared the produced string with the expected one because the generation of the DOT graph
+        // relies on getting a Collection from the ResourceStateMachine, so no order can be assumed
+        String expectedSubstr1 = "digraph SERVICE_ROOT {\n";
+        assertTrue(dotGraph.contains(expectedSubstr1));
+        String expectedSubstr2 = "    SERVICE_ROOThome[shape=circle, width=.25, label=\"\", color=black, style=filled]\n";
+        assertTrue(dotGraph.contains(expectedSubstr2));
+        String expectedSubstr3 = "    taskcomplete[label=\"task.complete /completed\"]\n";
+        assertTrue(dotGraph.contains(expectedSubstr3));
+        String expectedSubstr4 = "    taskacquired[label=\"task.acquired /acquired\"]\n";
+        assertTrue(dotGraph.contains(expectedSubstr4));
+        String expectedSubstr5 = "    taskabandoned[label=\"task.abandoned /acquired\"]\n";
+        assertTrue(dotGraph.contains(expectedSubstr5));
+        String expectedSubstr6 = "    processtaskAvailable[label=\"process.taskAvailable /processes/nextTask\"]\n";
+        assertTrue(dotGraph.contains(expectedSubstr6));
+        String expectedSubstr7 = "    processprocesses[label=\"process.processes /processes\"]\n";
+        assertTrue(dotGraph.contains(expectedSubstr7));
+        String expectedSubstr8 = "    processnew[label=\"process.new /processes/new\"]\n";
+        assertTrue(dotGraph.contains(expectedSubstr8));
+        String expectedSubstr9 = "    processinitialProcess[label=\"process.initialProcess /processes/{id}\"]\n";
+        assertTrue(dotGraph.contains(expectedSubstr9));
+        String expectedSubstr10 = "    processcompletedProcess[label=\"process.completedProcess /processes/{id}\"]\n";
+        assertTrue(dotGraph.contains(expectedSubstr10));
+        String expectedSubstr11 = "    final[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n";
+        assertTrue(dotGraph.contains(expectedSubstr11));
+        String expectedSubstr12 = "    taskcomplete->final[label=\"\"]\n";
+        assertTrue(dotGraph.contains(expectedSubstr12));
+        String expectedSubstr13 = "    taskacquired->taskabandoned[label=\"DELETE /acquired\"]\n";
+        assertTrue(dotGraph.contains(expectedSubstr13));
+        String expectedSubstr14 = "    taskacquired->taskcomplete[label=\"PUT /completed\"]\n";
+        assertTrue(dotGraph.contains(expectedSubstr14));
+        String expectedSubstr15 = "    final1[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n";
+        assertTrue(dotGraph.contains(expectedSubstr15));
+        String expectedSubstr16 = "    taskabandoned->final1[label=\"\"]\n";
+        assertTrue(dotGraph.contains(expectedSubstr16));
+        String expectedSubstr17 = "    processtaskAvailable->taskacquired[label=\"PUT /acquired\"]\n";
+        assertTrue(dotGraph.contains(expectedSubstr17));
+        String expectedSubstr18 = "    processprocesses->processnew[label=\"POST /processes/new\"]\n";
+        assertTrue(dotGraph.contains(expectedSubstr18));
+        String expectedSubstr19 = "    processnew->processinitialProcess[label=\"PUT /processes/{id}\"]\n";
+        assertTrue(dotGraph.contains(expectedSubstr19));
+        String expectedSubstr20 = "    processinitialProcess->processtaskAvailable[label=\"GET /processes/nextTask\"]\n";
+        assertTrue(dotGraph.contains(expectedSubstr20));
+        String expectedSubstr21 = "    processinitialProcess->processcompletedProcess[label=\"DELETE /processes/{id}\"]\n";
+        assertTrue(dotGraph.contains(expectedSubstr21));
+        String expectedSubstr22 = "    final2[shape=circle, width=.25, label=\"\", color=black, style=filled, peripheries=2]\n";
+        assertTrue(dotGraph.contains(expectedSubstr22));
+        String expectedSubstr23 = "    processcompletedProcess->final2[label=\"\"]\n";
+        assertTrue(dotGraph.contains(expectedSubstr23));
+        String expectedSubstr24 = "    SERVICE_ROOThome->processprocesses[label=\"GET /processes\"]\n";
+        assertTrue(dotGraph.contains(expectedSubstr24));
+        String expectedSubstr25 =  "}";
+        assertTrue(dotGraph.contains(expectedSubstr25));
+        // checked that all expected lines are in the return DOT graph, now I'm checking that
+        // no other lines than the expected ones are returned
+        assertEquals(25, dotGraph.split("\n").length);
 	}
 
 	@Test
@@ -333,15 +362,28 @@ public class TestHypermediaValidator {
 		ResourceStateMachine serviceDocumentSM = new ResourceStateMachine(home);
 		Metadata metadata = new Metadata("");
 		metadata.setEntityMetadata(new EntityMetadata("SERVICE_ROOT"));
-		String expected = "digraph SERVICE_ROOT {\n"
-				+ "    SERVICE_ROOThome[shape=circle, width=.25, label=\"\", color=black, style=filled]\n"
-			    + "    processprocesses[shape=square, width=.25, label=\"process.processes\"]\n"
-			    + "    taskacquired[shape=square, width=.25, label=\"task.acquired\"]\n"
-			    + "    notesinitial[shape=square, width=.25, label=\"notes.initial\"]\n"
-				+ "    SERVICE_ROOThome->processprocesses[label=\"GET /processes\"]\n"
-				+ "    SERVICE_ROOThome->notesinitial[label=\"GET /notes\"]\n"
-				+ "}";
-		assertEquals(expected, HypermediaValidator.createValidator(serviceDocumentSM, metadata).graphEntityNextStates());
+        String dotGraph = HypermediaValidator.createValidator(serviceDocumentSM, metadata).graphEntityNextStates();
+        // we cannot directly compared the produced string with the expected one because the generation of the DOT graph
+        // relies on getting a Collection from the ResourceStateMachine, so no order can be assumed
+		String expectedSubstr1 = "digraph SERVICE_ROOT {\n";
+		assertTrue(dotGraph.contains(expectedSubstr1));
+		String expectedSubstr2 = "    SERVICE_ROOThome[shape=circle, width=.25, label=\"\", color=black, style=filled]\n";
+	    assertTrue(dotGraph.contains(expectedSubstr2));
+		String expectedSubstr3 = "    processprocesses[shape=square, width=.25, label=\"process.processes\"]\n";
+	    assertTrue(dotGraph.contains(expectedSubstr3));
+		String expectedSubstr4 = "    taskacquired[shape=square, width=.25, label=\"task.acquired\"]\n";
+	    assertTrue(dotGraph.contains(expectedSubstr4));
+		String expectedSubstr5 = "    notesinitial[shape=square, width=.25, label=\"notes.initial\"]\n";
+	    assertTrue(dotGraph.contains(expectedSubstr5));
+		String expectedSubstr6 = "    SERVICE_ROOThome->processprocesses[label=\"GET /processes\"]\n";
+	    assertTrue(dotGraph.contains(expectedSubstr6));
+		String expectedSubstr7 = "    SERVICE_ROOThome->notesinitial[label=\"GET /notes\"]\n";
+	    assertTrue(dotGraph.contains(expectedSubstr7));
+		String expectedSubstr8 =  "}";
+	    assertTrue(dotGraph.contains(expectedSubstr8));
+	    // checked that all expected lines are in the return DOT graph, now I'm checking that
+	    // no other lines than the expected ones are returned
+	    assertEquals(8, dotGraph.split("\n").length);
 	}
 
 	private ResourceStateMachine getProcessSM() {

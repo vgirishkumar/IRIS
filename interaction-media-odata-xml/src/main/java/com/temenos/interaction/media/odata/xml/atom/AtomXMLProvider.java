@@ -22,6 +22,8 @@ package com.temenos.interaction.media.odata.xml.atom;
  */
 
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -55,6 +57,7 @@ import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 
+import org.apache.commons.io.IOUtils;
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
@@ -72,6 +75,7 @@ import org.odata4j.producer.Responses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.temenos.interaction.core.UriInfoImpl;
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Entity;
@@ -147,6 +151,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		entryWriter = new AtomEntryFormatWriter(serviceDocument);
 		feedWriter = new AtomFeedFormatWriter(serviceDocument);
 		entityEntryWriter = new AtomEntityEntryFormatWriter(serviceDocument, metadata);
+		this.uriInfo = new UriInfoImpl(uriInfo);
 	}
 
 	@Override
@@ -187,82 +192,79 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			WebApplicationException {
 		assert (resource != null);
 		assert(uriInfo != null);
-		//Set response headers
+		ByteArrayOutputStream buffer = new ByteArrayOutputStream();  		
+        RESTResource restResource = processLinks((RESTResource) resource);
+        Collection<Link> processedLinks = restResource.getLinks();
+        if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
+            EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
+            OEntity tempEntity = entityResource.getEntity();
+            EdmEntitySet entitySet = getEdmEntitySet(entityResource.getEntityName());
+            List<OLink> olinks = formOLinks(entityResource);
+            //Write entry
+            // create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
+            OEntity oentity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
+            entryWriter.write(uriInfo, new OutputStreamWriter(buffer, UTF_8), Responses.entity(oentity), entitySet, olinks);
+        } else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, Entity.class)) {
+            EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
+            //Write entry
+            Entity entity = entityResource.getEntity();
+            String entityName = entityResource.getEntityName();
+            // Write Entity object with Abdera implementation
+            entityEntryWriter.write(uriInfo, new OutputStreamWriter(buffer, UTF_8), entityName, entity, processedLinks, entityResource.getEmbedded());
+        } else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
+            EntityResource<Object> entityResource = (EntityResource<Object>) resource;
+            //Links and entity properties
+            Object entity = entityResource.getEntity();
+            String entityName = entityResource.getEntityName();
+            EntityProperties props = new EntityProperties();
+            if(entity != null) {
+                Map<String, Object> objProps = (transformer != null ? transformer : new BeanTransformer()).transform(entity);
+                if (objProps != null) {
+                    for(String propName : objProps.keySet()) {
+                        props.setProperty(new EntityProperty(propName, objProps.get(propName)));
+                    }
+                }
+            }
+            entityEntryWriter.write(uriInfo, new OutputStreamWriter(buffer, UTF_8), entityName, new Entity(entityName, props), processedLinks, entityResource.getEmbedded());
+        } else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
+            CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
+            EdmEntitySet entitySet = getEdmEntitySet(collectionResource.getEntityName());
+            List<EntityResource<OEntity>> collectionEntities = (List<EntityResource<OEntity>>) collectionResource.getEntities();
+            List<OEntity> entities = new ArrayList<OEntity>();
+            Map<OEntity, Collection<Link>> linkId = new HashMap<OEntity, Collection<Link>>();
+            for (EntityResource<OEntity> collectionEntity : collectionEntities) {
+                // create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
+                OEntity tempEntity = collectionEntity.getEntity();
+                List<OLink> olinks = formOLinks(collectionEntity);
+                Collection<Link> links = collectionEntity.getLinks();
+                OEntity entity = OEntities.create(entitySet, null, tempEntity.getEntityKey(), tempEntity.getEntityTag(), tempEntity.getProperties(), olinks);
+                entities.add(entity);
+                linkId.put(entity, links);
+            }
+            // TODO implement collection properties and get transient values for inlinecount and skiptoken
+            Integer inlineCount = null;
+            String skipToken = null;
+            feedWriter.write(uriInfo, new OutputStreamWriter(buffer, UTF_8), 
+                    processedLinks, 
+                    Responses.entities(entities, entitySet, inlineCount, skipToken), 
+                    metadata.getModelName(), linkId);
+        } else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class)) {
+            CollectionResource<Entity> collectionResource = ((CollectionResource<Entity>) resource);
+            
+            // TODO implement collection properties and get transient values for inlinecount and skiptoken
+            Integer inlineCount = null;
+            String skipToken = null;
+            //Write feed
+            AtomEntityFeedFormatWriter entityFeedWriter = new AtomEntityFeedFormatWriter(serviceDocument, metadata);
+            entityFeedWriter.write(uriInfo, new OutputStreamWriter(buffer, UTF_8), collectionResource, inlineCount, skipToken, metadata.getModelName());
+        } else {
+            logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
+        IOUtils.copy(new ByteArrayInputStream(buffer.toByteArray()), entityStream);
+        //Set response headers
 		if(httpHeaders != null) {
 			httpHeaders.putSingle(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_ATOM_XML);		//Workaround for https://issues.apache.org/jira/browse/WINK-374
-		}
-		  		
-		try {
-			RESTResource restResource = processLinks((RESTResource) resource);
-			Collection<Link> processedLinks = restResource.getLinks();
-			if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
-				EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
-				OEntity tempEntity = entityResource.getEntity();
-				EdmEntitySet entitySet = getEdmEntitySet(entityResource.getEntityName());
-				List<OLink> olinks = formOLinks(entityResource);
-				//Write entry
-				// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
-				OEntity oentity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
-				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, UTF_8), Responses.entity(oentity), entitySet, olinks);
-			} else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, Entity.class)) {
-				EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
-				//Write entry
-				Entity entity = entityResource.getEntity();
-				String entityName = entityResource.getEntityName();
-				// Write Entity object with Abdera implementation
-				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, UTF_8), entityName, entity, processedLinks, entityResource.getEmbedded());
-			} else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
-				EntityResource<Object> entityResource = (EntityResource<Object>) resource;
-				//Links and entity properties
-				Object entity = entityResource.getEntity();
-				String entityName = entityResource.getEntityName();
-				EntityProperties props = new EntityProperties();
-				if(entity != null) {
-					Map<String, Object> objProps = (transformer != null ? transformer : new BeanTransformer()).transform(entity);
-					if (objProps != null) {
-						for(String propName : objProps.keySet()) {
-							props.setProperty(new EntityProperty(propName, objProps.get(propName)));
-						}
-					}
-				}
-				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, UTF_8), entityName, new Entity(entityName, props), processedLinks, entityResource.getEmbedded());
-			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
-				CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
-				EdmEntitySet entitySet = getEdmEntitySet(collectionResource.getEntityName());
-				List<EntityResource<OEntity>> collectionEntities = (List<EntityResource<OEntity>>) collectionResource.getEntities();
-				List<OEntity> entities = new ArrayList<OEntity>();
-				Map<OEntity, Collection<Link>> linkId = new HashMap<OEntity, Collection<Link>>();
-				for (EntityResource<OEntity> collectionEntity : collectionEntities) {
-		        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
-					OEntity tempEntity = collectionEntity.getEntity();
-					List<OLink> olinks = formOLinks(collectionEntity);
-					Collection<Link> links = collectionEntity.getLinks();
-	            	OEntity entity = OEntities.create(entitySet, null, tempEntity.getEntityKey(), tempEntity.getEntityTag(), tempEntity.getProperties(), olinks);
-					entities.add(entity);
-					linkId.put(entity, links);
-				}
-				// TODO implement collection properties and get transient values for inlinecount and skiptoken
-				Integer inlineCount = null;
-				String skipToken = null;
-				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, UTF_8), 
-						processedLinks, 
-						Responses.entities(entities, entitySet, inlineCount, skipToken), 
-						metadata.getModelName(), linkId);
-			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class)) {
-				CollectionResource<Entity> collectionResource = ((CollectionResource<Entity>) resource);
-				
-				// TODO implement collection properties and get transient values for inlinecount and skiptoken
-				Integer inlineCount = null;
-				String skipToken = null;
-				//Write feed
-				AtomEntityFeedFormatWriter entityFeedWriter = new AtomEntityFeedFormatWriter(serviceDocument, metadata);
-				entityFeedWriter.write(uriInfo, new OutputStreamWriter(entityStream, UTF_8), collectionResource, inlineCount, skipToken, metadata.getModelName());
-			} else {
-				logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
-				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
-			}
-		} catch (ODataProducerException e) {
-			logger.error("An error occurred while writing " + mediaType + " resource representation", e);
 		}
 	}
 	

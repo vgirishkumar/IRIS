@@ -25,6 +25,7 @@ package com.temenos.interaction.media.odata.xml.atom;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -38,6 +39,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -60,6 +62,8 @@ import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
+import com.temenos.interaction.core.hypermedia.LinkGenerator;
+import com.temenos.interaction.core.hypermedia.LinkGeneratorImpl;
 import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.DifferenceListener;
 import org.custommonkey.xmlunit.IgnoreTextAndAttributeValuesDifferenceListener;
@@ -686,6 +690,7 @@ public class TestAtomXMLProvider {
 					.title("title")
 					.rel("self")
 					.href("href")
+					.id("id")
 					.build());
 		EntityResource<OEntity> entityResource = new EntityResource<OEntity>(mock(OEntity.class));
 		entityResource.setLinks(links);
@@ -699,6 +704,7 @@ public class TestAtomXMLProvider {
 					.title("title")
 					.rel("edit")
 					.href("href")
+					.id("id")
 					.build());
 		entityResource.setLinks(links);
 		provider.processLinks(entityResource);
@@ -795,7 +801,7 @@ public class TestAtomXMLProvider {
 		//Create collection resource
 		CollectionResource<Entity> cr = new CollectionResource<Entity>("FundsTransfers", new ArrayList<EntityResource<Entity>>());
 		List<Link> links = new ArrayList<Link>();
-		links.add(rsm.createLink(fundsTransfers.getTransition(fundsTransfersIAuth), null, null));
+		links.add(createLink(rsm, fundsTransfers.getTransition(fundsTransfersIAuth), null, null, null));
 		cr.setLinks(links);
 		GenericEntity<CollectionResource<Entity>> ge = new GenericEntity<CollectionResource<Entity>>(cr) {};
 
@@ -862,7 +868,7 @@ public class TestAtomXMLProvider {
 		List<Link> links = new ArrayList<Link>();
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
 		pathParameters.add("companyid", "MockCompany001");
-		links.add(rsm.createLink(fundsTransfers.getTransition(fundsTransfersIAuth), null, pathParameters));
+		links.add(createLink(rsm, fundsTransfers.getTransition(fundsTransfersIAuth), null, pathParameters, null));
 		cr.setLinks(links);
 		GenericEntity<CollectionResource<Entity>> ge = new GenericEntity<CollectionResource<Entity>>(cr) {};
 
@@ -908,7 +914,7 @@ public class TestAtomXMLProvider {
 		List<Link> links = new ArrayList<Link>();
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
 		pathParameters.add("companyid", "MockCompany001");
-		links.add(rsm.createLink(fundsTransfers.getTransition(fundsTransfersIAuth), null, pathParameters));
+		links.add(createLink(rsm, fundsTransfers.getTransition(fundsTransfersIAuth), null, pathParameters, null));
 		cr.setLinks(links);
 		GenericEntity<CollectionResource<OEntity>> ge = new GenericEntity<CollectionResource<OEntity>>(cr) {};
 
@@ -1002,7 +1008,7 @@ public class TestAtomXMLProvider {
 		EntityResource<Entity> er = createMockEntityResourceEntity("Flight");
 		List<Link> links = new ArrayList<Link>();
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
-		links.add(rsm.createLink(flights.getTransition(flight), er.getEntity(), pathParameters));
+		links.add(createLink(rsm, flights.getTransition(flight), er.getEntity(), pathParameters, null));
 		er.setLinks(links);
 		entities.add(er);
 		// Create collection resource
@@ -1052,7 +1058,7 @@ public class TestAtomXMLProvider {
 		        "07u1PAxpJ7RGGblAB8FicpJF18wtzngF71WGQUMlABE=");
 		List<Link> links = new ArrayList<Link>();
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
-		links.add(rsm.createLink(flights.getTransition(flight), er.getEntity(), pathParameters));
+		links.add(createLink(rsm, flights.getTransition(flight), er.getEntity(), pathParameters, null));
 		er.setLinks(links);
 		oentities.add(er);
 		// Create collection resource
@@ -1148,7 +1154,7 @@ public class TestAtomXMLProvider {
 		List<Link> links = new ArrayList<Link>();
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
 		pathParameters.add("companyid", "MockCompany001");
-		links.add(rsm.createLink(flights.getTransition(flight), er.getEntity(), pathParameters));
+		links.add(createLink(rsm, flights.getTransition(flight), er.getEntity(), pathParameters, null));
 		er.setLinks(links);
 		entities.add(er);
 		// Create collection resource
@@ -1198,7 +1204,7 @@ public class TestAtomXMLProvider {
 		List<Link> links = new ArrayList<Link>();
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
 		pathParameters.add("companyid", "MockCompany001");
-		links.add(rsm.createLink(flights.getTransition(flight), er.getEntity(), pathParameters));
+		links.add(createLink(rsm, flights.getTransition(flight), er.getEntity(), pathParameters, null));
 		er.setLinks(links);
 		oentities.add(er);
 		// Create collection resource
@@ -1353,7 +1359,7 @@ public class TestAtomXMLProvider {
 		//Create collection resource
 		CollectionResource<OEntity> cr = new CollectionResource<OEntity>("FundsTransfers", new ArrayList<EntityResource<OEntity>>());
 		List<Link> links = new ArrayList<Link>();
-		links.add(rsm.createLink(fundsTransfers.getTransition(fundsTransfersIAuth), null, null));
+		links.add(createLink(rsm, fundsTransfers.getTransition(fundsTransfersIAuth), null, null, null));
 		cr.setLinks(links);
 		GenericEntity<CollectionResource<OEntity>> ge = new GenericEntity<CollectionResource<OEntity>>(cr) {};
 
@@ -1690,5 +1696,43 @@ public class TestAtomXMLProvider {
 		assertEquals("123456", debitLink.getLinkId());
 		assertEquals("654321", creditLink.getLinkId());
 	}
+	
+	@Test
+    public void testGetAbsolutePath() throws URISyntaxException, UnsupportedEncodingException {
+	    
+	    String pathDecoded = "resourceTest('1234://ABC')";
+	    String pathEncodedUTF8 = new String(pathDecoded.getBytes("UTF-8"), "UTF-8");
+	    String pathEncodedWrong = new String(pathDecoded.getBytes("UTF-8"), "x-UTF-16LE-BOM");
+	    
+	    String absPath = null;
+	    
+	    UriInfo uriInfo = mock(UriInfo.class);
+	    URI uri = new URI("");
+	    when(uriInfo.getBaseUri()).thenReturn(uri);
+	    
+	    // Test encoded string utf8
+	    when(uriInfo.getPath()).thenReturn(pathEncodedUTF8);	    
+	    absPath = AtomXMLProvider.getAbsolutePath(uriInfo);
+	    assertNotNull(absPath);
+	    assertEquals(pathDecoded, absPath);
+	    
+	    // Test encoded string utf16
+	    when(uriInfo.getPath()).thenReturn(pathEncodedWrong);
+        absPath = AtomXMLProvider.getAbsolutePath(uriInfo);
+        assertNotNull(absPath);
+        assertNotSame(pathDecoded, absPath);
+        
+        // Test encoded null string
+        when(uriInfo.getPath()).thenReturn(null);
+        absPath = AtomXMLProvider.getAbsolutePath(uriInfo);
+        assertNotNull(absPath);
+        assertEquals("null", absPath);
+	}
 
+	private Link createLink(ResourceStateMachine rsm, Transition transition, Object entity,
+			MultivaluedMap<String, String> pathParameters, MultivaluedMap<String, String> queryParameters) {
+		LinkGenerator linkGenerator = new LinkGeneratorImpl(rsm, transition, null);
+		Collection<Link> links = linkGenerator.createLink(pathParameters, queryParameters, entity);
+		return (!links.isEmpty()) ? links.iterator().next() : null;
+	}
 }

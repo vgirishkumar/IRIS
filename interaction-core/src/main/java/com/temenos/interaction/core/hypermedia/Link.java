@@ -54,6 +54,9 @@ public class Link {
 	
 	//LinkId
 	private String linkId;
+	
+	//Source property name
+	private String sourcePropertyName;
 
 	/**
 	 * Construct a simple link used for GET operations.
@@ -79,10 +82,27 @@ public class Link {
 				: transition.getTarget().getName(), rel, href, null, null,
 				method, null);
 	}
+	
+	/**
+	 * Construct a link from a transition having a uri with a multivalue drill-down
+	 * @param transition
+	 */
+	public Link(Transition transition, String rel, String href, String method, String sourcePropertyName) {
+		this(transition, transition.getLabel() != null
+				&& !transition.getLabel().equals("") ? transition.getLabel()
+				: transition.getTarget().getName(), rel, href, null, null,
+				method, null, sourcePropertyName);
+	}
 
 	public Link(Transition transition, String title, String rel, String href,
 			String[] consumes, String[] produces, String method,
-			MultivaluedMap<String, String> extensions) {
+			MultivaluedMap<String, String> extensions) {		
+		this(transition, title, rel, href, consumes, produces, method, extensions, null);
+	}
+	
+	public Link(Transition transition, String title, String rel, String href,
+			String[] consumes, String[] produces, String method,
+			MultivaluedMap<String, String> extensions, String sourcePropertyName) {
 		this.transition = transition;
 		if (title == null && transition != null) {
 			title = transition.getId();
@@ -96,6 +116,7 @@ public class Link {
 		this.method = method;
 		this.extensions = extensions;
 		this.linkId = transition != null ? transition.getLinkId() : null;
+		this.sourcePropertyName = sourcePropertyName;
 	}
 
 	public Transition getTransition() {
@@ -116,6 +137,10 @@ public class Link {
 
 	public String getHref() {
 		return href;
+	}
+	
+	public String getSourcePropertyName() {
+		return sourcePropertyName;
 	}
 
 	public String getLinkId() {
@@ -185,13 +210,17 @@ public class Link {
 		if (linkId != null) {
 			buf.append("; linkId=\"").append(linkId).append("\"");
 		}
+		
+		if (sourcePropertyName != null) {
+			buf.append("; sourcePropertyName=\"").append(sourcePropertyName).append("\"");
+		}
 		return buf.toString();
 	}
 
 	public boolean equals(Object other) {
-        if (this == other) {
-            return true;
-        }
+		if (this == other) {
+			return true;
+		}
 		if (other instanceof Link) {
 			Link otherLink = (Link) other;
 			return this.toString().equals(otherLink.toString());
@@ -214,6 +243,7 @@ public class Link {
 		private String[] consumes;
 		private MultivaluedMap<String, String> extensions;
 		private String linkId;
+		private String sourcePropertyName;
 
 		public Builder transition(Transition transition) {
 			this.transition = transition;
@@ -264,6 +294,11 @@ public class Link {
 			this.linkId = linkId;
 			return this;
 		}
+		
+		public Builder sourcePropertyName(String sourcePropertyName) {
+			this.sourcePropertyName = sourcePropertyName;
+			return this;
+		}
 
 		public Link build() {
 			return new Link(this);
@@ -285,6 +320,6 @@ public class Link {
 		} else {
 			this.linkId = builder.linkId;
 		}
-		
+		this.sourcePropertyName = builder.sourcePropertyName;
 	}
 }

@@ -150,9 +150,19 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 				solrServer = testEntity2SolrServer;
 			}
 		} else {
+		    
+		    // TODO The following 4 lines, and the URL built with 'comapnyName', are a temporary work round to RTC1671119.
+		    // TODO Once expected behavior is understood feel free to remove this.
+		    String companyName = ctx.getPathParameters().getFirst("companyid");  
+		    if (null == companyName) { 
+	           throw new InteractionException(Status.BAD_REQUEST, "Search called with no company string.");  
+		    }  
+
 			// Connect to an external SOLR server
 			try {
-				URL coreURL = new URL(solrRootURL + "/" + coreName);
+			    URL coreURL = new URL(solrRootURL + "/" +  companyName + "_" + coreName);
+				// URL coreURL = new URL(solrRootURL + "/" + coreName);
+			    
 				logger.info("Connecting to external Solr server " + coreURL + ".");
 				solrServer = new HttpSolrServer(coreURL.toString());
 			} catch (MalformedURLException e) {

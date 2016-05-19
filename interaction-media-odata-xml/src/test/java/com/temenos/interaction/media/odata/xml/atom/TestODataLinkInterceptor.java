@@ -41,6 +41,9 @@ import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.RESTResource;
+import org.mockito.Mockito;
+import org.odata4j.format.xml.XmlFormatWriter;
+
 
 public class TestODataLinkInterceptor {
 
@@ -383,7 +386,7 @@ public class TestODataLinkInterceptor {
 
 	@Test
 	/*
-	 * When two links have the same rel and the same href we should remove all but the first link
+	 * When two links have the same rel, id and href we should remove all but the first link
 	 */
 	public void testLinkRemoveDuplicates() {
 		ResourceState sourceState = createMockResourceState("account", "Account", false);
@@ -392,6 +395,7 @@ public class TestODataLinkInterceptor {
 		when(targetStateUpdate.getName()).thenReturn("FundsTransfers_new");
 		when(targetStateUpdate.getEntityName()).thenReturn("FundsTransfer");
 		when(targetStateUpdate.getRel()).thenReturn("edit");
+		when(targetStateUpdate.getId()).thenReturn("id");
 		Transition editTransition = createMockTransition(
 				sourceState, 
 				targetStateUpdate);
@@ -401,6 +405,7 @@ public class TestODataLinkInterceptor {
 		when(targetStateDelete.getName()).thenReturn("FundsTransfers_delete");
 		when(targetStateDelete.getEntityName()).thenReturn("FundsTransfer");
 		when(targetStateDelete.getRel()).thenReturn("edit");
+		when(targetStateDelete.getId()).thenReturn("id");
 		Transition edit2Transition = createMockTransition(
 				sourceState, 
 				targetStateDelete);
@@ -412,11 +417,55 @@ public class TestODataLinkInterceptor {
 		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
 		RESTResource mockResource = mock(RESTResource.class);
 		when(mockResource.getLinks()).thenReturn(mockLinks);
-		
+
 		Link resultEdit = linkInterceptor.addingLink(mockResource, editLink);
 		assertEquals("edit", resultEdit.getRel());
+
+		// Because it has same rel, id and href second link should not be present.
 		Link resultEdit2 = linkInterceptor.addingLink(mockResource, edit2Link);
 		assertNull(resultEdit2);
+	}
+	
+	@Test
+	/*
+	 * When two links have the same rel and href but different id we should NOT remove all but the first link
+	 */
+	public void testLinkNoRemoveNonDuplicates() {
+		ResourceState sourceState = createMockResourceState("account", "Account", false);
+		// edit
+		ResourceState targetStateUpdate = mock(ResourceState.class);
+		when(targetStateUpdate.getName()).thenReturn("FundsTransfers_new");
+		when(targetStateUpdate.getEntityName()).thenReturn("FundsTransfer");
+		when(targetStateUpdate.getRel()).thenReturn("aRelation");
+		when(targetStateUpdate.getId()).thenReturn("id");
+		Transition editTransition = createMockTransition(
+			sourceState, 
+			targetStateUpdate);
+		Link editLink = new Link(editTransition, editTransition.getTarget().getRel(), "/FundsTransfers('123')", HttpMethod.POST);
+		// edit2
+		ResourceState targetStateDelete = mock(ResourceState.class);
+		when(targetStateDelete.getName()).thenReturn("FundsTransfers_delete");
+		when(targetStateDelete.getEntityName()).thenReturn("FundsTransfer");
+		when(targetStateDelete.getRel()).thenReturn("aRelation");
+		when(targetStateDelete.getId()).thenReturn("anotherId");
+		Transition edit2Transition = createMockTransition(
+			sourceState, 
+			targetStateDelete);
+		Link edit2Link = new Link(edit2Transition, edit2Transition.getTarget().getRel(), "/FundsTransfers('123')", HttpMethod.DELETE);
+
+		List<Link> mockLinks = new ArrayList<Link>();
+		mockLinks.add(editLink);
+		mockLinks.add(edit2Link);
+		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
+		RESTResource mockResource = mock(RESTResource.class);
+		when(mockResource.getLinks()).thenReturn(mockLinks);
+
+		Link resultEdit = linkInterceptor.addingLink(mockResource, editLink);
+		assertEquals("aRelation", resultEdit.getRel());
+
+		// Because it has a different id second link should be present.
+		Link resultEdit2 = linkInterceptor.addingLink(mockResource, edit2Link);
+		assertEquals("aRelation", resultEdit2.getRel());
 	}
 
 	@Test
@@ -516,14 +565,177 @@ public class TestODataLinkInterceptor {
 		Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET));
 		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", result.getRel());
 	}
+	
+	@Test
+	public void testLinkWithSourcePropertyNamePresent() {
+	    Transition t = createMockTransition(
+                createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true), 
+                createMockResourceState("FundsTransfersIHold", "FundsTransfer", true));
+
+        ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
+        Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET, "SourcePropertyName"));
+        assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfer_SourcePropertyName/FundsTransfers", result.getRel());
+	}
+	
+	@Test
+    public void testLinkWithSourcePropertyNameSetToNull() {
+        Transition t = createMockTransition(
+                createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true), 
+                createMockResourceState("FundsTransfersIHold", "FundsTransfer", true));
+
+        ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
+        Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET, null));
+        assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", result.getRel());
+    }
+	
+	@Test
+    public void testLinkRelCreationWithRelNotProvided() {
+        Transition t = createMockTransition(
+                createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true), 
+                createMockCollectionResourceStateWithRel("FundsTransfersIHold", "FundsTransfer", null));
+
+        ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
+        Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET, null));
+        assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", result.getRel());
+    }
+	
+	@Test
+    public void testLinkRelCreationWithRelPartiallyProvided() {
+        String targetRel = "http://temenostech.com/ado/2007/08/TARGET";
+        String[] rels = new String[]{targetRel};
+        Transition t = createMockTransition(
+                createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true), 
+                createMockCollectionResourceStateWithRel("FundsTransfersIHold", "FundsTransfer", rels));
+
+        ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
+        Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET, null));
+        assertEquals(targetRel, result.getRel());
+    }
+	
+	@Test
+	public void testLinkRelCreationWithRelFullyProvided() {
+	    String descriptionRel = XmlFormatWriter.related + "DESCRIPTION";
+	    String targetRel = "http://temenostech.com/ado/2007/08/TARGET";
+	    String[] rels = new String[]{descriptionRel, targetRel};
+	    Transition t = createMockTransition(
+                createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true), 
+                createMockCollectionResourceStateWithRel("FundsTransfersIHold", "FundsTransfer", rels));
+
+        ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
+        Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET, null));
+        assertEquals(descriptionRel + " " + targetRel, result.getRel());
+	}
+	
+	@Test
+    public void testLinkRelCreationWithRelProvidedForMultivalue() {
+        String descriptionRel = XmlFormatWriter.related + "/DESCRIPTION";
+        String targetRel = "http://temenostech.com/ado/2007/08/TARGET";
+        String[] rels = new String[]{descriptionRel, targetRel};
+        Transition t = createMockTransition(
+                createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true), 
+                createMockCollectionResourceStateWithRel("FundsTransfersIHold", "FundsTransfer", rels));
+
+        ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
+        Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET, "SourcePropertyName"));
+        assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfer_SourcePropertyName/FundsTransfers " + targetRel, result.getRel());
+    }
+	
+	@Test
+    public void testLinkRelCreationWithRelNotProvidedForMultivalue() {
+        Transition t = createMockTransition(
+                createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true), 
+                createMockCollectionResourceStateWithRel("FundsTransfersIHold", "FundsTransfer", null));
+
+        ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
+        Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET, "SourcePropertyName"));
+        assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfer_SourcePropertyName/FundsTransfers", result.getRel());
+    }
+
+	@Test
+	public void testGetODataLinkRelation() {
+		checkODataLinkRelationRetrieval(new Link(null,null,"something",null,null,null,null,null), "test", "something");
+
+		String descriptionRel = XmlFormatWriter.related + "/DESCRIPTION";
+		String targetRel = "http://temenostech.com/ado/2007/08/TARGET";
+
+		//From ResourceState to CollectionResourceState - No SourcePropertyName
+		Transition transitionMock = createMockTransition(
+				createMockResourceState("FundsTransfersIAuth", "SourceFundsTransfer", true),
+				createMockCollectionResourceStateWithRel("FundsTransfersIHold", "TargetFundsTransfer", null));
+		checkODataLinkRelationRetrieval(transitionMock, null, targetRel, "test", targetRel);
+		checkODataLinkRelationRetrieval(transitionMock, null, descriptionRel, "test", descriptionRel);
+		checkODataLinkRelationRetrieval(transitionMock, null, targetRel + " " + descriptionRel, "test", targetRel + " " + descriptionRel);
+		checkODataLinkRelationRetrieval(transitionMock, null, "item", "test", XmlFormatWriter.related + "test");
+		checkODataLinkRelationRetrieval(transitionMock, null, "collection", "test", XmlFormatWriter.related + "test");
+		checkODataLinkRelationRetrieval(transitionMock, null, "self", "test", "self");
+		checkODataLinkRelationRetrieval(transitionMock, null, "", "", XmlFormatWriter.related);
+
+		//From ResourceState to CollectionResourceState - SourcePropertyName provided
+		checkODataLinkRelationRetrieval(transitionMock, "sev", targetRel, "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/test " + targetRel);
+		checkODataLinkRelationRetrieval(transitionMock, "sev", descriptionRel, "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/test");
+		checkODataLinkRelationRetrieval(transitionMock, "sev", targetRel + " " + descriptionRel, "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/test " + targetRel);
+		checkODataLinkRelationRetrieval(transitionMock, "sev", "item", "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/test");
+		checkODataLinkRelationRetrieval(transitionMock, "sev", "collection", "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/test");
+		checkODataLinkRelationRetrieval(transitionMock, "sev", "self", "test", "self");
+		checkODataLinkRelationRetrieval(transitionMock, "sev", "", "", XmlFormatWriter.related + "SourceFundsTransfer_sev/");
+
+		//From ResourceState to ResourceState - No SourcePropertyName and source same as target
+		transitionMock = createMockTransition(
+				createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true),
+				createMockResourceState("FundsTransfersIHold", "FundsTransfer", false));
+
+		checkODataLinkRelationRetrieval(transitionMock, null, targetRel, "test", targetRel);
+		checkODataLinkRelationRetrieval(transitionMock, null, descriptionRel, "test", descriptionRel);
+		checkODataLinkRelationRetrieval(transitionMock, null, targetRel + " " + descriptionRel, "test", targetRel + " " + descriptionRel);
+		checkODataLinkRelationRetrieval(transitionMock, null, "item", "test", "self");
+		checkODataLinkRelationRetrieval(transitionMock, null, "collection", "test", "self");
+		checkODataLinkRelationRetrieval(transitionMock, null, "self", "test", "self");
+
+		//From ResourceState to ResourceState - No SourcePropertyName and source different from target
+		transitionMock = createMockTransition(
+				createMockResourceState("FundsTransfersIAuth", "SourceFundsTransfer", false),
+				createMockResourceState("FundsTransfersIHold", "TargetFundsTransfer", false));
+		checkODataLinkRelationRetrieval(transitionMock, null, targetRel, "test", targetRel);
+		checkODataLinkRelationRetrieval(transitionMock, null, descriptionRel, "test", descriptionRel);
+		checkODataLinkRelationRetrieval(transitionMock, null, targetRel + " " + descriptionRel, "test", targetRel + " " + descriptionRel);
+		checkODataLinkRelationRetrieval(transitionMock, null, "item", "test", XmlFormatWriter.related + "TargetFundsTransfer");
+		checkODataLinkRelationRetrieval(transitionMock, null, "collection", "test", XmlFormatWriter.related + "TargetFundsTransfer");
+		checkODataLinkRelationRetrieval(transitionMock, null, "self", "test", "self");
+		
+		//From ResourceState to ResourceState - SourcePropertyName provided and source different from target
+		transitionMock = createMockTransition(
+				createMockResourceState("FundsTransfersIAuth", "SourceFundsTransfer", false),
+				createMockResourceState("FundsTransfersIHold", "TargetFundsTransfer", false));
+		checkODataLinkRelationRetrieval(transitionMock, "sev", targetRel, "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/TargetFundsTransfer " + targetRel);
+		checkODataLinkRelationRetrieval(transitionMock, "sev", descriptionRel, "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/TargetFundsTransfer");
+		checkODataLinkRelationRetrieval(transitionMock, "sev", targetRel + " " + descriptionRel, "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/TargetFundsTransfer " + targetRel);
+		checkODataLinkRelationRetrieval(transitionMock, "sev", "item", "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/TargetFundsTransfer");
+		checkODataLinkRelationRetrieval(transitionMock, "sev", "collection", "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/TargetFundsTransfer");
+		checkODataLinkRelationRetrieval(transitionMock, "sev", "self", "test", "self");
+	}
+
+	private void checkODataLinkRelationRetrieval(Transition transition, String sourcePropertyName, String rel, String entitySetName, String expected) {
+		checkODataLinkRelationRetrieval(new Link(transition, rel, null, null, sourcePropertyName), entitySetName, expected);
+	}
+
+	private void checkODataLinkRelationRetrieval(Link link, String entitySetName, String expected) {
+		ODataLinkInterceptor oDataLinkInterceptor = new ODataLinkInterceptor(null);
+		String result = oDataLinkInterceptor.getODataLinkRelation(link, entitySetName);
+		assertEquals(expected, result);
+	}
 
 	private ResourceState createMockResourceState(String name, String entityName, boolean isCollection) {
-		ResourceState state = null;
-		if (isCollection) {
-			state = new CollectionResourceState(entityName, name, new ArrayList<Action>(), "/"+name);
-		} else {
-			state = new ResourceState(entityName, name, new ArrayList<Action>(), "/"+name);
-		}
+        ResourceState state = null;
+        if (isCollection) {
+            state = new CollectionResourceState(entityName, name, new ArrayList<Action>(), "/"+name);
+        } else {
+            state = new ResourceState(entityName, name, new ArrayList<Action>(), "/"+name);
+        }
+        return state; 
+    }
+	
+	private ResourceState createMockCollectionResourceStateWithRel(String name, String entityName, String[] rels) {
+	    ResourceState state = new CollectionResourceState(entityName, name, new ArrayList<Action>(), "/"+name, rels , null);
 		return state; 
 	}
 
@@ -534,5 +746,4 @@ public class TestODataLinkInterceptor {
 		builder.method("GET");
 		return builder.build();
 	}
-
 }

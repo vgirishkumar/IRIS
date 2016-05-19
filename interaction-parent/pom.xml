@@ -4,7 +4,7 @@
 
 	<groupId>com.temenos.interaction</groupId>
 	<artifactId>interaction-parent</artifactId>
-	<version>0.9.0-SNAPSHOT</version>
+	<version>0.10.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>interaction-parent</name>
 
@@ -47,6 +47,7 @@
 		<module>../useragent-examples/useragent-hal-inspector</module>
 		<module>../useragent-examples/useragent-swagger-ui</module>
 		<module>../useragent-examples/useragent-javascript-tester</module>
+		<module>../useragent-generic-java</module>
 		<module>../interaction-examples/interaction-hateoas-simple</module>
 		<module>../interaction-examples/interaction-hateoas-banking</module>
 		<module>../interaction-examples/interaction-hateoas-dynamic</module>
@@ -386,8 +387,8 @@
 			</dependency>
 			<dependency>
 				<groupId>javax.servlet</groupId>
-				<artifactId>servlet-api</artifactId>
-				<version>2.5</version>
+				<artifactId>javax.servlet-api</artifactId>
+				<version>3.0.1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.eclipse.persistence</groupId>
