@@ -598,5 +598,66 @@ public class TestTransition {
 		.build();		
 		
 		assertTrue(t.equals(t2));		
-	}	
+	}
+	
+	@Test
+    public void testSourceField() {
+        Transition.Builder tba = new Transition.Builder();
+        tba.sourceField("A");
+        Transition ta = tba.build();
+        assertEquals("A", ta.getSourceField());
+        Transition.Builder tbb = new Transition.Builder();
+        tbb.sourceField("B");
+        Transition tb = tbb.build();
+        assertEquals("B", tb.getSourceField());
+    }
+    
+    @Test  
+    public void testEqualitySourceField() {
+        ResourceState begin = new ResourceState("entity", "collection", new ArrayList<Action>(), "/");
+        ResourceState exists = new ResourceState("entity", "onetype", new ArrayList<Action>(), "{id}");
+        
+        Transition t = new Transition.Builder()
+            .source(begin)
+            .target(exists)
+            .sourceField("source")
+            .build();
+        
+        Transition t2 = new Transition.Builder()
+            .source(begin)
+            .target(exists)
+            .sourceField("source")
+            .build();
+        
+        assertTrue(t.equals(t2));
+        assertTrue(t.hashCode() == t2.hashCode());     
+        
+        t = new Transition.Builder()
+            .source(begin)
+            .target(exists)
+            .sourceField("source")
+            .build();   
+
+        t2 = new Transition.Builder()
+            .source(begin)
+            .target(exists)
+            .sourceField(null)
+            .build();
+    
+        assertFalse(t.equals(t2));
+        
+        t = new Transition.Builder()
+        .source(begin)
+        .target(exists)
+        .sourceField("sourceF1")
+        .build();   
+
+        t2 = new Transition.Builder()
+        .source(begin)
+        .target(exists)
+        .sourceField("sourceF2")
+        .build();      
+        
+        assertFalse(t.equals(t2));       
+    }
 }
