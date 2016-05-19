@@ -341,7 +341,6 @@ class RIMDslGenerator implements IGenerator {
                     .uriParameters(uriLinkageProperties)
                     .evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
                     .label("«getTransitionLabel(transition)»")
-                    .sourceField("«getTransitionSourceField(transition)»")
                     .build());
 	'''
 	
@@ -360,7 +359,6 @@ class RIMDslGenerator implements IGenerator {
                     .evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
                     .label("«getTransitionLabel(transition)»")
                     .linkId("«getTransitionLinkId(transition)»")
-                    .sourceField("«getTransitionSourceField(transition)»")
                     .build());
     '''
     		
@@ -376,7 +374,6 @@ class RIMDslGenerator implements IGenerator {
                     .target(«findTargetState(fromState, transition)»)
                     .uriParameters(uriLinkageProperties)
                     .evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
-                    .sourceField("«getTransitionSourceField(transition)»")
                     .build());
     '''
 
@@ -392,7 +389,6 @@ class RIMDslGenerator implements IGenerator {
                     .target(«findTargetState(fromState, transition)»)
                     .uriParameters(uriLinkageProperties)
                     .evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
-                    .sourceField("«getTransitionSourceField(transition)»")
                     .build());
     '''
 
@@ -410,7 +406,6 @@ class RIMDslGenerator implements IGenerator {
                     .uriParameters(uriLinkageProperties)
                     .evaluation(conditionalLinkExpressions != null ? new SimpleLogicalExpressionEvaluator(conditionalLinkExpressions) : null)
                     .label(«if (transition.spec != null && transition.spec.title != null) { "\"" + transition.spec.title.name + "\"" } else { "\"" + transition.state.name + "\"" }»)
-                    .sourceField("«getTransitionSourceField(transition)»")
                     .build());
     '''
 
@@ -457,10 +452,6 @@ class RIMDslGenerator implements IGenerator {
     
     def static getTransitionLinkId(TransitionRef transition) {
     	return if (transition.spec != null && transition.spec.id != null && transition.spec.id.name.length() > 0) { transition.spec.id.name } else { null }
-    }
-    
-    def static getTransitionSourceField(TransitionRef transition) {
-        return if (transition.spec != null && transition.spec.field != null && transition.spec.field.name != null && transition.spec.field.name.length() > 0) { transition.spec.field.name } else { null }
     }
     
     def findTargetState(State fromState, TransitionRef transition) {

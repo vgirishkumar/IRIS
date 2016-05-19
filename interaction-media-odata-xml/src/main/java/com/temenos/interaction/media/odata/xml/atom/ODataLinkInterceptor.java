@@ -157,8 +157,8 @@ public class ODataLinkInterceptor implements LinkInterceptor {
 	}
 
 	private String resolveRelationIdentifier(Link link, String entitySetName) {
-		if (link.getSourceField() != null) {
-			return link.getSourceField() + "/" + entitySetName;
+		if (link.getSourcePropertyName() != null) {//For multivalue drilldown collection resource
+			return link.getTransition().getSource().getEntityName() + "_" + link.getSourcePropertyName() + "/" + entitySetName;
 		}
 		return entitySetName;
 	}
@@ -170,7 +170,7 @@ public class ODataLinkInterceptor implements LinkInterceptor {
 		if (link.getRel().equals("item") || link.getRel().equals("collection") || link.getRel().isEmpty()) {
 			return false;
 		}
-		if (link.getTransition() == null || (link.getSourceField() == null)) {
+		if (link.getTransition() == null || (link.getSourcePropertyName() == null)) {
 			return true;
 		}
 		return false;
