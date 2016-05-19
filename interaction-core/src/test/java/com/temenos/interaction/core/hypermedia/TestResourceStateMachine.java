@@ -2484,7 +2484,7 @@ public class TestResourceStateMachine {
         Collections.sort(sortedLinks, new Comparator<Link>() {
             @Override
             public int compare(Link o1, Link o2) {
-                return o1.getSourcePropertyName().compareTo(o2.getSourcePropertyName());
+                return o1.getHref().compareTo(o2.getHref());
             }            
         });
         assertEquals("/baseuri/contact()?filter=Id+eq+'johnEmailAddr'", sortedLinks.get(0).getHref());
@@ -2540,7 +2540,7 @@ public class TestResourceStateMachine {
         Collections.sort(sortedLinks, new Comparator<Link>() {
             @Override
             public int compare(Link o1, Link o2) {
-                return o1.getSourcePropertyName().compareTo(o2.getSourcePropertyName());
+                return o1.getHref().compareTo(o2.getHref());
             }            
         });
         
@@ -2591,7 +2591,7 @@ public class TestResourceStateMachine {
         Collections.sort(sortedLinks, new Comparator<Link>() {
             @Override
             public int compare(Link o1, Link o2) {
-                return o1.getSourcePropertyName().compareTo(o2.getSourcePropertyName());
+                return o1.getHref().compareTo(o2.getHref());
             }            
         });
         assertEquals("/baseuri/contact()?filter=Name+eq+John+and+Id+eq+'johnEmailAddr'", sortedLinks.get(0).getHref());
