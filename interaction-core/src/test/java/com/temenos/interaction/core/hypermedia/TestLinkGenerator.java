@@ -29,6 +29,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -325,7 +327,175 @@ public class TestLinkGenerator {
         assertEquals("/baseuri/contact()?test=smithEmailAddr", result.getHref());
         assertEquals("collection", result.getRel());
     }
+    
+    @Test
+    public void testTransitionFieldLabelInParams()
+    {
+        Link result = null;
+        Map<String,String> uriParameters = new HashMap<String,String>();
+        uriParameters.put("test", "{Contact.Email}");
+        CollectionResourceState customerState = new CollectionResourceState("customer", "customer", new ArrayList<Action>(), "/customer()", null, null);
+        CollectionResourceState contactState = new CollectionResourceState("contact", "contact", new ArrayList<Action>(), "/contact()", null, null);
+        Transition transition = new Transition.Builder().method("GET").target(contactState).uriParameters(uriParameters).flags(Transition.FOR_EACH).sourceField("Contact.Email").build();
+        customerState.addTransition(transition);
+        OCollection<?> contactColl = OCollections.newBuilder(null)
+                .add(createComplexObject("Email","johnEmailAddr","Tel","12345"))
+                .add(createComplexObject("Email","smithEmailAddr","Tel","66778")).build();
+        ResourceStateMachine engine = new ResourceStateMachine(customerState, getOEntityTransformer(contactColl));
 
+        OProperty<?> contactProp =  OProperties.collection("customer_Contact", null, contactColl);
+        List<OProperty<?>> contactPropList = new ArrayList<OProperty<?>>();
+        contactPropList.add(contactProp);
+        OEntity entity = OEntities.createRequest(EdmEntitySet.newBuilder().build(), contactPropList, null);
+        Transition t = customerState.getTransitions().get(0);
+        LinkGenerator linkGenerator = new LinkGeneratorImpl(engine, t, null);
+        Collection<Link> links = linkGenerator.createLink(null, null, entity);
+        Iterator<Link> iterator = links.iterator();
+
+        assertEquals(2, links.size());
+
+        result = iterator.next();
+        assertEquals("/baseuri/contact()?test=johnEmailAddr", result.getHref());
+        assertEquals("collection", result.getRel());
+        assertEquals("customer_Contact(0).Email", result.getSourceField());
+
+        result = iterator.next();
+        assertEquals("/baseuri/contact()?test=smithEmailAddr", result.getHref());
+        assertEquals("collection", result.getRel());
+        assertEquals("customer_Contact(1).Email", result.getSourceField());
+    }
+    
+    @Test
+    public void testTransitionFieldLabelParentInParams()
+    {
+        Link result = null;
+        Map<String,String> uriParameters = new HashMap<String,String>();
+        uriParameters.put("test", "{Contact.Email}");
+        CollectionResourceState customerState = new CollectionResourceState("customer", "customer", new ArrayList<Action>(), "/customer()", null, null);
+        CollectionResourceState contactState = new CollectionResourceState("contact", "contact", new ArrayList<Action>(), "/contact()", null, null);
+        Transition transition = new Transition.Builder().method("GET").target(contactState).uriParameters(uriParameters).flags(Transition.FOR_EACH).sourceField("Contact.Tel").build();
+        customerState.addTransition(transition);
+        OCollection<?> contactColl = OCollections.newBuilder(null)
+                .add(createComplexObject("Email","johnEmailAddr","Tel","12345"))
+                .add(createComplexObject("Email","smithEmailAddr","Tel","66778")).build();
+        ResourceStateMachine engine = new ResourceStateMachine(customerState, getOEntityTransformer(contactColl));
+
+        OProperty<?> contactProp =  OProperties.collection("customer_Contact", null, contactColl);
+        List<OProperty<?>> contactPropList = new ArrayList<OProperty<?>>();
+        contactPropList.add(contactProp);
+        OEntity entity = OEntities.createRequest(EdmEntitySet.newBuilder().build(), contactPropList, null);
+        Transition t = customerState.getTransitions().get(0);
+        LinkGenerator linkGenerator = new LinkGeneratorImpl(engine, t, null);
+        Collection<Link> links = linkGenerator.createLink(null, null, entity);
+        Iterator<Link> iterator = links.iterator();
+
+        assertEquals(2, links.size());
+
+        result = iterator.next();
+        assertEquals("/baseuri/contact()?test=johnEmailAddr", result.getHref());
+        assertEquals("collection", result.getRel());
+        assertEquals("customer_Contact(0).Tel", result.getSourceField());
+
+        result = iterator.next();
+        assertEquals("/baseuri/contact()?test=smithEmailAddr", result.getHref());
+        assertEquals("collection", result.getRel());
+        assertEquals("customer_Contact(1).Tel", result.getSourceField());
+    }
+    
+    @Test
+    public void testTransitionFieldLabelParentInParamsMissingOneFieldLabel()
+    {
+        Link result = null;
+        Map<String,String> uriParameters = new HashMap<String,String>();
+        uriParameters.put("test", "{Contact.Email}");
+        CollectionResourceState customerState = new CollectionResourceState("customer", "customer", new ArrayList<Action>(), "/customer()", null, null);
+        CollectionResourceState contactState = new CollectionResourceState("contact", "contact", new ArrayList<Action>(), "/contact()", null, null);
+        Transition transition = new Transition.Builder().method("GET").target(contactState).uriParameters(uriParameters).flags(Transition.FOR_EACH).sourceField("Contact.Tel").build();
+        customerState.addTransition(transition);
+        OCollection<?> contactColl = OCollections.newBuilder(null)
+                .add(createComplexObject("Email","johnEmailAddr","Tel","12345"))
+                .add(createComplexObject("Email","smithEmailAddr")).build();
+        ResourceStateMachine engine = new ResourceStateMachine(customerState, getOEntityTransformer(contactColl));
+
+        OProperty<?> contactProp =  OProperties.collection("customer_Contact", null, contactColl);
+        List<OProperty<?>> contactPropList = new ArrayList<OProperty<?>>();
+        contactPropList.add(contactProp);
+        OEntity entity = OEntities.createRequest(EdmEntitySet.newBuilder().build(), contactPropList, null);
+        Transition t = customerState.getTransitions().get(0);
+        LinkGenerator linkGenerator = new LinkGeneratorImpl(engine, t, null);
+        Collection<Link> links = linkGenerator.createLink(null, null, entity);
+        Iterator<Link> iterator = links.iterator();
+
+        assertEquals(2, links.size());
+
+        result = iterator.next();
+        assertEquals("/baseuri/contact()?test=johnEmailAddr", result.getHref());
+        assertEquals("collection", result.getRel());
+        assertEquals("customer_Contact(0).Tel", result.getSourceField());
+        
+        result = iterator.next();
+        assertEquals("/baseuri/contact()?test=smithEmailAddr", result.getHref());
+        assertEquals("collection", result.getRel());
+        assertEquals(null, result.getSourceField());
+    }
+    
+    @Test
+    public void testTransitionFieldLabelNotInParams()
+    {
+        Link result = null;
+        Map<String,String> uriParameters = new HashMap<String,String>();
+        uriParameters.put("test", "{Contact.Email}");
+        CollectionResourceState customerState = new CollectionResourceState("customer", "customer", new ArrayList<Action>(), "/customer()", null, null);
+        CollectionResourceState contactState = new CollectionResourceState("contact", "contact", new ArrayList<Action>(), "/contact()", null, null);
+        Transition transition = new Transition.Builder().method("GET").target(contactState).uriParameters(uriParameters).flags(Transition.FOR_EACH).sourceField("Customer.Name").build();
+        customerState.addTransition(transition);
+        OCollection<?> contactColl = OCollections.newBuilder(null)
+                .add(createComplexObject("Email","johnEmailAddr","Tel","12345"))
+                .add(createComplexObject("Email","smithEmailAddr","Tel","66778")).build();
+        
+        OCollection<?> customerColl = OCollections.newBuilder(null)
+                .add(createComplexObject("Name","Paul"))
+                .add(createComplexObject("Name","Andrew"))
+                .add(createComplexObject("Name","Jon")).build();
+        
+        Map<String, OCollection<?>> collectionMap = new HashMap<String, OCollection<?>>();
+        collectionMap.put("source_Contact", contactColl);
+        collectionMap.put("source_Customer", customerColl);
+        
+        ResourceStateMachine engine = new ResourceStateMachine(customerState, getOEntityTransformer(collectionMap));
+
+        OProperty<?> contactProp =  OProperties.collection("customer_Contact", null, contactColl);
+        OProperty<?> customerProp =  OProperties.collection("customer_Customer", null, contactColl);
+        List<OProperty<?>> entityPropList = new ArrayList<OProperty<?>>();
+        entityPropList.add(contactProp);
+        entityPropList.add(customerProp);
+        OEntity entity = OEntities.createRequest(EdmEntitySet.newBuilder().build(), entityPropList, null);
+        Transition t = customerState.getTransitions().get(0);
+        LinkGenerator linkGenerator = new LinkGeneratorImpl(engine, t, null);
+        Collection<Link> links = linkGenerator.createLink(null, null, entity);
+        
+        assertEquals(6, links.size());
+
+        sortLinkCollection((ArrayList<Link>)links); 
+        Iterator<Link> iterator = links.iterator();
+        
+        for(int i=0; i<3; i++)
+        {
+            result = iterator.next();
+            assertEquals("/baseuri/contact()?test=johnEmailAddr", result.getHref());
+            assertEquals("collection", result.getRel());
+            assertEquals("customer_Customer(" + i + ").Name", result.getSourceField());
+        }
+        
+        for(int i=0; i<3; i++)
+        {
+            result = iterator.next();
+            assertEquals("/baseuri/contact()?test=smithEmailAddr", result.getHref());
+            assertEquals("collection", result.getRel());
+            assertEquals("customer_Customer(" + i + ").Name", result.getSourceField());
+        }
+    }
+    
     private OComplexObject createComplexObject(String... values) {
         List<OProperty<?>> propertyList = new ArrayList<OProperty<?>>();
         for (int i=0; i<values.length; i+=2) {
@@ -339,6 +509,17 @@ public class TestLinkGenerator {
     private Transformer getOEntityTransformer(OCollection<?> collection) {
         Map<String, Object> entityProperties = new HashMap<String, Object>();
         entityProperties.put("source_Contact", collection);
+        Transformer transformerMock = mock(Transformer.class);
+        when(transformerMock.transform(anyObject())).thenReturn(entityProperties);
+        return transformerMock;
+    }
+    
+    private Transformer getOEntityTransformer(Map<String, OCollection<?>> collectionMap) {
+        Map<String, Object> entityProperties = new HashMap<String, Object>();
+        for(Map.Entry<String, OCollection<?>> entry : collectionMap.entrySet())
+        {
+            entityProperties.put(entry.getKey(), entry.getValue());
+        }
         Transformer transformerMock = mock(Transformer.class);
         when(transformerMock.transform(anyObject())).thenReturn(entityProperties);
         return transformerMock;
@@ -375,5 +556,14 @@ public class TestLinkGenerator {
         when(target.getName()).thenReturn(name);        
         return target;
     }
-
+    
+    private void sortLinkCollection(List<Link> links) {
+        Collections.sort(links, new Comparator<Link>() {
+            @Override
+            public int compare(Link link1, Link link2) {
+                int val = link1.getHref().compareTo(link2.getHref());
+                return val==0?link1.getSourceField().compareTo(link2.getSourceField()):val;
+            }
+        });
+    }
 }
