@@ -304,7 +304,7 @@ public class TestResourceStateMachine {
 		
 		ResourceStateMachine sm = new ResourceStateMachine(begin);
 		Map<String,Transition> transitions = sm.getTransitionsById();
-		assertEquals("Number of transistions", 3, transitions.size());
+		assertEquals("Number of transitions", 3, transitions.size());
 		assertNotNull(transitions.get(".begin>PUT>.exists"));
 		assertNotNull(transitions.get(".exists>PUT>.exists"));
 		assertNotNull(transitions.get(".exists>DELETE>.end"));
@@ -987,6 +987,43 @@ public class TestResourceStateMachine {
         assertEquals("Number of states", 0, stateMachine.getStates().size());
     }
     
+    /*
+     * Unregistering a null state shouldn't change the state of the machine
+     */
+    @Test
+    public void testUnregisterNullState() {
+        String entityName = "EN";
+        ResourceState A = new ResourceState(entityName, "A", new ArrayList<Action>(), "/A");
+        ResourceState B = new ResourceState(entityName, "B", new ArrayList<Action>(), "/B");
+
+        A.addTransition(new Transition.Builder().method("POST").target(B).build());
+
+        ResourceStateMachine stateMachine = new ResourceStateMachine(A);
+
+        // A can be reached by the POST method
+        assertEquals("Number of states", 2, stateMachine.getStates().size());
+        assertEquals("Number of transitions by id", 1, stateMachine.getTransitionsById().size());
+        assertEquals("Number of interactions by path", 2, stateMachine.getInteractionByPath().size());
+        assertEquals("Number of interactions by path A", 1, stateMachine.getInteractionByPath().get(A.getPath()).size());
+        assertEquals("Number of interactions by path B", 1, stateMachine.getInteractionByPath().get(B.getPath()).size());
+        assertEquals("Number of interactions by state", 2, stateMachine.getInteractionByState().size());
+        assertEquals("Number of interactions for state A", 1, stateMachine.getInteractionByState().get(A.getName()).size());
+        assertEquals("Number of interactions for state B", 1, stateMachine.getInteractionByState().get(B.getName()).size());
+
+        // try to unregister a null state
+        stateMachine.unregister(null, "GET");
+
+        // no changes should be detected
+        assertEquals("Number of states", 2, stateMachine.getStates().size());
+        assertEquals("Number of transitions by id", 1, stateMachine.getTransitionsById().size());
+        assertEquals("Number of interactions by path", 2, stateMachine.getInteractionByPath().size());
+        assertEquals("Number of interactions by path A", 1, stateMachine.getInteractionByPath().get(A.getPath()).size());
+        assertEquals("Number of interactions by path B", 1, stateMachine.getInteractionByPath().get(B.getPath()).size());
+        assertEquals("Number of interactions by state", 2, stateMachine.getInteractionByState().size());
+        assertEquals("Number of interactions for state A", 1, stateMachine.getInteractionByState().get(A.getName()).size());
+        assertEquals("Number of interactions for state B", 1, stateMachine.getInteractionByState().get(B.getName()).size());
+    }
+
 	@Test
 	public void testGetResourceStatesByPathRegex() {
 		String ENTITY_NAME = "";
