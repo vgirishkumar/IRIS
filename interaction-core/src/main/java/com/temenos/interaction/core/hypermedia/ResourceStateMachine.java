@@ -463,6 +463,8 @@ public class ResourceStateMachine {
      */
 	public synchronized void unregister(ResourceState state, String method) {
 
+	     if(state == null) return;
+
 		// don't do anything if the state is not registered
 		if(!resourceStatesByName.containsKey(state.getName())) return;
 
