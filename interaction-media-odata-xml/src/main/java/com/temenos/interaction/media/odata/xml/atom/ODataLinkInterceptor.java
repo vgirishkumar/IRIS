@@ -22,6 +22,7 @@ package com.temenos.interaction.media.odata.xml.atom;
  */
 
 
+import org.apache.commons.lang.StringUtils;
 import org.odata4j.format.xml.XmlFormatWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,6 +145,13 @@ public class ODataLinkInterceptor implements LinkInterceptor {
 			//Links from collection to entity resource of an entity are considered 'self' links within an odata feed
 			return "self";
 		}
+		
+		String oldTemenosRel = "http://www.temenos.com/rels";
+        if(relValue.contains(oldTemenosRel) && StringUtils.isNotBlank(link.getSourceField()))
+        {
+            String leafRel = relValue.substring(relValue.indexOf(oldTemenosRel) + oldTemenosRel.length()+1);
+            return getRelFromResourceState(link, leafRel, relValue);
+        }
 
 		if (link.getTransition().getTarget() instanceof CollectionResourceState) {
 			return getRelFromResourceState(link, entitySetName, relValue);
