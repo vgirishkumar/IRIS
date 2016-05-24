@@ -146,19 +146,23 @@ public class ODataLinkInterceptor implements LinkInterceptor {
 			return "self";
 		}
 		
-		String oldTemenosRel = "http://www.temenos.com/rels";
-        if(relValue.contains(oldTemenosRel) && StringUtils.isNotBlank(link.getSourceField()))
-        {
-            String leafRel = relValue.substring(relValue.indexOf(oldTemenosRel) + oldTemenosRel.length()+1);
-            return getRelFromResourceState(link, leafRel, relValue);
-        }
-
-		if (link.getTransition().getTarget() instanceof CollectionResourceState) {
-			return getRelFromResourceState(link, entitySetName, relValue);
-		} else {
-			return getRelFromResourceState(link, link.getTransition().getTarget().getEntityName(), relValue);
-		}
+		return getRelFromResourceState(link, getEntityName(link, entitySetName, relValue), relValue);
 	}
+	
+	private String getEntityName(Link link, String entitySetName, String relValue) {
+        //Hierarchical search of the entity name. Starting from inside the rel is it's available
+	    //following by the resolved metadata entity name for a collection resource
+	    //otherwise return the target entity name.
+	    String oldTemenosRel = "http://www.temenos.com/rels";
+	    if(relValue.contains(oldTemenosRel) && StringUtils.isNotBlank(link.getSourceField())) {
+	        return relValue.substring(relValue.indexOf(oldTemenosRel) + oldTemenosRel.length()+1);
+	    } else if (link.getTransition().getTarget() instanceof CollectionResourceState) {
+	        return entitySetName;
+	    } else {
+	        return link.getTransition().getTarget().getEntityName();
+	    }
+    }
+
 
 	private String getRelFromResourceState(Link link, String entitySetName, String relValue) {
 		return buildRel(XmlFormatWriter.related + resolveRelationIdentifier(link, entitySetName), relValue);
