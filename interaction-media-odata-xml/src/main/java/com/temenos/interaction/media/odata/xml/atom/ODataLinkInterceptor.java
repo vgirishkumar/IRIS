@@ -153,9 +153,9 @@ public class ODataLinkInterceptor implements LinkInterceptor {
         //Hierarchical search of the entity name. Starting from inside the rel is it's available
 	    //followed by the resolved metadata entity name for a collection resource
 	    //otherwise return the target entity name.
-	    String oldTemenosRel = "http://www.temenos.com/rels";
-	    if(relValue.contains(oldTemenosRel) && StringUtils.isNotBlank(link.getSourceField())) {
-	        return relValue.substring(relValue.indexOf(oldTemenosRel) + oldTemenosRel.length()+1);
+	    String rimResourceRelation = "http://www.temenos.com/rels";
+	    if(relValue.contains(rimResourceRelation) && StringUtils.isNotBlank(link.getSourceField())) {
+	        return relValue.substring(relValue.indexOf(rimResourceRelation) + rimResourceRelation.length()+1);
 	    } else if (link.getTransition().getTarget() instanceof CollectionResourceState) {
 	        return entitySetName;
 	    } else {
