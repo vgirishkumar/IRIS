@@ -711,6 +711,17 @@ public class TestODataLinkInterceptor {
         checkODataLinkRelationRetrieval(transitionMock, "SourceFundsTransfer_sev", "item", "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/TargetFundsTransfer");
         checkODataLinkRelationRetrieval(transitionMock, "SourceFundsTransfer_sev", "collection", "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/TargetFundsTransfer");
         checkODataLinkRelationRetrieval(transitionMock, "SourceFundsTransfer_sev", "self", "test", "self");
+        
+      //From ResourceState to ResourceState - field label provided using oldTemenosRel
+        transitionMock = createMockTransition(
+                createMockResourceState("FundsTransfersIAuth", "SourceFundsTransfer", false),
+                createMockResourceState("FundsTransfersIHold", "TargetFundsTransfer", false));
+        checkODataLinkRelationRetrieval(transitionMock, "SourceFundsTransfer_sev", "http://www.temenos.com/rels/leafVal", "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/leafVal http://www.temenos.com/rels/leafVal");
+        checkODataLinkRelationRetrieval(transitionMock, "SourceFundsTransfer_sev", "http://www.temenos.com/rels/leafVal", "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/leafVal http://www.temenos.com/rels/leafVal");
+        checkODataLinkRelationRetrieval(transitionMock, "SourceFundsTransfer_sev", "http://www.temenos.com/rels/leafVal" + " " + descriptionRel, "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/leafVal http://www.temenos.com/rels/leafVal");
+        checkODataLinkRelationRetrieval(transitionMock, "SourceFundsTransfer_sev", "item", "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/TargetFundsTransfer");
+        checkODataLinkRelationRetrieval(transitionMock, "SourceFundsTransfer_sev", "collection", "test", XmlFormatWriter.related + "SourceFundsTransfer_sev/TargetFundsTransfer");
+        checkODataLinkRelationRetrieval(transitionMock, "SourceFundsTransfer_sev", "self", "test", "self");
     }
 
     private void checkODataLinkRelationRetrieval(Transition transition, String fieldLabel, String rel, String entitySetName, String expected) {

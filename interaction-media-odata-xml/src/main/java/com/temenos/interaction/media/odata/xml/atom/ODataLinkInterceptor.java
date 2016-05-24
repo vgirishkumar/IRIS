@@ -22,6 +22,7 @@ package com.temenos.interaction.media.odata.xml.atom;
  */
 
 
+import org.apache.commons.lang.StringUtils;
 import org.odata4j.format.xml.XmlFormatWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,13 +145,24 @@ public class ODataLinkInterceptor implements LinkInterceptor {
 			//Links from collection to entity resource of an entity are considered 'self' links within an odata feed
 			return "self";
 		}
-
-		if (link.getTransition().getTarget() instanceof CollectionResourceState) {
-			return getRelFromResourceState(link, entitySetName, relValue);
-		} else {
-			return getRelFromResourceState(link, link.getTransition().getTarget().getEntityName(), relValue);
-		}
+		
+		return getRelFromResourceState(link, getEntityName(link, entitySetName, relValue), relValue);
 	}
+	
+	private String getEntityName(Link link, String entitySetName, String relValue) {
+        //Hierarchical search of the entity name. Starting from inside the rel is it's available
+	    //followed by the resolved metadata entity name for a collection resource
+	    //otherwise return the target entity name.
+	    String rimResourceRelation = "http://www.temenos.com/rels";
+	    if(relValue.contains(rimResourceRelation) && StringUtils.isNotBlank(link.getSourceField())) {
+	        return relValue.substring(relValue.indexOf(rimResourceRelation) + rimResourceRelation.length()+1);
+	    } else if (link.getTransition().getTarget() instanceof CollectionResourceState) {
+	        return entitySetName;
+	    } else {
+	        return link.getTransition().getTarget().getEntityName();
+	    }
+    }
+
 
 	private String getRelFromResourceState(Link link, String entitySetName, String relValue) {
 		return buildRel(XmlFormatWriter.related + resolveRelationIdentifier(link, entitySetName), relValue);
