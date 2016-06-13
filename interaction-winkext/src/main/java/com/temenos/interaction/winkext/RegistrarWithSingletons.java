@@ -71,10 +71,7 @@ public class RegistrarWithSingletons extends Registrar implements RIMRegistratio
      * Using a ServiceRootFactory get a set of service roots to bind to this instance of wink.
      */
     public void setServiceRootFactory(ServiceRootFactory drs) {
-    	setServiceRoots(drs.getServiceRoots());
-    	
-    	// Allow for registration of new services after initialisation
-    	drs.setRIMRegistration(this);
+    	setServiceRoots(drs.getServiceRoots());    	
     }
         
     /**

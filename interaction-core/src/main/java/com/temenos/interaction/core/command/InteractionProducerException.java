@@ -33,15 +33,11 @@ import com.temenos.interaction.core.resource.EntityResource;
  * Interaction Producer exception.
  * This exception enables IRIS Producer to raise interaction producer error messages.  
  */
-public class InteractionProducerException extends ODataProducerException {
-	
-	/**
-	 * 
-	 */
+public class InteractionProducerException extends ODataProducerException {	
 	private static final long serialVersionUID = 1L;
-	private String entitySetName;
-	private EntityResource<?> entityResource;
-	private StatusType httpStatus;
+	private final String entitySetName;
+	private final EntityResource<?> entityResource;
+	private final StatusType httpStatus;
 
 	/**
 	 * @param error

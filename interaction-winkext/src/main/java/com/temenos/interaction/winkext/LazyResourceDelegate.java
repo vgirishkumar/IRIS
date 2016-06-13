@@ -4,7 +4,7 @@ package com.temenos.interaction.winkext;
  * #%L
  * interaction-winkext
  * %%
- * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
+ * Copyright (C) 2012 - 2016 Temenos Holdings N.V.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -20,7 +20,6 @@ package com.temenos.interaction.winkext;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -40,6 +39,7 @@ import org.apache.wink.common.model.multipart.InMultiPart;
 
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.hypermedia.MethodNotAllowedException;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
@@ -56,11 +56,8 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
 	private Metadata metadata;
 
 	private Map<String, Set<String>> resourceNamesToMethods = new HashMap<String, Set<String>>();
-	private String path = null;
-	
-	private HTTPHypermediaRIM realResource = null;
-
-	
+	private String path = null;	
+		
 	/**
 	 * The class binding an instance of a ResourceState to a path
 	 * @param hypermediaEngine registry of all resources
@@ -81,30 +78,6 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
 		this.resourceStateProvider = resourceStateProvider;
 		this.resourceNamesToMethods.put(resourceName, methods);
 		this.path = path;
-	}
-
-	HTTPHypermediaRIM getRealResource() {
-		// work out if a reload is required (could be more effecient here as every request goes through this loop)
-		boolean reload = false;
-		for (String resourceName : resourceNamesToMethods.keySet()) {
-			if (!resourceStateProvider.isLoaded(resourceName)) {
-				reload = true;
-			}			
-		}
-		
-		if (realResource == null || reload) {
-			for (String resourceName : resourceNamesToMethods.keySet()) {
-				ResourceState currentState = resourceStateProvider.getResourceState(resourceName);
-				for (String method : resourceNamesToMethods.get(resourceName)) {
-					if (reload) {
-						hypermediaEngine.unregister(currentState, method);
-					}
-					hypermediaEngine.register(currentState, method);
-				}
-			}
-			realResource = new HTTPHypermediaRIM(null, commandController, hypermediaEngine, metadata, path, false);
-		}
-		return realResource;
 	}
 	
 	public void addResource(String name, Set<String> newMethods) {
@@ -160,51 +133,132 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
     public HTTPResourceInteractionModel getParent() {
 		return null;
     }
+	
+	private HTTPHypermediaRIM getResource(UriInfo uriInfo, String httpMethod) throws MethodNotAllowedException {
+        ResourceState resourceState = resourceStateProvider.getResourceState(httpMethod, "/" + uriInfo.getPath());
+        
+        if(resourceState == null) {
+        	return null;
+        } else {
+            String stateName = resourceState.getName();
+            
+            boolean loaded = resourceStateProvider.isLoaded(stateName);
+            
+            if(!loaded) {
+                Map<String, Set<String>> stateNameToHttpMethods = resourceStateProvider.getResourceMethodsByState();
+                Set<String> httpMethods = stateNameToHttpMethods.get(stateName);
+
+                if(httpMethods == null) {
+                    // Load a "real" IRIS state
+                    hypermediaEngine.register(resourceState, httpMethod);                    
+                } else {
+                    for (String tmpHttpMethod : httpMethods) {
+                        // We're dealing with a lazy state - Unload placeholder state
+                        hypermediaEngine.unregister(resourceState, tmpHttpMethod);
+
+                        // Load a "real" IRIS state
+                        hypermediaEngine.register(resourceState, tmpHttpMethod);
+                    }                    
+                }
+            }
+        }
+        
+        return new HTTPHypermediaRIM(null, commandController, hypermediaEngine, metadata, resourceState.getPath(), false);        	    
+	}
 
 	@Override
-	public Response get(HttpHeaders headers, String id, UriInfo uriInfo) {
-		return getRealResource().get(headers, id, uriInfo);
+	public Response get(HttpHeaders headers, String id, UriInfo uriInfo) {		
+        try {
+			return getResource(uriInfo, "GET").get(headers, id, uriInfo);
+		} catch (MethodNotAllowedException e) {
+			return handleMethodNotAllowedException(e);			
+		}
 	}
 
 	@Override
 	public Response post(HttpHeaders headers, UriInfo uriInfo, InMultiPart inMP) {
-		return getRealResource().post(headers, uriInfo, inMP);
+	    
+		try {
+			return getResource(uriInfo, "POST").post(headers, uriInfo, inMP);
+		} catch (MethodNotAllowedException e) {
+			return handleMethodNotAllowedException(e);			
+		}
 	}	
 	
 	@Override
     public Response post( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, 
     		MultivaluedMap<String, String> formParams) {
-		return getRealResource().post(headers, id, uriInfo, formParams);
+		try {
+			return getResource(uriInfo, "POST").post(headers, id, uriInfo, formParams);
+		} catch (MethodNotAllowedException e) {
+			return handleMethodNotAllowedException(e);			
+		}
 	}
 
 	@Override
 	public Response post(HttpHeaders headers, String id, UriInfo uriInfo, EntityResource<?> eresource) {
-		return getRealResource().post(headers, id, uriInfo, eresource);
+        try {
+			return getResource(uriInfo, "POST").post(headers, id, uriInfo, eresource);
+		} catch (MethodNotAllowedException e) {
+			return handleMethodNotAllowedException(e);			
+		}
 	}
 	
 	@Override
 	public Response put(HttpHeaders headers, UriInfo uriInfo, InMultiPart inMP) {
-		return getRealResource().put(headers, uriInfo, inMP);
+		try {
+			return getResource(uriInfo, "PUT").put(headers, uriInfo, inMP);
+		} catch (MethodNotAllowedException e) {
+			return handleMethodNotAllowedException(e);			
+		}
 	}	
 
 	@Override
 	public Response put(HttpHeaders headers, String id, UriInfo uriInfo, EntityResource<?> eresource) {
-		return getRealResource().put(headers, id, uriInfo, eresource);
+		try {
+			return getResource(uriInfo, "PUT").put(headers, id, uriInfo, eresource);
+		} catch (MethodNotAllowedException e) {
+			return handleMethodNotAllowedException(e);			
+		}
+		
 	}
 
 	@Override
-	public Response delete(HttpHeaders headers, String id, UriInfo uriInfo) {
-		return getRealResource().delete(headers, id, uriInfo);
+	public Response delete(HttpHeaders headers, String id, UriInfo uriInfo) {	    
+		try {
+			return getResource(uriInfo, "DELETE").delete(headers, id, uriInfo);
+		} catch (MethodNotAllowedException e) {
+			return handleMethodNotAllowedException(e);			
+		}
+	}
+
+	private Response handleMethodNotAllowedException(MethodNotAllowedException e) {
+		StringBuilder allowHeader = new StringBuilder();
+		
+		Set<String> allowedMethods = new HashSet<String>(e.getAllowedMethods());
+		allowedMethods.add("HEAD");
+		allowedMethods.add("OPTIONS");
+		
+		for(String method: allowedMethods) {				
+			allowHeader.append(method);
+			allowHeader.append(", ");
+		}
+		
+		return Response.status(405).header("Allow", allowHeader.toString().substring(0, allowHeader.length() - 2)).build();
 	}
 
 	@Override
-	public Response options(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo) {
-		return getRealResource().options(headers, id, uriInfo);
+	public Response options(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo) {	    
+		try {
+			return getResource(uriInfo, "OPTIONS").options(headers, id, uriInfo);
+		} catch (MethodNotAllowedException e) {
+			return handleMethodNotAllowedException(e);			
+		}
 	}
-
+	
 	@Override
 	public ResourceState getCurrentState() {
-		return getRealResource().getCurrentState();
+		return null;
 	}
 
 	@Override

@@ -36,10 +36,10 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.ws.rs.Consumes;
@@ -67,7 +67,6 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.exceptions.NotFoundException;
-import org.odata4j.exceptions.ODataProducerException;
 import org.odata4j.format.Entry;
 import org.odata4j.format.xml.AtomEntryFormatParserExt;
 import org.odata4j.internal.InternalUtil;
@@ -75,8 +74,8 @@ import org.odata4j.producer.Responses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.core.UriInfoImpl;
 import com.temenos.interaction.core.ExtendedMediaTypes;
+import com.temenos.interaction.core.UriInfoImpl;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityProperties;
@@ -85,9 +84,9 @@ import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.BeanTransformer;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.DefaultResourceStateProvider;
-import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.HypermediaTemplateHelper;
 import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.MethodNotAllowedException;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
@@ -97,6 +96,7 @@ import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
+import com.temenos.interaction.core.rim.URLHelper;
 import com.temenos.interaction.core.web.RequestContext;
 import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
@@ -105,8 +105,8 @@ import com.temenos.interaction.odataext.entity.MetadataOData4j;
 @Produces({ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML})
 public class AtomXMLProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
 	private static final String UTF_8 = "UTF-8";
-	private final static Logger logger = LoggerFactory.getLogger(AtomXMLProvider.class);
-	private final static Pattern STRING_KEY_RESOURCE_PATTERN = Pattern.compile("(\\('.*'\\))");
+	private static final Logger logger = LoggerFactory.getLogger(AtomXMLProvider.class);
+	private static final Pattern STRING_KEY_RESOURCE_PATTERN = Pattern.compile("(\\('.*'\\))");
 
 	@Context
 	private UriInfo uriInfo;
@@ -118,10 +118,11 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	
 	private final MetadataOData4j metadataOData4j;
 	private final Metadata metadata;
-	private final ResourceStateProvider resourceStateProvider;
 	private final ResourceState serviceDocument;
 	private final Transformer transformer;
 	private final LinkInterceptor linkInterceptor = new ODataLinkInterceptor(this);
+
+    private ResourceStateProvider resourceStateProvider;	
 
 	/**
 	 * Construct the jax-rs Provider for OData media type.
@@ -441,23 +442,51 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			OEntityKey entityKey = null;
 
 			// work out the entity name using resource path from UriInfo
-			String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
-			String absoluteUri = AtomXMLProvider.getAbsolutePath(uriInfo);
-			logger.info("Reading atom xml content for [" + absoluteUri + "]");
-			String resourcePath = null;
-			StringBuffer regex = new StringBuffer("(?<=" + baseUri + ")\\S+");
-			Pattern p = Pattern.compile(regex.toString());
-			Matcher m = p.matcher(absoluteUri);
-			while (m.find()) {
-				resourcePath = m.group();
+			String absoluteUri = uriInfo.getAbsolutePath().toString();
+			
+			String resourcePath = absoluteUri.substring(uriInfo.getBaseUri().toString().length());
+			
+			ResourceState currentState = null;
+			
+			try {
+				currentState = getCurrentState(serviceDocument, resourcePath);
+			} catch (MethodNotAllowedException e1) {
+				StringBuilder allowHeader = new StringBuilder();
+				
+				Set<String> allowedMethods = new HashSet<String>(e1.getAllowedMethods());
+				allowedMethods.add("HEAD");
+				allowedMethods.add("OPTIONS");				
+				
+				for(String method: allowedMethods) {
+					allowHeader.append(method);
+					allowHeader.append(", ");
+				}
+				
+				Response response = Response.status(405).header("Allow", allowHeader.toString().substring(0, allowHeader.length() - 2)).build();
+				
+				throw new WebApplicationException(response);
 			}
-			if (resourcePath == null)
-				throw new IllegalStateException("No resource found");
-			ResourceState currentState = getCurrentState(serviceDocument, resourcePath);
+			
 			if (currentState == null)
 				throw new IllegalStateException("No state found");
 			String pathIdParameter = getPathIdParameter(currentState);
-			MultivaluedMap<String, String> pathParameters = uriInfo.getPathParameters();
+			
+			UriInfo tmpUriInfo = new UriInfoImpl(uriInfo);
+			String uriPath = uriInfo.getAbsolutePath().toString().substring(uriInfo.getBaseUri().toString().length());
+			
+			if(uriPath.charAt(0) == '/') {
+				uriPath = uriPath.substring(1);
+			}
+			
+			String statePath = currentState.getPath();
+			
+			if(statePath.charAt(0) == '/') {
+				statePath = statePath.substring(1);
+			}
+			
+			new URLHelper().extractPathParameters(tmpUriInfo, uriPath.split("/"), statePath.split("/"));
+			
+			MultivaluedMap<String, String> pathParameters = tmpUriInfo.getPathParameters();
 			if (pathParameters != null && pathParameters.getFirst(pathIdParameter) != null) {
 				if (STRING_KEY_RESOURCE_PATTERN.matcher(resourcePath).find()) {
 					entityKey = OEntityKey.create(pathParameters.getFirst(pathIdParameter));				
@@ -493,7 +522,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		}
 
 	}
-
+	
 	/*
 	 * Find the entity set name for this resource
 	 */
@@ -521,55 +550,17 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		return entitySetName;
 	}
 	
-	protected ResourceState getCurrentState(ResourceState serviceDocument, String resourcePath) {
+	protected ResourceState getCurrentState(ResourceState serviceDocument, String resourcePath) throws MethodNotAllowedException {
 		ResourceState state = null;
 		if (resourcePath != null) {
-			/*
-			 * add a leading '/' if it needs it (when defining resources we must use a 
-			 * full path, but requests can be relative, i.e. without a '/'
-			 */
-			if (!resourcePath.startsWith("/")) {
-				resourcePath = "/" + resourcePath;
+		    String tmpResourcePath = uriInfo.getAbsolutePath().toString().replaceFirst(uriInfo.getBaseUri().toString(), "");
+		    
+		    if(tmpResourcePath.charAt(0) != '/') {
+		        tmpResourcePath = '/' + tmpResourcePath;
 			}
-			// add service document path to resource path
-			String serviceDocumentPath = serviceDocument.getPath();
-			if (serviceDocumentPath.endsWith("/")) {
-				serviceDocumentPath = serviceDocumentPath.substring(0, serviceDocumentPath.lastIndexOf("/"));
-			}
-			resourcePath = serviceDocumentPath + resourcePath;
-			// turn the uri back into a template uri
-			MultivaluedMap<String, String> pathParameters = uriInfo.getPathParameters();
-			if (pathParameters != null) {
-				for (String key : pathParameters.keySet()) {
-					List<String> values = pathParameters.get(key);
-					for (String value : values) {
-						resourcePath = resourcePath.replace(value, "{" + key + "}");
-					}
-				}
-			}
-			String httpMethod = requestContext.getMethod();
-			Event event = new Event(httpMethod, httpMethod);
-			state = resourceStateProvider.determineState(event, resourcePath);
-
-			if (state == null) {
-				logger.warn("No state found, dropping back to path matching " + resourcePath);
-				// escape the braces in the regex
-				resourcePath = Pattern.quote(resourcePath);
-				Map<String, Set<String>> pathToResourceStates = resourceStateProvider.getResourceStatesByPath();
-				for (String path : pathToResourceStates.keySet()) {
-					for (String name : pathToResourceStates.get(path)) {
-						ResourceState s = resourceStateProvider.getResourceState(name);
-						String pattern = null;
-						if (s instanceof CollectionResourceState) {
-							pattern = resourcePath + "(|\\(\\))";
-							Matcher matcher = Pattern.compile(pattern).matcher(path);
-							if (matcher.matches()) {
-								state = s;
-							}
-						}
-					}
-				}
-			}
+		    		    
+		    
+		    state = resourceStateProvider.getResourceState(requestContext.getMethod(), tmpResourcePath);
 		}
 		return state;
 	}
@@ -589,11 +580,20 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 
 	
 	/* Ugly testing support :-( */
-	protected void setUriInfo(UriInfo uriInfo) {
+	void setUriInfo(UriInfo uriInfo) {
 		this.uriInfo = uriInfo;
+		
+		if(resourceStateProvider instanceof DefaultResourceStateProvider) {
+		    ((DefaultResourceStateProvider)resourceStateProvider).setUriInfo(uriInfo);
+		}
 	}
-	protected void setRequestContext(Request request) {
+	
+	void setRequestContext(Request request) {
 		this.requestContext = request;
+	}
+
+	void setResourceStateProvider(ResourceStateProvider resourceStateProvider) {
+	    this.resourceStateProvider = resourceStateProvider;
 	}
 
 	/**

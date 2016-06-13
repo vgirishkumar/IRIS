@@ -80,6 +80,7 @@ import com.temenos.interaction.core.hypermedia.DefaultResourceStateProvider;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
+import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
@@ -298,19 +299,22 @@ public class TestNesting {
 	@Test
 	public void testSerialiseEntityResource() throws Exception {
 		Metadata vocab = createMockRiderVocabMetadata();
-		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Riders", "initial", new ArrayList<Action>(), "/riders"));
+		ResourceState initial = new ResourceState("Riders", "initial", new ArrayList<Action>(), "/riders");
+		ResourceState rider = new ResourceState("Riders", "rider", new ArrayList<Action>(), "/riders/{id}");
+		initial.addTransition(new Transition.Builder().method("GET").target(rider).build());
+		ResourceStateMachine sm = new ResourceStateMachine(initial);
 		HALProvider hp = new HALProvider(vocab, new DefaultResourceStateProvider(sm));
 
 		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		when(mockUriInfo.getPath()).thenReturn("riders/123");
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc"));
+		when(mockUriInfo.getPath()).thenReturn("/riders/123");
 		hp.setUriInfo(mockUriInfo);
 
 		Request requestContext = mock(Request.class);
 		when(requestContext.getMethod()).thenReturn("GET");
 		hp.setRequestContext(requestContext);
 
-		String inputContent = "{'_links':{'self':{'href':'http://www.temenos.com/rest.svc/riders'}},'age':'13','name':'Huw','rides':[{'HorseSize':'14.1','HorseName':'Molly'}]}}".replace('\'','\"');
+		String inputContent = "{'_links':{'self':{'href':'http://www.temenos.com/rest.svc/riders/123'}},'age':'13','name':'Huw','rides':[{'HorseSize':'14.1','HorseName':'Molly'}]}}".replace('\'','\"');
 		InputStream entityStream = new ByteArrayInputStream(inputContent.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
 		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_JSON_TYPE, null, entityStream);
@@ -322,7 +326,7 @@ public class TestNesting {
 		hp.writeTo(er, EntityResource.class, Entity.class, null, MediaType.APPLICATION_HAL_JSON_TYPE, null, bos);
 
 		
-		String expectedJSON = "{'_links':{'self':{'href':'http://www.temenos.com/rest.svc/'}},'age':13,'name':'Huw','rides':[{'HorseSize':'14.1','HorseName':'Molly'}]}".replace('\'','\"');
+		String expectedJSON = "{'_links':{'self':{'href':'http://www.temenos.com/rest.svc'}},'age':13,'name':'Huw','rides':[{'HorseSize':'14.1','HorseName':'Molly'}]}".replace('\'','\"');
 		String responseString = makeSingleLineString(bos);
 		System.err.println(responseString);
 
@@ -335,19 +339,23 @@ public class TestNesting {
 	@Test
 	public void testSerialiseEntityCollection() throws Exception {
 		Metadata vocab = createMockRiderVocabMetadata();
-		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Riders", "initial", new ArrayList<Action>(), "/riders"));
+		ResourceState initial = new ResourceState("Riders", "initial", new ArrayList<Action>(), "/riders");
+		ResourceState rider = new ResourceState("Riders", "rider", new ArrayList<Action>(), "/riders/{id}");
+		initial.addTransition(new Transition.Builder().method("GET").target(rider).build());
+		ResourceStateMachine sm = new ResourceStateMachine(initial);
+		
 		HALProvider hp = new HALProvider(vocab, new DefaultResourceStateProvider(sm));
 
 		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		when(mockUriInfo.getPath()).thenReturn("riders/123");
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc"));
+		when(mockUriInfo.getPath()).thenReturn("/riders/123");
 		hp.setUriInfo(mockUriInfo);
 
 		Request requestContext = mock(Request.class);
 		when(requestContext.getMethod()).thenReturn("GET");
 		hp.setRequestContext(requestContext);
 
-		String inputContent = "{'_links':{'self':{'href':'http://www.temenos.com/rest.svc/riders'}},'age':'13','name':'Huw','rides':[{'HorseSize':'14.1','HorseName':'Molly'}]}}".replace('\'','\"');
+		String inputContent = "{'_links':{'self':{'href':'http://www.temenos.com/rest.svc/riders/123'}},'age':'13','name':'Huw','rides':[{'HorseSize':'14.1','HorseName':'Molly'}]}}".replace('\'','\"');
 		InputStream entityStream = new ByteArrayInputStream(inputContent.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
 		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_JSON_TYPE, null, entityStream);
@@ -363,7 +371,7 @@ public class TestNesting {
 		
 		//String expectedJSON = "{'_links':{'self':{'href':'http://www.temenos.com/rest.svc/'}},'age':13,'name':'Huw','rides':[{'HorseSize':'14.1','HorseName':'Molly'}]}".replace('\'','\"');
 
-		String expectedJSON = "{'_links':{'self':{'href':'http://www.temenos.com/rest.svc/'}},'_embedded':{'item':[{'age':13, 'name':'Huw', 'rides':[{'HorseSize':'14.1', 'HorseName':'Molly'}]}]}}".replace('\'','\"');
+		String expectedJSON = "{'_links':{'self':{'href':'http://www.temenos.com/rest.svc'}},'_embedded':{'item':[{'age':13, 'name':'Huw', 'rides':[{'HorseSize':'14.1', 'HorseName':'Molly'}]}]}}".replace('\'','\"');
 
 		String responseString = makeSingleLineString(bos);
 		System.err.println(responseString);

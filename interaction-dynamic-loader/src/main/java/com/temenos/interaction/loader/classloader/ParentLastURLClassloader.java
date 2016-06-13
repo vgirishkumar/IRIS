@@ -68,8 +68,8 @@ public class ParentLastURLClassloader extends URLClassLoader {
                 // Next, delegate to the parent, if not found locally.
                 try {
                 result = getParent().loadClass(name);
-                } catch (Throwable t) {
-					logger.warn("Classloader failed to find class " + name, t);
+                } catch (ClassNotFoundException ex2) {
+					logger.warn("Classloader failed to find class " + name, ex2);
                 }
             }
         }

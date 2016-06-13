@@ -45,25 +45,12 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class MatchCommand implements InteractionCommand {
-	private final static Logger logger = LoggerFactory.getLogger(MatchCommand.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MatchCommand.class);
 
 	/*
 	 * important : the biggers (in chars) first
 	 */
-	private final String[] supportedComparators = new String[]{"startsWith", "endsWith", "contains", "<=", ">=", "!=", "<", ">", "="};
-
-	/**
-	 * The key to the 'entity' path or query parameter.  Path parameters take precedence over
-	 * any query parameters.
-	 */
-	
-	/**
-	 */
-	public MatchCommand() {
-		super();
-	}
-
-
+	private static final String[] supportedComparators = new String[]{"startsWith", "endsWith", "contains", "<=", ">=", "!=", "<", ">", "="};
 
 	@Override
 	public Result execute(InteractionContext ctx) throws InteractionException {
@@ -71,14 +58,14 @@ public class MatchCommand implements InteractionCommand {
 		 * Few assertions first ...
 		 */
 		try {
-			assert (ctx != null);
-			assert (ctx.getCurrentState() != null);
-			assert (ctx.getCurrentState().getEntityName() != null && !ctx.getCurrentState().getEntityName().equals(""));
+			assert ctx != null;
+			assert ctx.getCurrentState() != null;
+			assert ctx.getCurrentState().getEntityName() != null && !"".equals(ctx.getCurrentState().getEntityName());
 
 			Properties properties = ctx.getCurrentState().getViewAction().getProperties();
 			String sExpression = properties.getProperty("Expression");
 			if (sExpression == null){
-				logger.error("null expression passed to MatchCommand");
+				LOGGER.error("null expression passed to MatchCommand");
 				return Result.FAILURE;
 			}
 
@@ -100,7 +87,7 @@ public class MatchCommand implements InteractionCommand {
 			}
 			
 			if (comparator == null){
-				logger.error("Wrong expression passed to MatchCommand. Only simple expression are valid (=, >, <, <=, >=, !=, startsWith, endsWith, contains) ");
+				LOGGER.error("Wrong expression passed to MatchCommand. Only simple expression are valid (=, >, <, <=, >=, !=, startsWith, endsWith, contains) ");
 				return Result.FAILURE;
 			}
 			
@@ -111,23 +98,23 @@ public class MatchCommand implements InteractionCommand {
 			 * Do the comparisons.
 			 */
 			boolean bResult = false;
-			if (comparator.equals("=")){
+			if ("=".equals(comparator)){
 				bResult = left.equals(right);
-			}else if (comparator.equals(">")){
+			}else if (">".equals(comparator)){
 				bResult = left.compareTo(right) > 0;
-			}else if (comparator.equals("<")){
+			}else if ("<".equals(comparator)){
 				bResult = left.compareTo(right) < 0;
-			}else if (comparator.equals(">=")){
+			}else if (">=".equals(comparator)){
 				bResult = left.compareTo(right) >= 0;
-			}else if (comparator.equals("<=")){
+			}else if ("<=".equals(comparator)){
 				bResult = left.compareTo(right) <= 0;
-			}else if (comparator.equals("!=")){
+			}else if ("!=".equals(comparator)){
 				bResult = !left.equals(right);
-			}else if (comparator.equals("startsWith")){
+			}else if ("startsWith".equals(comparator)){
 				bResult = left.startsWith(right);
-			}else if (comparator.equals("endsWith")){
+			}else if ("endsWith".equals(comparator)){
 				bResult = left.endsWith(right);
-			}else if (comparator.equals("contains")){
+			}else if ("contains".equals(comparator)){
 				bResult = left.contains(right);
 			}
 			
@@ -137,7 +124,6 @@ public class MatchCommand implements InteractionCommand {
 				return Result.FAILURE;
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
 			return Result.FAILURE;
 		}
 	}	

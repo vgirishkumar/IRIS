@@ -252,10 +252,20 @@ public class ResourceState implements Comparable<ResourceState> {
 	}
 	
 	public String getRel() {
-		StringBuffer sb = new StringBuffer();
-		for (String r : rels)
-			sb.append(r).append(REL_SEPARATOR);
-		return sb.deleteCharAt(sb.lastIndexOf(REL_SEPARATOR)).toString();
+	    String result = null;
+	    
+	    if(rels.length == 1) {
+	        result = rels[0];
+	    } else {
+    		StringBuilder sb = new StringBuilder();
+    		
+    		for (String r : rels)
+    			sb.append(r).append(REL_SEPARATOR);
+    		
+    		result = sb.deleteCharAt(sb.lastIndexOf(REL_SEPARATOR)).toString();
+	    }
+		
+		return result;
 	}
 	
 	public String[] getRels() {

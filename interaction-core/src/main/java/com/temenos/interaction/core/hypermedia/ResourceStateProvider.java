@@ -74,4 +74,5 @@ public interface ResourceStateProvider {
 	 */
 	public Map<String, String> getResourcePathsByState();
 
+	public ResourceState getResourceState(String httpMethod, String url) throws MethodNotAllowedException;
 }

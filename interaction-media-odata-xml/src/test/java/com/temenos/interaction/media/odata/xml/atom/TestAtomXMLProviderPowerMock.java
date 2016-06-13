@@ -42,6 +42,7 @@ import java.io.Reader;
 import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.WebApplicationException;
@@ -92,9 +93,17 @@ public class TestAtomXMLProviderPowerMock {
 		
 		EdmDataServices edmDataServices = createAirlineEdmMetadata();//mock(EdmDataServices.class);
 		Metadata metadata = createAirlineMetadata();
-		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
+		List<Action> serviceDocActions = new ArrayList<Action>();
+		Action action = mock(Action.class);
+		when(action.getMethod()).thenReturn("GET");
+		serviceDocActions.add(action);
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", serviceDocActions, "/");
+		
+		List<Action> initialActions = new ArrayList<Action>();
+		initialActions.add(action);
+		
 		initial.addTransition(new Transition.Builder().method(HttpMethod.GET)
-				.target(new ResourceState("Flight", "SomeResource", new ArrayList<Action>(), "/test/someresource/{id}"))
+				.target(new ResourceState("Flight", "SomeResource", initialActions, "/test/someresource/{id}"))
 				.build());
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 
@@ -112,7 +121,8 @@ public class TestAtomXMLProviderPowerMock {
 						metadata, rsm, new OEntityTransformer());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		when(mockUriInfo.getPath()).thenReturn("/test/someresource/2");
+		when(mockUriInfo.getAbsolutePath()).thenReturn(new URI("http://www.temenos.com/rest.svc/test/someresource/2"));
+		
 		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
 		mockPathParameters.add("id", "2");
 		when(mockUriInfo.getPathParameters()).thenReturn(mockPathParameters);
@@ -140,9 +150,19 @@ public class TestAtomXMLProviderPowerMock {
 		
 		EdmDataServices edmDataServices = createAirlineEdmMetadata();//mock(EdmDataServices.class);
 		Metadata metadata = createAirlineMetadata();
-		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
+		
+		List<Action> serviceDocActions = new ArrayList<Action>();
+		Action action = mock(Action.class);
+		when(action.getMethod()).thenReturn("GET");
+		serviceDocActions.add(action);
+		
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", serviceDocActions, "/");
+		
+		List<Action> initialActions = new ArrayList<Action>();
+		initialActions.add(action);
+		
 		initial.addTransition(new Transition.Builder().method(HttpMethod.GET)
-				.target(new ResourceState("Flight", "SomeResource", new ArrayList<Action>(), "/test/someresource('{id}')"))
+				.target(new ResourceState("Flight", "SomeResource", initialActions, "/test/someresource('{id}')"))
 				.build());
 		ResourceStateMachine rsm = new ResourceStateMachine(initial);
 
@@ -160,7 +180,7 @@ public class TestAtomXMLProviderPowerMock {
 						metadata, rsm, new OEntityTransformer());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		when(mockUriInfo.getPath()).thenReturn("/test/someresource('2')");
+		when(mockUriInfo.getAbsolutePath()).thenReturn(new URI("http://www.temenos.com/rest.svc/test/someresource('2')"));
 		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
 		mockPathParameters.add("id", "2");
 		when(mockUriInfo.getPathParameters()).thenReturn(mockPathParameters);
@@ -207,7 +227,7 @@ public class TestAtomXMLProviderPowerMock {
 				new AtomXMLProvider(createMockMetadataOData4j(edmDataServices), metadata, rsm, new OEntityTransformer());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		when(mockUriInfo.getPath()).thenReturn("/test/someresource");
+		when(mockUriInfo.getAbsolutePath()).thenReturn(new URI("http://www.temenos.com/rest.svc/test/someresource"));
 		ap.setUriInfo(mockUriInfo);
 		Request requestContext = mock(Request.class);
 		when(requestContext.getMethod()).thenReturn("GET");
@@ -243,7 +263,7 @@ public class TestAtomXMLProviderPowerMock {
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		// mock not finding any resources
-		when(mockUriInfo.getPath()).thenReturn("/test/someotherresource");
+		when(mockUriInfo.getAbsolutePath()).thenReturn(new URI("http://www.temenos.com/rest.svc/test/someotherresource"));
 		ap.setUriInfo(mockUriInfo);
 		Request requestContext = mock(Request.class);
 		when(requestContext.getMethod()).thenReturn("GET");
@@ -281,7 +301,7 @@ public class TestAtomXMLProviderPowerMock {
 				new AtomXMLProvider(createMockMetadataOData4j(edmDataServices), metadata, rsm, new OEntityTransformer());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		when(mockUriInfo.getPath()).thenReturn("/test('2')");
+		when(mockUriInfo.getAbsolutePath()).thenReturn(new URI("http://www.temenos.com/rest.svc/test('2')"));
 		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
 		mockPathParameters.add("id", "2");
 		when(mockUriInfo.getPathParameters()).thenReturn(mockPathParameters);
@@ -328,8 +348,8 @@ public class TestAtomXMLProviderPowerMock {
 		AtomXMLProvider ap = 
 				new AtomXMLProvider(createMockMetadataOData4j(metadata), createAirlineMetadata(), rsm, new OEntityTransformer());
 		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		when(mockUriInfo.getPath()).thenReturn("/test()");
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc"));
+		when(mockUriInfo.getAbsolutePath()).thenReturn(new URI("http://www.temenos.com/rest.svc/test()"));
 		ap.setUriInfo(mockUriInfo);
 		Request requestContext = mock(Request.class);
 		when(requestContext.getMethod()).thenReturn("GET");
@@ -372,9 +392,9 @@ public class TestAtomXMLProviderPowerMock {
 		AtomXMLProvider ap = 
 				new AtomXMLProvider(createMockMetadataOData4j(metadata), createAirlineMetadata(), rsm, new OEntityTransformer());
 		UriInfo mockUriInfo = mock(UriInfo.class);
-		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc"));
 		// An odata request for the colleciton might arrive without the brackets
-		when(mockUriInfo.getPath()).thenReturn("/test");
+		when(mockUriInfo.getAbsolutePath()).thenReturn(new URI("http://www.temenos.com/rest.svc/test"));
 		ap.setUriInfo(mockUriInfo);
 		Request requestContext = mock(Request.class);
 		when(requestContext.getMethod()).thenReturn("GET");
@@ -403,7 +423,7 @@ public class TestAtomXMLProviderPowerMock {
 				new AtomXMLProvider(createMockMetadataOData4j(edmDataServices), metadata, rsm, new OEntityTransformer());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		when(mockUriInfo.getPath()).thenReturn("/test/someresource");
+		when(mockUriInfo.getAbsolutePath()).thenReturn(new URI("http://www.temenos.com/rest.svc/test/someresource"));
 		ap.setUriInfo(mockUriInfo);
 		Request requestContext = mock(Request.class);
 		when(requestContext.getMethod()).thenReturn("GET");
@@ -433,7 +453,7 @@ public class TestAtomXMLProviderPowerMock {
 				new AtomXMLProvider(createMockMetadataOData4j(edmDataServices), metadata, rsm, new OEntityTransformer());
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		when(mockUriInfo.getPath()).thenReturn("/test/someresource");
+		when(mockUriInfo.getAbsolutePath()).thenReturn(new URI("http://www.temenos.com/rest.svc/test/someresource"));
 		ap.setUriInfo(mockUriInfo);
 		Request requestContext = mock(Request.class);
 		when(requestContext.getMethod()).thenReturn("GET");
