@@ -22,7 +22,9 @@ package com.temenos.interaction.core.hypermedia;
  */
 
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -494,6 +496,35 @@ public class TestLinkGenerator {
             assertEquals("collection", result.getRel());
             assertEquals("customer_Customer(" + i + ").Name", result.getSourceField());
         }
+    }
+    
+    @Test
+    public void testEncodeRequestParameters(){
+        Transition transition = mock(Transition.class);
+        TransitionCommandSpec spec = mock(TransitionCommandSpec.class);
+        when(spec.getUriParameters()).thenReturn(new HashMap<String, String>());
+        when(transition.getCommand()).thenReturn(spec);
+        when(transition.getSourceField()).thenReturn("Source.Field");
+        MultivaluedMap<String, String> values = new MultivaluedMapImpl<String>();
+        values.add("customerName", "Jack");
+        values.add("customerName", "Jill");
+        values.add("transaction", "101");
+        assertThat(LinkGeneratorImpl.encodeMultivalueRequestParameters(values), equalTo("?customerName=Jack&customerName=Jill&transaction=101"));
+    }
+    
+    @Test
+    public void testEncodeRequestParametersDropsDuplicateKeyValues(){
+        Transition transition = mock(Transition.class);
+        TransitionCommandSpec spec = mock(TransitionCommandSpec.class);
+        when(spec.getUriParameters()).thenReturn(new HashMap<String, String>());
+        when(transition.getCommand()).thenReturn(spec);
+        when(transition.getSourceField()).thenReturn("Source.Field");
+        MultivaluedMap<String, String> values = new MultivaluedMapImpl<String>();
+        values.add("customerName", "Jack");
+        values.add("customerName", "Jack");
+        values.add("transaction", "101");
+        values.add("transaction", "102");
+        assertThat(LinkGeneratorImpl.encodeMultivalueRequestParameters(values), equalTo("?customerName=Jack&transaction=101&transaction=102"));
     }
     
     private OComplexObject createComplexObject(String... values) {

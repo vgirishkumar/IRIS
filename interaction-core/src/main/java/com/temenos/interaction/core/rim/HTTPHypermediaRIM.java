@@ -627,13 +627,13 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                 if (autoTransitions.size() > 1)
                     logger.warn("Resource state [" + currentState.getName()
                             + "] has multiple auto-transitions. Using [" + autoTransition.getId() + "].");
-                Response autoResponse = getResource(headers, autoTransition, ctx);
-                if (autoResponse.getStatus() != Status.OK.getStatusCode()) {
+                ResponseWrapper autoResponse = getResource(headers, autoTransition, ctx);
+                if (autoResponse.getResponse().getStatus() != Status.OK.getStatusCode()) {
                     logger.warn("Auto transition target did not return HttpStatus.OK status ["
-                            + autoResponse.getStatus() + "]");
-                    responseBuilder.status(autoResponse.getStatus());
+                            + autoResponse.getResponse().getStatus() + "]");
+                    responseBuilder.status(autoResponse.getResponse().getStatus());
                 }
-                resource = (RESTResource) ((GenericEntity<?>) autoResponse.getEntity()).getEntity();
+                resource = (RESTResource) ((GenericEntity<?>) autoResponse.getResponse().getEntity()).getEntity();
                 assert (resource != null);
                 responseBuilder.entity(resource.getGenericEntity());
                 responseBuilder = HeaderHelper.etagHeader(responseBuilder, resource.getEntityTag());
@@ -650,25 +650,27 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             ResourceState currentState = ctx.getCurrentState();
             assert (currentState.getAllTargets() != null && currentState.getAllTargets().size() > 0) : "A pseudo state that creates a new resource MUST contain an auto transition to that new resource";
             List<Transition> autoTransitions = getTransitions(ctx, currentState, Transition.AUTO);
-
             if (!autoTransitions.isEmpty()) {
-                Transition autoTransition = autoTransitions.get(0);
-                if (autoTransitions.size() > 1)
-                    logger.warn("Resource state [" + currentState.getName()
+                List<Transition> innerTransitions = autoTransitions;
+                Transition autoTransition;
+                do {
+                    autoTransition = innerTransitions.get(0);
+                    if (innerTransitions.size() > 1)
+                        logger.warn("Resource state [" + currentState.getName()
                             + "] has multiple auto-transitions. Using [" + autoTransition.getId() + "].");
+                    innerTransitions = getTransitions(ctx, autoTransition.getTarget(), Transition.AUTO);
+                }while(!innerTransitions.isEmpty() && autoTransition.isType(Transition.AUTO));
+                
                 assert (resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
-
-                LinkGenerator linkGenerator = new LinkGeneratorImpl(hypermediaEngine, autoTransition, null);
-                Collection<Link> links = linkGenerator.createLink(pathParameters, null, ((EntityResource<?>)resource).getEntity());
-                Link target = (!links.isEmpty()) ? links.iterator().next() : null;
-                responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
-                Response autoResponse = getResource(headers, autoTransition, ctx);
-                if (autoResponse.getStatus() != Status.OK.getStatusCode()) {
+                
+                ResponseWrapper autoResponse = getResource(headers, autoTransition, ctx);
+                responseBuilder = HeaderHelper.locationHeader(responseBuilder, autoResponse.getSelfLink().getHref() + LinkGeneratorImpl.encodeMultivalueRequestParameters(autoResponse.getRequestParameters()));
+                if (autoResponse.getResponse().getStatus() != Status.OK.getStatusCode()) {
                     logger.warn("Auto transition target did not return HttpStatus.OK status ["
-                            + autoResponse.getStatus() + "]");
-                    responseBuilder.status(autoResponse.getStatus());
+                            + autoResponse.getResponse().getStatus() + "]");
+                    responseBuilder.status(autoResponse.getResponse().getStatus());
                 }
-                resource = (RESTResource) ((GenericEntity<?>) autoResponse.getEntity()).getEntity();
+                resource = (RESTResource) ((GenericEntity<?>) autoResponse.getResponse().getEntity()).getEntity();
             }
             assert (resource != null);
             responseBuilder.entity(resource.getGenericEntity());
@@ -698,13 +700,13 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                     Collection<Link> links = linkGenerator.createLink(pathParameters, null, ((EntityResource<?>)resource).getEntity());
                     Link target = (!links.isEmpty()) ? links.iterator().next() : null;
                     responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
-                    Response autoResponse = getResource(headers, autoTransition, ctx);
-                    if (autoResponse.getStatus() != Status.OK.getStatusCode()) {
+                    ResponseWrapper autoResponse = getResource(headers, autoTransition, ctx);
+                    if (autoResponse.getResponse().getStatus() != Status.OK.getStatusCode()) {
                         logger.warn("Auto transition target did not return HttpStatus.OK status ["
-                                + autoResponse.getStatus() + "]");
-                        responseBuilder.status(autoResponse.getStatus());
+                                + autoResponse.getResponse().getStatus() + "]");
+                        responseBuilder.status(autoResponse.getResponse().getStatus());
                     }
-                    resource = (RESTResource) ((GenericEntity<?>) autoResponse.getEntity()).getEntity();
+                    resource = (RESTResource) ((GenericEntity<?>) autoResponse.getResponse().getEntity()).getEntity();
                 }
             }
 
@@ -744,16 +746,16 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                 ResourceState errorState = ctx.getCurrentState().getErrorState();
                 Transition resourceTransition = new Transition.Builder().method("GET").source(errorState)
                         .target(errorState).build();
-                Response errorResponse = getResource(headers, resourceTransition, ctx);
-                RESTResource errorResource = (RESTResource) ((GenericEntity<?>) errorResponse.getEntity()).getEntity();
+                ResponseWrapper errorResponse = getResource(headers, resourceTransition, ctx);
+                RESTResource errorResource = (RESTResource) ((GenericEntity<?>) errorResponse.getResponse().getEntity()).getEntity();
                 responseBuilder.entity(errorResource.getGenericEntity());
             } else if (hypermediaEngine.getException() != null && ctx.getException() != null) {
                 // Resource state machine has an exception handler
                 ResourceState exceptionState = hypermediaEngine.getException();
                 Transition resourceTransition = new Transition.Builder().method("GET").source(exceptionState)
                         .target(exceptionState).build();
-                Response exceptionResponse = getResource(headers, resourceTransition, ctx);
-                RESTResource exceptionResource = (RESTResource) ((GenericEntity<?>) exceptionResponse.getEntity())
+                ResponseWrapper exceptionResponse = getResource(headers, resourceTransition, ctx);
+                RESTResource exceptionResource = (RESTResource) ((GenericEntity<?>) exceptionResponse.getResponse().getEntity())
                         .getEntity();
                 responseBuilder.entity(exceptionResource.getGenericEntity());
             } else if (resource != null) {
@@ -833,13 +835,13 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
      * to be populated with the previous commands RESTResource i.e. {@link
      * InteractionContext#getResource}
      */
-    private Response getResource(HttpHeaders headers, Transition resourceTransition, InteractionContext ctx) {
+    private ResponseWrapper getResource(HttpHeaders headers, Transition resourceTransition, InteractionContext ctx) {
         ResourceState targetState = resourceTransition.getTarget();
-
+        ResourceStateAndParameters stateAndParams;
         MultivaluedMap<String, String> newQueryParameters = null;
         if (targetState instanceof DynamicResourceState) {
             Map<String, Object> transitionProperties = new HashMap<String, Object>();
-            ResourceStateAndParameters stateAndParams = hypermediaEngine.resolveDynamicState(
+            stateAndParams = hypermediaEngine.resolveDynamicState(
                     (DynamicResourceState) targetState, transitionProperties, ctx);
             targetState = stateAndParams.getState();
             newQueryParameters = ParameterAndValue.getParamAndValueAsMultiValueMap(stateAndParams.getParams());
@@ -869,8 +871,13 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                     targetState);
             Response response = handleRequest(headers, newCtx, event, action, (EntityResource<?>) currentResource,
                     config);
-
-            return response;
+            ResponseWrapper wrapper = new ResponseWrapper(response, new ArrayList<Link>(
+                    new LinkGeneratorImpl(hypermediaEngine, targetState.getSelfTransition(), newCtx
+                    ).createLink(newPathParameters, newQueryParameters, response.getEntity())
+                ).get(0), 
+                newQueryParameters
+            );
+            return wrapper;
 
         } catch (Exception ie) {
             logger.error("Failed to access resource [" + targetState.getId() + "] with error:", ie);
