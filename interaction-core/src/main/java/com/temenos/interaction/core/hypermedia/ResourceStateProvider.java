@@ -29,7 +29,8 @@ public interface ResourceStateProvider {
 	/**
 	 * Return true if resource state for name can be found
 	 * 
-	 * @param name
+	 * @param name   the id taken from a properties file,
+	 *               NOT the name of the resource state
 	 * @return
 	 */
 	public boolean isLoaded(String name);
@@ -37,7 +38,8 @@ public interface ResourceStateProvider {
 	/**
 	 * Lookup and return a single {@link ResourceState} by name
 	 * 
-	 * @param name
+     * @param name   the id taken from a properties file,
+     *               NOT the name of the resource state
 	 * @return
 	 */
 	public ResourceState getResourceState(String name);
@@ -73,6 +75,24 @@ public interface ResourceStateProvider {
 	 * @return
 	 */
 	public Map<String, String> getResourcePathsByState();
-
+	
+    /**
+     * Lookup and return a single {@link ResourceState} by HTTP method and URL.
+     *  
+     * @param httpMethod
+     * @param url
+     * @return
+     */
 	public ResourceState getResourceState(String httpMethod, String url) throws MethodNotAllowedException;
+	
+    /**
+     * Retrieves the resource state id from a HTPP method and URL. This is needed
+     * to check, for instance, if a resource state is loaded when we do not have
+     * the id (the ResourceState class don't have this information).
+     *  
+     * @param httpMethod
+     * @param url
+     * @return
+     */
+    public String getResourceStateId(String httpMethod, String url);
 }
