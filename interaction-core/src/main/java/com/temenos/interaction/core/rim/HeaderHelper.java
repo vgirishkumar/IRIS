@@ -24,10 +24,10 @@ package com.temenos.interaction.core.rim;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
@@ -94,40 +94,72 @@ public class HeaderHelper {
     	return null;
     }
     
-    public static String encodeMultivalueRequestParameters(
-            MultivaluedMap<String, String> requestParameters){
-        if(requestParameters == null || requestParameters.size() == 0){
+    /**
+     * Encode a MultivaluedMap as URL query parameters, omitting any duplicate
+     * key/value pairings.
+     * @param requestParameters The query parameters to encode.
+     * @return An encoded query string suitable for use with a URL.
+     */
+    public static String encodeMultivalueQueryParameters(
+            MultivaluedMap<String, String> queryParam){
+        if(isNullOrEmpty(queryParam)){
             return "";
         }
-        StringBuilder sb = new StringBuilder("?");
-        int outerIndex = 0, innerIndex = 0;
-        Set<String> filter = new TreeSet<String>();
-        String queryParam = "";
-        for(Map.Entry<String, List<String>> entry : requestParameters.entrySet()){
-            try{
-                innerIndex = 0;
-                filter.addAll(entry.getValue());
-                for(String value : filter){
-                    queryParam = value;
-                    sb.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
-                    sb.append("=");
-                    sb.append(URLEncoder.encode(value, "UTF-8"));
-                    if(innerIndex < filter.size() - 1){
-                        sb.append("&");
-                    }
-                    innerIndex++;
-                }
-                if(outerIndex < requestParameters.size() - 1){
-                    sb.append("&");
-                }
-                filter.clear();
-                outerIndex++;
-            }catch(UnsupportedEncodingException uee){
-                logger.error("Unable to decode query parameter {}; "
-                        + "this will be omitted.", queryParam);
-            }
+        StringBuilder sb = new StringBuilder();
+        int outerIndex = 0;
+        List<String> filter = new ArrayList<String>();
+        for(Map.Entry<String, List<String>> entry : queryParam.entrySet()){
+            filterDuplicateQueryKeyValuePairings(entry.getValue(), filter);
+            sb.append(constructQueryKeyValuePairing(entry.getKey(), filter, outerIndex < queryParam.size() - 1));
+            filter.clear();
+            outerIndex++;
+        }
+        if(sb.length() > 0){
+            sb.insert(0, "?");
         }
         return sb.toString();
+    }
+    
+    private static boolean isNullOrEmpty(MultivaluedMap<String, String> queryParam){
+        return queryParam == null || queryParam.isEmpty();
+    }
+    
+    private static void filterDuplicateQueryKeyValuePairings(List<String> src, List<String> dest){
+        for(String value : src){
+            if(!dest.contains(value)){
+                dest.add(value);
+            }
+        }
+    }
+    
+    private static String constructQueryKeyValuePairing(String key, List<String> values, boolean appendAmpersand) {
+        StringBuilder sb = new StringBuilder();
+        String generatedQueryParam = "";
+        int index = 0;
+        for(String value : values){
+            try{
+                generatedQueryParam = key+"="+value;
+                sb.append(encodeQueryParameter(key));
+                sb.append("=");
+                sb.append(encodeQueryParameter(value));
+                if(index < values.size() - 1){
+                    sb.append("&");
+                }
+                index++;
+            }catch(UnsupportedEncodingException uee){
+                logger.error("Unable to decode query parameter {}; "
+                        + "this will be omitted.", generatedQueryParam);
+                index++;
+            }
+        }
+        if(appendAmpersand && sb.length() > 0){
+            sb.append("&");
+        }
+        return sb.toString();
+    }
+    
+    private static String encodeQueryParameter(String queryParam) throws UnsupportedEncodingException{
+        return URLEncoder.encode(queryParam, "UTF-8");
     }
 
 }

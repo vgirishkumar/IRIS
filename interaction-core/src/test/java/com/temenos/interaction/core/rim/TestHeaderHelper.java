@@ -28,7 +28,10 @@ import static org.hamcrest.core.StringStartsWith.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -40,10 +43,16 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.web.RequestContext;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(HeaderHelper.class)
 public class TestHeaderHelper {
 
 	@Before
@@ -119,12 +128,12 @@ public class TestHeaderHelper {
 	}
 	
     @Test
-    public void testEncodeRequestParameters(){
+    public void testEncodeQueryParameters(){
         MultivaluedMap<String, String> values = new MultivaluedMapImpl<String>();
         values.add("customerName", "Jack");
         values.add("customerName", "Jill");
         values.add("transaction", "101");
-        String queryParam = HeaderHelper.encodeMultivalueRequestParameters(values);
+        String queryParam = HeaderHelper.encodeMultivalueQueryParameters(values);
         assertThat(queryParam, allOf(
                 startsWith("?"),
                 containsString("customerName=Jack"),
@@ -135,13 +144,13 @@ public class TestHeaderHelper {
     }
     
     @Test
-    public void testEncodeRequestParametersDropsDuplicateKeyValues(){
+    public void testEncodeQueryParametersDropsDuplicateKeyValues(){
         MultivaluedMap<String, String> values = new MultivaluedMapImpl<String>();
         values.add("customerName", "Jack");
         values.add("customerName", "Jack");
         values.add("transaction", "101");
         values.add("transaction", "102");
-        String queryParam = HeaderHelper.encodeMultivalueRequestParameters(values);
+        String queryParam = HeaderHelper.encodeMultivalueQueryParameters(values);
         assertThat(queryParam, allOf(
                 startsWith("?"),
                 containsString("customerName=Jack"),
@@ -153,11 +162,11 @@ public class TestHeaderHelper {
     }
     
     @Test
-    public void testEncodeRequestParametersWithHttpEntities(){
+    public void testEncodeQueryParametersWithHttpEntities(){
         MultivaluedMap<String, String> values = new MultivaluedMapImpl<String>();
         values.add("customerNam=", "J&ck");
         values.add("trans&ction", "!0!");
-        String queryParam = HeaderHelper.encodeMultivalueRequestParameters(values);
+        String queryParam = HeaderHelper.encodeMultivalueQueryParameters(values);
         assertThat(queryParam, allOf(
                 startsWith("?"),
                 containsString("customerNam%3D=J%26ck"),
@@ -167,11 +176,46 @@ public class TestHeaderHelper {
     }
     
     @Test
-    public void testEncodeRequestParametersWithoutAnyQueryParams(){
+    public void testEncodeQueryParametersWithoutAnyQueryParams(){
         assertThat(
-            HeaderHelper.encodeMultivalueRequestParameters(
+            HeaderHelper.encodeMultivalueQueryParameters(
                 new MultivaluedMapImpl<String>()
             ), equalTo("")
         );
+    }
+    
+    @Test
+    public void testEncodeQueryParametersURLEncoderThrowsException() throws Exception{
+        PowerMockito.spy(HeaderHelper.class);
+        PowerMockito.doThrow(new UnsupportedEncodingException()).when(
+                HeaderHelper.class, "encodeQueryParameter", eq("customerName")
+        );
+        MultivaluedMap<String, String> values = new MultivaluedMapImpl<String>();
+        values.add("customerNam=", "J&ck");
+        values.add("customerName", "Jack");
+        values.add("customerName", "Jill");
+        values.add("trans&ction", "!0!");
+        String queryParam = HeaderHelper.encodeMultivalueQueryParameters(values);
+        assertThat(queryParam, allOf(
+                startsWith("?"),
+                containsString("customerNam%3D=J%26ck"),
+                containsString("trans%26ction=%210%21")
+        ));
+        assertThat(StringUtils.countMatches(queryParam, "&"), equalTo(1));
+    }
+    
+    @Test
+    public void testEncodeQueryParametersURLEncoderAlwaysThrowsExceptions() throws Exception {
+        PowerMockito.spy(HeaderHelper.class);
+        PowerMockito.doThrow(new UnsupportedEncodingException()).when(
+                HeaderHelper.class, "encodeQueryParameter", anyString()
+        );
+        MultivaluedMap<String, String> values = new MultivaluedMapImpl<String>();
+        values.add("customerNam=", "J&ck");
+        values.add("customerName", "Jack");
+        values.add("customerName", "Jill");
+        values.add("trans&ction", "!0!");
+        String queryParam = HeaderHelper.encodeMultivalueQueryParameters(values);
+        assertThat(queryParam, equalTo(""));
     }
 }

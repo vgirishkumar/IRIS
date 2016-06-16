@@ -27,7 +27,8 @@ import javax.ws.rs.core.Response;
 import com.temenos.interaction.core.hypermedia.Link;
 
 /**
- * TODO: Document me!
+ * Wraps an internal IRIS Response object with a link to the resolved location
+ * and any request parameters resolved in this process.
  *
  * @author dgroves
  *
@@ -43,14 +44,27 @@ public final class ResponseWrapper {
         this.requestParameters = requestParameters;
     }
     
+    /**
+     * Obtain the response object stored in this wrapper.
+     * @return The response object associated with this wrapper.
+     */
     public Response getResponse(){
         return response;
     }
     
+    /**
+     * Obtain a link to the fully resolved resource from this wrapper.
+     * @return The Link object associated with this wrapper.
+     */
     public Link getSelfLink(){
         return selfLink;
     }
     
+    /**
+     * Obtain query parameters resolved during internal request processing. 
+     * @return A MultivaluedMap object with query parameters associated
+     * to this internal request. 
+     */
     public MultivaluedMap<String, String> getRequestParameters(){
         return requestParameters;
     }
