@@ -664,7 +664,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                 assert (resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
                 
                 ResponseWrapper autoResponse = getResource(headers, autoTransition, ctx);
-                responseBuilder = HeaderHelper.locationHeader(responseBuilder, autoResponse.getSelfLink().getHref() + LinkGeneratorImpl.encodeMultivalueRequestParameters(autoResponse.getRequestParameters()));
+                responseBuilder = HeaderHelper.locationHeader(responseBuilder, autoResponse.getSelfLink().getHref() + HeaderHelper.encodeMultivalueRequestParameters(autoResponse.getRequestParameters()));
                 if (autoResponse.getResponse().getStatus() != Status.OK.getStatusCode()) {
                     logger.warn("Auto transition target did not return HttpStatus.OK status ["
                             + autoResponse.getResponse().getStatus() + "]");

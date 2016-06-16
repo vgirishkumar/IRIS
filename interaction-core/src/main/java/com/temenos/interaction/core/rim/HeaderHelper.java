@@ -22,13 +22,23 @@ package com.temenos.interaction.core.rim;
  */
 
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class HeaderHelper {
+    
+    private static final Logger logger = LoggerFactory.getLogger(HeaderHelper.class);
 
     public static ResponseBuilder allowHeader(ResponseBuilder rb, Set<String> httpMethods) {
     	if (httpMethods != null) {
@@ -83,4 +93,41 @@ public class HeaderHelper {
     	}
     	return null;
     }
+    
+    public static String encodeMultivalueRequestParameters(
+            MultivaluedMap<String, String> requestParameters){
+        if(requestParameters == null || requestParameters.size() == 0){
+            return "";
+        }
+        StringBuilder sb = new StringBuilder("?");
+        int outerIndex = 0, innerIndex = 0;
+        Set<String> filter = new TreeSet<String>();
+        String queryParam = "";
+        for(Map.Entry<String, List<String>> entry : requestParameters.entrySet()){
+            try{
+                innerIndex = 0;
+                filter.addAll(entry.getValue());
+                for(String value : filter){
+                    queryParam = value;
+                    sb.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
+                    sb.append("=");
+                    sb.append(URLEncoder.encode(value, "UTF-8"));
+                    if(innerIndex < filter.size() - 1){
+                        sb.append("&");
+                    }
+                    innerIndex++;
+                }
+                if(outerIndex < requestParameters.size() - 1){
+                    sb.append("&");
+                }
+                filter.clear();
+                outerIndex++;
+            }catch(UnsupportedEncodingException uee){
+                logger.error("Unable to decode query parameter {}; "
+                        + "this will be omitted.", queryParam);
+            }
+        }
+        return sb.toString();
+    }
+
 }

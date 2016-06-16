@@ -31,8 +31,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -56,7 +54,7 @@ import com.temenos.interaction.core.web.RequestContext;
 public class LinkGeneratorImpl implements LinkGenerator {
 
     protected static final String PARAM_REPLACEMENT_REGEX = "\\((\\d+)\\)";
-    private final Logger logger = LoggerFactory.getLogger(LinkGeneratorImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(LinkGeneratorImpl.class);
     private ResourceStateMachine resourceStateMachine;
     private Transition transition;
     private InteractionContext interactionContext;
@@ -106,32 +104,6 @@ public class LinkGeneratorImpl implements LinkGenerator {
         return eLinks;
     }
     
-    public static String encodeMultivalueRequestParameters(MultivaluedMap<String, String> requestParameters){
-        if(requestParameters == null || requestParameters.size() == 0){
-            return "";
-        }
-        StringBuilder sb = new StringBuilder("?");
-        int outerIndex = 0, innerIndex = 0;
-        Set<String> filter = new TreeSet<String>();
-        for(Map.Entry<String, List<String>> entry : requestParameters.entrySet()){
-            innerIndex = 0;
-            filter.addAll(entry.getValue());
-            for(String value : filter){
-                sb.append(entry.getKey()).append("=").append(value);
-                if(innerIndex < filter.size() - 1){
-                    sb.append("&");
-                }
-                innerIndex++;
-            }
-            if(outerIndex < requestParameters.size() - 1){
-                sb.append("&");
-            }
-            filter.clear();
-            outerIndex++;
-        }
-        return sb.toString();
-    }
-
     private String extractCollectionParamName(Map<String, String> transitionUriMap) {
         if (transitionUriMap==null) {
             return null;
