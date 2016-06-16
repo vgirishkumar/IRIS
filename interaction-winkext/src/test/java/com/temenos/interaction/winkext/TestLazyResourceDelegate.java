@@ -40,6 +40,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.apache.wink.common.model.multipart.InMultiPart;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.entity.Metadata;
@@ -61,8 +62,11 @@ public class TestLazyResourceDelegate {
         
         ResourceState myResourceState = mock(ResourceState.class);
         when(myResourceState.getName()).thenReturn("resource");
-        when(myResourceState.getPath()).thenReturn("/myResource");    
+        when(myResourceState.getPath()).thenReturn("/myResource");
+        when(resourceStateProvider.isLoaded("resource")).thenReturn(true);
+        when(resourceStateProvider.getResourceState("resource")).thenReturn(myResourceState);
         when(resourceStateProvider.getResourceState(eq("GET"), eq("/myResource"))).thenReturn(myResourceState);
+        when(resourceStateProvider.getResourceStateId(eq("GET"), anyString())).thenReturn("resource");
         
         ResourceState rootState = mock(ResourceState.class);
         when(rootState.getName()).thenReturn("root");
@@ -101,7 +105,7 @@ public class TestLazyResourceDelegate {
         
         lazyResourceDelegate.get(headers, id, uriInfo);
         
-        verify(resourceStateProvider).getResourceState("GET", "/myResource");
+        verify(resourceStateProvider).getResourceStateId("GET", "/myResource");
         
         uriInfo = mock(UriInfo.class);
         when(uriInfo.getPathParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));
@@ -110,7 +114,8 @@ public class TestLazyResourceDelegate {
         
         lazyResourceDelegate.get(headers, id, uriInfo);
         
-        verify(resourceStateProvider).getResourceState("GET", "/");        
+        verify(resourceStateProvider).getResourceStateId("GET", "/");
+        verify(resourceStateProvider, Mockito.times(2)).getResourceState("resource");        
     }
     
 	@Test
@@ -119,7 +124,11 @@ public class TestLazyResourceDelegate {
 		ResourceState state = mock(ResourceState.class);
         when(state.getName()).thenReturn("resource");		
 		when(state.getPath()).thenReturn("/myResource");	
-		when(resourceStateProvider.getResourceState(eq("POST"), anyString())).thenReturn(state);		
+        when(resourceStateProvider.isLoaded("resource")).thenReturn(true);
+        when(resourceStateProvider.getResourceState("resource")).thenReturn(state);
+        when(resourceStateProvider.getResourceState(eq("POST"), anyString())).thenReturn(state);        
+        when(resourceStateProvider.getResourceStateId(eq("POST"), anyString())).thenReturn("resource");
+
 		ResourceStateMachine resourceStateMachine = mock(ResourceStateMachine.class);
 		Map<String, Set<String>> interactionsByPath = mock(HashMap.class);
 		Set<String> methods = new HashSet<String>();
@@ -145,7 +154,8 @@ public class TestLazyResourceDelegate {
 	
 		lazyResourceDelegate.post(headers, id, uriInfo, resource);
 		
-		verify(resourceStateProvider).getResourceState("POST", "/myResource");		
+		verify(resourceStateProvider).getResourceStateId("POST", "/myResource");		
+	    verify(resourceStateProvider).getResourceState("resource");
 	}
 
 	@Test
@@ -155,7 +165,11 @@ public class TestLazyResourceDelegate {
         when(state.getName()).thenReturn("resource");        
         when(state.getPath()).thenReturn("/myResource");
         when(state.getEntityName()).thenReturn("dummy");
-        when(resourceStateProvider.getResourceState(eq("POST"), anyString())).thenReturn(state);
+        when(resourceStateProvider.isLoaded("resource")).thenReturn(true);
+        when(resourceStateProvider.getResourceState("resource")).thenReturn(state);
+        when(resourceStateProvider.getResourceState(eq("POST"), anyString())).thenReturn(state);        
+        when(resourceStateProvider.getResourceStateId(eq("POST"), anyString())).thenReturn("resource");
+
         ResourceStateMachine resourceStateMachine = mock(ResourceStateMachine.class);
         Map<String, Set<String>> interactionsByPath = mock(HashMap.class);
         Set<String> methods = new HashSet<String>();
@@ -182,7 +196,8 @@ public class TestLazyResourceDelegate {
         InMultiPart inMP = mock(InMultiPart.class);        
         lazyResourceDelegate.post(headers, uriInfo, inMP);
         
-        verify(resourceStateProvider).getResourceState("POST", "/myResource");      			
+        verify(resourceStateProvider).getResourceStateId("POST", "/myResource");      			
+        verify(resourceStateProvider).getResourceState("resource");
 	}
 
 	@Test
@@ -190,8 +205,11 @@ public class TestLazyResourceDelegate {
         ResourceStateProvider resourceStateProvider = mock(ResourceStateProvider.class);
         ResourceState state = mock(ResourceState.class);
         when(state.getName()).thenReturn("resource");        
-        when(state.getPath()).thenReturn("/myResource");    
+        when(state.getPath()).thenReturn("/myResource");   
+        when(resourceStateProvider.isLoaded("resource")).thenReturn(true);
+        when(resourceStateProvider.getResourceState("resource")).thenReturn(state);
         when(resourceStateProvider.getResourceState(eq("PUT"), anyString())).thenReturn(state);
+        when(resourceStateProvider.getResourceStateId(eq("PUT"), anyString())).thenReturn("resource");
         ResourceStateMachine resourceStateMachine = mock(ResourceStateMachine.class);
         Map<String, Set<String>> interactionsByPath = mock(HashMap.class);
         Set<String> methods = new HashSet<String>();
@@ -218,7 +236,8 @@ public class TestLazyResourceDelegate {
         
         lazyResourceDelegate.put(headers, id, uriInfo, resource);  
         
-        verify(resourceStateProvider).getResourceState("PUT", "/myResource");
+        verify(resourceStateProvider).getResourceStateId("PUT", "/myResource");
+        verify(resourceStateProvider).getResourceState("resource");
 	}
 	
     @Test
@@ -226,8 +245,12 @@ public class TestLazyResourceDelegate {
         ResourceStateProvider resourceStateProvider = mock(ResourceStateProvider.class);
         ResourceState state = mock(ResourceState.class);
         when(state.getName()).thenReturn("resource");        
-        when(state.getPath()).thenReturn("/myResource");    
+        when(state.getPath()).thenReturn("/myResource");
+        when(resourceStateProvider.isLoaded("resource")).thenReturn(true);
+        when(resourceStateProvider.getResourceState("resource")).thenReturn(state);
         when(resourceStateProvider.getResourceState(eq("DELETE"), anyString())).thenReturn(state);
+        when(resourceStateProvider.getResourceStateId(eq("DELETE"), anyString())).thenReturn("resource");
+
         ResourceStateMachine resourceStateMachine = mock(ResourceStateMachine.class);
         Map<String, Set<String>> interactionsByPath = mock(HashMap.class);
         Set<String> methods = new HashSet<String>();
@@ -253,7 +276,8 @@ public class TestLazyResourceDelegate {
         
         lazyResourceDelegate.delete(headers, id, uriInfo);  
         
-        verify(resourceStateProvider).getResourceState("DELETE", "/myResource");
+        verify(resourceStateProvider).getResourceStateId("DELETE", "/myResource");
+        verify(resourceStateProvider).getResourceState("resource");
     }
     
     @Test
@@ -262,7 +286,11 @@ public class TestLazyResourceDelegate {
         ResourceState state = mock(ResourceState.class);
         when(state.getName()).thenReturn("resource");        
         when(state.getPath()).thenReturn("/myResource");    
+        when(resourceStateProvider.isLoaded("resource")).thenReturn(true);
+        when(resourceStateProvider.getResourceState("resource")).thenReturn(state);
         when(resourceStateProvider.getResourceState(eq("OPTIONS"), anyString())).thenReturn(state);
+        when(resourceStateProvider.getResourceStateId(eq("OPTIONS"), anyString())).thenReturn("resource");
+
         ResourceStateMachine resourceStateMachine = mock(ResourceStateMachine.class);
         Map<String, Set<String>> interactionsByPath = mock(HashMap.class);
         Set<String> methods = new HashSet<String>();
@@ -288,8 +316,10 @@ public class TestLazyResourceDelegate {
         
         lazyResourceDelegate.options(headers, id, uriInfo);  
         
-        verify(resourceStateProvider).getResourceState("OPTIONS", "/myResource");
-    }    	
+        verify(resourceStateProvider).getResourceStateId("OPTIONS", "/myResource");
+        verify(resourceStateProvider).getResourceState("resource");
+    }
+
 	
 	@Test
 	public void testMultiPartPut() throws MethodNotAllowedException {				
@@ -298,7 +328,11 @@ public class TestLazyResourceDelegate {
         when(state.getPath()).thenReturn("/myResource");
         when(state.getName()).thenReturn("resource");        
         when(state.getEntityName()).thenReturn("dummy");
+        when(resourceStateProvider.isLoaded("resource")).thenReturn(true);
+        when(resourceStateProvider.getResourceState("resource")).thenReturn(state);
         when(resourceStateProvider.getResourceState(eq("PUT"), anyString())).thenReturn(state);
+        when(resourceStateProvider.getResourceStateId(eq("PUT"), anyString())).thenReturn("resource");
+
         ResourceStateMachine resourceStateMachine = mock(ResourceStateMachine.class);
         Map<String, Set<String>> interactionsByPath = mock(HashMap.class);
         Set<String> methods = new HashSet<String>();
@@ -325,6 +359,7 @@ public class TestLazyResourceDelegate {
         InMultiPart inMP = mock(InMultiPart.class);        
         lazyResourceDelegate.put(headers, uriInfo, inMP);
         
-        verify(resourceStateProvider).getResourceState("PUT", "/myResource");                  
+        verify(resourceStateProvider).getResourceStateId("PUT", "/myResource");                  
+        verify(resourceStateProvider).getResourceState("resource");
 	}
 }
