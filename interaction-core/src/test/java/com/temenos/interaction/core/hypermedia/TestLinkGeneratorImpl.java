@@ -59,7 +59,7 @@ import com.temenos.interaction.core.web.RequestContext;
 /**
  * Created by ikarady on 06/04/2016.
  */
-public class TestLinkGenerator {
+public class TestLinkGeneratorImpl {
 
     @Before
     public void setup() {
@@ -495,7 +495,7 @@ public class TestLinkGenerator {
             assertEquals("customer_Customer(" + i + ").Name", result.getSourceField());
         }
     }
-    
+        
     private OComplexObject createComplexObject(String... values) {
         List<OProperty<?>> propertyList = new ArrayList<OProperty<?>>();
         for (int i=0; i<values.length; i+=2) {

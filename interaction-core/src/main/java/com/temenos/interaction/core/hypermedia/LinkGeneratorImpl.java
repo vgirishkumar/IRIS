@@ -54,7 +54,7 @@ import com.temenos.interaction.core.web.RequestContext;
 public class LinkGeneratorImpl implements LinkGenerator {
 
     protected static final String PARAM_REPLACEMENT_REGEX = "\\((\\d+)\\)";
-    private final Logger logger = LoggerFactory.getLogger(LinkGeneratorImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(LinkGeneratorImpl.class);
     private ResourceStateMachine resourceStateMachine;
     private Transition transition;
     private InteractionContext interactionContext;
@@ -103,7 +103,7 @@ public class LinkGeneratorImpl implements LinkGenerator {
         
         return eLinks;
     }
-
+    
     private String extractCollectionParamName(Map<String, String> transitionUriMap) {
         if (transitionUriMap==null) {
             return null;
@@ -426,4 +426,5 @@ public class LinkGeneratorImpl implements LinkGenerator {
         
         return updatedtransition;
     }
+    
 }

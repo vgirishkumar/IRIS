@@ -22,14 +22,38 @@ package com.temenos.interaction.core.rim;
  */
 
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
-public class HeaderHelper {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+/**
+ * 
+ * This class contains a number of utility methods to manipulate
+ * HTTP response headers via a system of ResponseBuilders.
+ *
+ * @author dgroves
+ *
+ */
+public class HeaderHelper {
+    
+    private static final Logger logger = LoggerFactory.getLogger(HeaderHelper.class);
+
+    /**
+     * Add an HTTP Allow header to the response.
+     * @param rb
+     * @param httpMethods
+     * @return
+     */
     public static ResponseBuilder allowHeader(ResponseBuilder rb, Set<String> httpMethods) {
     	if (httpMethods != null) {
         	StringBuilder result = new StringBuilder();
@@ -42,13 +66,32 @@ public class HeaderHelper {
     	}
     	return rb;
     }
-
+    
+    /**
+     * Add an HTTP Location header to the response without query parameters.
+     * @param rb
+     * @param target
+     * @return
+     */
     public static ResponseBuilder locationHeader(ResponseBuilder rb, String target) {
-    	// RequestContext.getRequestContext().getBasePath().path(nextState.getPath())
-    	if (target != null) {
-        	return rb.header(HttpHeaders.LOCATION, target);
-    	}
-    	return rb;
+    	return locationHeader(rb, target, null);
+    }
+    
+    /**
+     * Add an HTTP Location header to the response with query parameters.
+     * @param rb
+     * @param target
+     * @param queryParam
+     * @return
+     */
+    public static ResponseBuilder locationHeader(ResponseBuilder rb, String target, MultivaluedMap<String, String> queryParam) {
+        if (target != null && queryParam != null) {
+            return rb.header(HttpHeaders.LOCATION, target + encodeMultivalueQueryParameters(queryParam));
+        }else if(target != null){
+            return rb.header(HttpHeaders.LOCATION, target);
+        }else{
+            return rb;
+        }
     }
 
     /**
@@ -83,4 +126,73 @@ public class HeaderHelper {
     	}
     	return null;
     }
+    
+    /**
+     * Encode a MultivaluedMap as URL query parameters, omitting any duplicate
+     * key/value pairings.
+     * @param requestParameters The query parameters to encode.
+     * @return An encoded query string suitable for use with a URL.
+     */
+    public static String encodeMultivalueQueryParameters(
+            MultivaluedMap<String, String> queryParam){
+        if(isNullOrEmpty(queryParam)){
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        int outerIndex = 0;
+        List<String> filter = new ArrayList<String>();
+        for(Map.Entry<String, List<String>> entry : queryParam.entrySet()){
+            filterDuplicateQueryKeyValuePairings(entry.getValue(), filter);
+            sb.append(constructQueryKeyValuePairing(entry.getKey(), filter, outerIndex < queryParam.size() - 1));
+            filter.clear();
+            outerIndex++;
+        }
+        if(sb.length() > 0){
+            sb.insert(0, "?");
+        }
+        return sb.toString();
+    }
+    
+    private static boolean isNullOrEmpty(MultivaluedMap<String, String> queryParam){
+        return queryParam == null || queryParam.isEmpty();
+    }
+    
+    private static void filterDuplicateQueryKeyValuePairings(List<String> src, List<String> dest){
+        for(String value : src){
+            if(!dest.contains(value)){
+                dest.add(value);
+            }
+        }
+    }
+    
+    private static String constructQueryKeyValuePairing(String key, List<String> values, boolean appendAmpersand) {
+        StringBuilder sb = new StringBuilder();
+        String generatedQueryParam = "";
+        int index = 0;
+        for(String value : values){
+            try{
+                generatedQueryParam = key+"="+value;
+                sb.append(encodeQueryParameter(key));
+                sb.append("=");
+                sb.append(encodeQueryParameter(value));
+                if(index < values.size() - 1){
+                    sb.append("&");
+                }
+                index++;
+            }catch(UnsupportedEncodingException uee){
+                logger.error("Unable to decode query parameter {}; "
+                        + "this will be omitted.", generatedQueryParam);
+                index++;
+            }
+        }
+        if(appendAmpersand && sb.length() > 0){
+            sb.append("&");
+        }
+        return sb.toString();
+    }
+    
+    private static String encodeQueryParameter(String queryParam) throws UnsupportedEncodingException{
+        return URLEncoder.encode(queryParam, "UTF-8");
+    }
+
 }
