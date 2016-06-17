@@ -651,28 +651,11 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             assert (currentState.getAllTargets() != null && currentState.getAllTargets().size() > 0) : "A pseudo state that creates a new resource MUST contain an auto transition to that new resource";
             List<Transition> autoTransitions = getTransitions(ctx, currentState, Transition.AUTO);
             if (!autoTransitions.isEmpty()) {
-                List<Transition> innerTransitions = autoTransitions;
-                Transition autoTransition;
-                do {
-                    autoTransition = innerTransitions.get(0);
-                    if (innerTransitions.size() > 1)
-                        logger.warn("Resource state [" + currentState.getName()
-                            + "] has multiple auto-transitions. Using [" + autoTransition.getId() + "].");
-                    innerTransitions = getTransitions(ctx, autoTransition.getTarget(), Transition.AUTO);
-                }while(!innerTransitions.isEmpty() && autoTransition.isType(Transition.AUTO));
-                
-                assert (resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
-                
-                ResponseWrapper autoResponse = getResource(headers, autoTransition, ctx);
+                ResponseWrapper autoResponse = resolveAutomaticTransitions(headers, ctx, responseBuilder, currentState, autoTransitions);
                 responseBuilder = HeaderHelper.locationHeader(responseBuilder, autoResponse.getSelfLink().getHref() + HeaderHelper.encodeMultivalueQueryParameters(autoResponse.getRequestParameters()));
-                if (autoResponse.getResponse().getStatus() != Status.OK.getStatusCode()) {
-                    logger.warn("Auto transition target did not return HttpStatus.OK status ["
-                            + autoResponse.getResponse().getStatus() + "]");
-                    responseBuilder.status(autoResponse.getResponse().getStatus());
-                }
                 resource = (RESTResource) ((GenericEntity<?>) autoResponse.getResponse().getEntity()).getEntity();
             }
-            assert (resource != null);
+            assert (resource != null && resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
             responseBuilder.entity(resource.getGenericEntity());
             responseBuilder = HeaderHelper.etagHeader(responseBuilder, resource.getEntityTag());
         } else if (status.equals(Response.Status.NOT_MODIFIED)) {
@@ -681,30 +664,12 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             assert (resource != null);
             ResourceState currentState = ctx.getCurrentState();
             List<Transition> autoTransitions = getTransitions(ctx, currentState, Transition.AUTO);
-
             if (!autoTransitions.isEmpty()) {
-                List<Transition> innerTransitions = autoTransitions;
-                Transition autoTransition;
-                do {
-                    autoTransition = innerTransitions.get(0);
-                    if (innerTransitions.size() > 1)
-                        logger.warn("Resource state [" + currentState.getName()
-                            + "] has multiple auto-transitions. Using [" + autoTransition.getId() + "].");
-                    innerTransitions = getTransitions(ctx, autoTransition.getTarget(), Transition.AUTO);
-                }while(!innerTransitions.isEmpty() && autoTransition.isType(Transition.AUTO));
-                
-                assert (resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
-                
-                ResponseWrapper autoResponse = getResource(headers, autoTransition, ctx);
+                ResponseWrapper autoResponse = resolveAutomaticTransitions(headers, ctx, responseBuilder, currentState, autoTransitions);
                 responseBuilder = HeaderHelper.locationHeader(responseBuilder, autoResponse.getSelfLink().getHref() + HeaderHelper.encodeMultivalueQueryParameters(autoResponse.getRequestParameters()));
-                if (autoResponse.getResponse().getStatus() != Status.OK.getStatusCode()) {
-                    logger.warn("Auto transition target did not return HttpStatus.OK status ["
-                            + autoResponse.getResponse().getStatus() + "]");
-                    responseBuilder.status(autoResponse.getResponse().getStatus());
-                }
                 resource = (RESTResource) ((GenericEntity<?>) autoResponse.getResponse().getEntity()).getEntity();
             }
-
+            assert (resource != null && resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
             StreamingOutput streamEntity = null;
             if (resource instanceof EntityResource<?>) {
                 Object entity = ((EntityResource<?>) resource).getEntity();
@@ -779,6 +744,30 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         Response response = responseBuilder.build();
 
         return response;
+    }
+
+    private ResponseWrapper resolveAutomaticTransitions(HttpHeaders headers,
+            InteractionContext ctx, ResponseBuilder responseBuilder, ResourceState currentState,
+            List<Transition> autoTransitions) {
+        Transition autoTransition;
+        ResponseWrapper autoResponse;
+        do {
+            autoTransition = autoTransitions.get(0);
+            if (autoTransitions.size() > 1)
+                logger.warn("Resource state [" + currentState.getName()
+                    + "] has multiple auto-transitions. Using [" + autoTransition.getId() + "].");
+            autoResponse = getResource(headers, autoTransition, ctx);
+            autoTransitions = getTransitions(ctx, autoTransition.getTarget(), Transition.AUTO);
+        }while(!autoTransitions.isEmpty() 
+                && autoTransition.isType(Transition.AUTO) 
+                && autoResponse.getResponse().getStatus() == Status.OK.getStatusCode());
+        
+        if (autoResponse.getResponse().getStatus() != Status.OK.getStatusCode()) {
+            logger.warn("Auto transition target did not return HttpStatus.OK status ["
+                    + autoResponse.getResponse().getStatus() + "]");
+            responseBuilder.status(autoResponse.getResponse().getStatus());
+        }
+        return autoResponse;
     }
 
     private List<Transition> getTransitions(InteractionContext ctx, ResourceState state, int transitionType) {
