@@ -53,19 +53,29 @@ public class NullEntityWrapper implements EntityWrapper {
 
 	@Override
 	public void setHandler(EntityHandler handler) {
-		// TODO?
+		// do-nothing
 	}
 
 	@Override
 	public void setSessionContext(SessionContext sessionCallback) {
-		// TODO
+		// do-nothing
 	}
 
 	@Override
-	public void setValue(String fqPropertyName, String value) {
-		// TODO?
+	public void set(String fqPropertyName, String value) {
+		// do-nothing
 	}
 
+	@Override
+	public void add(String fqPropertyName, String value) {
+		// do-nothing
+	}
+
+	@Override
+	public void remove(String fqPropertyName) {
+		// do-nothing
+	}
+	
 	@Override
 	public InputStream getContent() {
 		try {
@@ -74,5 +84,4 @@ public class NullEntityWrapper implements EntityWrapper {
 			throw new RuntimeException(e);
 		}
 	}
-
 }

@@ -41,7 +41,9 @@ import com.temenos.useragent.generic.internal.UrlWrapper;
 public class DefaultInteractionSession implements InteractionSession {
 
 	private HttpHeader header;
-	private Map<String, String> properties;
+	private Map<String, String> changedProperties;
+	private Map<String, String> addedProperties;
+	private List<String> removedProperties;
 	private EntityWrapper entity;
 	private SessionContextImpl sessionContext;
 	private HttpClient httpClient;
@@ -72,16 +74,27 @@ public class DefaultInteractionSession implements InteractionSession {
 
 	@Override
 	public InteractionSession set(String propertyName, String propertyValue) {
-		properties.put(propertyName, propertyValue);
+		changedProperties.put(propertyName, propertyValue);
 		return this;
 	}
 
 	@Override
 	public InteractionSession unset(String propertyName) {
-		properties.remove(propertyName);
+		changedProperties.remove(propertyName);
 		return this;
 	}
 
+	@Override
+	public InteractionSession add(String propertyName, String propertyValue) {
+		addedProperties.put(propertyName, propertyValue);
+		return this;
+	}
+	
+	public InteractionSession remove(String propertyName) {
+		removedProperties.add(propertyName);
+		return this;
+	}
+	
 	@Override
 	public Entities entities() {
 		Payload response = sessionContext.getResponse().body();
@@ -162,7 +175,7 @@ public class DefaultInteractionSession implements InteractionSession {
 
 	private void initialiseToDefaults() {
 		header = new HttpHeader();
-		properties = new HashMap<String, String>();
+		changedProperties = new HashMap<String, String>();
 		entity = new NullEntityWrapper();
 		sessionContext = new SessionContextImpl(this);
 		httpClient = HttpClientFactory.newClient();
@@ -200,8 +213,8 @@ public class DefaultInteractionSession implements InteractionSession {
 		public EntityWrapper getRequestEntity() {
 			// TODO build/modify the entity and return
 			EntityWrapper wrapper = parent.entity;
-			for (String key : parent.properties.keySet()) {
-				wrapper.setValue(key, parent.properties.get(key));
+			for (String key : parent.changedProperties.keySet()) {
+				wrapper.set(key, parent.changedProperties.get(key));
 			}
 			return wrapper;
 		}

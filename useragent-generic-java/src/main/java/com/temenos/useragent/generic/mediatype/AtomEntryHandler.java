@@ -128,6 +128,16 @@ public class AtomEntryHandler implements EntityHandler {
 		}
 	}
 
+	@Override
+	public void addProperty(String fqPropertyName, String value) {
+		throw new UnsupportedOperationException("Not yet implemented");
+	}
+
+	@Override
+	public void removeProperty(String fqPropertyName) {
+		throw new UnsupportedOperationException("Not yet implemented");
+	}	
+	
 	private Element getProperty(String fqPropertyName) {
 		String[] pathParts = validateAndParsePropertyName(fqPropertyName);
 		Element parent = getParent(pathParts);

@@ -109,6 +109,21 @@ public interface InteractionSession {
 	InteractionSession unset(String propertyName);
 
 	/**
+	 * Adds a property 
+	 * @param propertyName
+	 * @param propertyValue
+	 * @return
+	 */
+	InteractionSession add(String propertyName, String propertyValue);
+	
+	/**
+	 * Removes a property
+	 * @param propertyName
+	 * @return
+	 */
+	InteractionSession remove(String propertyName);
+	
+	/**
 	 * Returns a {@link Url url} instance associated to this session with any
 	 * pre-configuration applied.
 	 * 
