@@ -24,7 +24,6 @@ package com.temenos.interaction.winkext;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -98,13 +97,10 @@ public class TestLazyServiceRootFactory {
 		assertNotNull(response);
 		
         EntityResource resource = mock(EntityResource.class);
-        
-        try {
-            response = rim.post(headers, id, uriInfo, resource);
+                
+        response = rim.post(headers, id, uriInfo, resource);
             
-            fail("Should have failed due to non resource registered");
-        } catch(Exception e) {
-        }
+        assertEquals(response.getStatus(), 404);
 	}
 
 	@Test

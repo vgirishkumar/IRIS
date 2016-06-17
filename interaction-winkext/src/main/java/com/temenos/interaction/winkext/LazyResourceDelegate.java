@@ -169,7 +169,13 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
 	@Override
 	public Response get(HttpHeaders headers, String id, UriInfo uriInfo) {		
         try {
-			return getResource(uriInfo, "GET").get(headers, id, uriInfo);
+            HTTPHypermediaRIM rim = getResource(uriInfo, "GET");
+            
+            if(rim == null) {
+                return Response.status(404).build();
+            }
+            
+			return rim.get(headers, id, uriInfo);
 		} catch (MethodNotAllowedException e) {
 			return handleMethodNotAllowedException(e);			
 		}
@@ -179,7 +185,13 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
 	public Response post(HttpHeaders headers, UriInfo uriInfo, InMultiPart inMP) {
 	    
 		try {
-			return getResource(uriInfo, "POST").post(headers, uriInfo, inMP);
+		    HTTPHypermediaRIM rim = getResource(uriInfo, "POST");
+		    
+            if(rim == null) {
+                return Response.status(404).build();
+            }
+		    
+			return rim.post(headers, uriInfo, inMP);
 		} catch (MethodNotAllowedException e) {
 			return handleMethodNotAllowedException(e);			
 		}
@@ -189,7 +201,13 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
     public Response post( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, 
     		MultivaluedMap<String, String> formParams) {
 		try {
-			return getResource(uriInfo, "POST").post(headers, id, uriInfo, formParams);
+		    HTTPHypermediaRIM rim = getResource(uriInfo, "POST");
+		    
+            if(rim == null) {
+                return Response.status(404).build();
+            }
+		    
+			return rim.post(headers, id, uriInfo, formParams);
 		} catch (MethodNotAllowedException e) {
 			return handleMethodNotAllowedException(e);			
 		}
@@ -198,7 +216,13 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
 	@Override
 	public Response post(HttpHeaders headers, String id, UriInfo uriInfo, EntityResource<?> eresource) {
         try {
-			return getResource(uriInfo, "POST").post(headers, id, uriInfo, eresource);
+            HTTPHypermediaRIM rim = getResource(uriInfo, "POST");
+
+            if(rim == null) {
+                return Response.status(404).build();
+            }
+            
+			return rim.post(headers, id, uriInfo, eresource);
 		} catch (MethodNotAllowedException e) {
 			return handleMethodNotAllowedException(e);			
 		}
@@ -207,7 +231,13 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
 	@Override
 	public Response put(HttpHeaders headers, UriInfo uriInfo, InMultiPart inMP) {
 		try {
-			return getResource(uriInfo, "PUT").put(headers, uriInfo, inMP);
+		    HTTPHypermediaRIM rim = getResource(uriInfo, "PUT");
+		    
+            if(rim == null) {
+                return Response.status(404).build();
+            }
+		    
+			return rim.put(headers, uriInfo, inMP);
 		} catch (MethodNotAllowedException e) {
 			return handleMethodNotAllowedException(e);			
 		}
@@ -216,7 +246,13 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
 	@Override
 	public Response put(HttpHeaders headers, String id, UriInfo uriInfo, EntityResource<?> eresource) {
 		try {
-			return getResource(uriInfo, "PUT").put(headers, id, uriInfo, eresource);
+            HTTPHypermediaRIM rim = getResource(uriInfo, "PUT"); 
+                    
+            if(rim == null) {
+                return Response.status(404).build();
+            }
+		    
+			return rim.put(headers, id, uriInfo, eresource);
 		} catch (MethodNotAllowedException e) {
 			return handleMethodNotAllowedException(e);			
 		}
@@ -226,7 +262,13 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
 	@Override
 	public Response delete(HttpHeaders headers, String id, UriInfo uriInfo) {	    
 		try {
-			return getResource(uriInfo, "DELETE").delete(headers, id, uriInfo);
+            HTTPHypermediaRIM rim = getResource(uriInfo, "DELETE");
+            
+            if(rim == null) {
+                return Response.status(404).build();
+            }
+            
+			return rim.delete(headers, id, uriInfo);
 		} catch (MethodNotAllowedException e) {
 			return handleMethodNotAllowedException(e);			
 		}
@@ -250,7 +292,13 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
 	@Override
 	public Response options(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo) {	    
 		try {
-			return getResource(uriInfo, "OPTIONS").options(headers, id, uriInfo);
+		    HTTPHypermediaRIM rim = getResource(uriInfo, "OPTIONS");
+
+            if(rim == null) {
+                return Response.status(404).build();
+            }
+		    
+			return rim.options(headers, id, uriInfo);
 		} catch (MethodNotAllowedException e) {
 			return handleMethodNotAllowedException(e);			
 		}
