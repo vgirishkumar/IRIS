@@ -651,11 +651,12 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             assert (currentState.getAllTargets() != null && currentState.getAllTargets().size() > 0) : "A pseudo state that creates a new resource MUST contain an auto transition to that new resource";
             List<Transition> autoTransitions = getTransitions(ctx, currentState, Transition.AUTO);
             if (!autoTransitions.isEmpty()) {
+                assert (resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
                 ResponseWrapper autoResponse = resolveAutomaticTransitions(headers, ctx, responseBuilder, currentState, autoTransitions);
                 responseBuilder = HeaderHelper.locationHeader(responseBuilder, autoResponse.getSelfLink().getHref(), autoResponse.getRequestParameters());
                 resource = (RESTResource) ((GenericEntity<?>) autoResponse.getResponse().getEntity()).getEntity();
             }
-            assert (resource != null && resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
+            assert (resource != null);
             responseBuilder.entity(resource.getGenericEntity());
             responseBuilder = HeaderHelper.etagHeader(responseBuilder, resource.getEntityTag());
         } else if (status.equals(Response.Status.NOT_MODIFIED)) {
@@ -665,11 +666,12 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             ResourceState currentState = ctx.getCurrentState();
             List<Transition> autoTransitions = getTransitions(ctx, currentState, Transition.AUTO);
             if (!autoTransitions.isEmpty()) {
+                assert (resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
                 ResponseWrapper autoResponse = resolveAutomaticTransitions(headers, ctx, responseBuilder, currentState, autoTransitions);
                 responseBuilder = HeaderHelper.locationHeader(responseBuilder, autoResponse.getSelfLink().getHref(), autoResponse.getRequestParameters());
                 resource = (RESTResource) ((GenericEntity<?>) autoResponse.getResponse().getEntity()).getEntity();
             }
-            assert (resource != null && resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
+            assert (resource != null);
             StreamingOutput streamEntity = null;
             if (resource instanceof EntityResource<?>) {
                 Object entity = ((EntityResource<?>) resource).getEntity();
