@@ -32,6 +32,9 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * This class is used to parse the ReferentialConstraint elements
  * of an edmx file in order to be able to obtain the entity property
@@ -39,6 +42,7 @@ import org.xml.sax.helpers.DefaultHandler;
  * [odata4j does not parse ReferentialConstraint elements] 
  */
 public class ReferentialConstraintParser extends DefaultHandler {
+    private final static Logger LOGGER = LoggerFactory.getLogger(ReferentialConstraintParser.class);
 	public final static String DEPENDENT = "Dependent";
 	public final static String PRINCIPAL = "Principal";
 	
@@ -59,7 +63,7 @@ public class ReferentialConstraintParser extends DefaultHandler {
 			return getProperty(associationName,  new FileInputStream(edmxFile), searchConstraint);
 		}
 		catch(Exception e) {
-			e.printStackTrace();
+		    LOGGER.warn("Failed to get dependent", e);
 		}
 		return null;
 	}
@@ -70,7 +74,7 @@ public class ReferentialConstraintParser extends DefaultHandler {
 			return getProperty(associationName,  isEdmx, searchConstraint);
 		}
 		catch(Exception e) {
-			e.printStackTrace();
+            LOGGER.warn("Failed to get dependent", e);
 		}
 		return null;
 	}
@@ -81,7 +85,7 @@ public class ReferentialConstraintParser extends DefaultHandler {
 			return getProperty(associationName,  new FileInputStream(edmxFile), searchConstraint);
 		}
 		catch(Exception e) {
-			e.printStackTrace();
+            LOGGER.warn("Failed to get principal", e);
 		}
 		return null;
 	}
@@ -92,7 +96,7 @@ public class ReferentialConstraintParser extends DefaultHandler {
 			return getProperty(associationName,  isEdmx, searchConstraint);
 		}
 		catch(Exception e) {
-			e.printStackTrace();
+            LOGGER.warn("Failed to get principal", e);
 		}
 		return null;
 	}
@@ -105,7 +109,7 @@ public class ReferentialConstraintParser extends DefaultHandler {
 			SAXParser saxParser = factory.newSAXParser();
 			saxParser.parse(isEdmx, handler);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.warn("Failed to parse XML document", e);
 		}
 		return handler.getProperty();
 	}

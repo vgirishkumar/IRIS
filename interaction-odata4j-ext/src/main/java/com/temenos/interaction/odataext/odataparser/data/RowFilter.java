@@ -53,12 +53,7 @@ public class RowFilter {
 
         if (!(expr instanceof BinaryCommonExpression)) {
             // Too complex to fit in a RowFIlter
-            new RuntimeException("Expression too complex for row filter. Type=\"" + expr + "\"");
-
-            // For backward comparability cannot throw
-            // UnsupportedQueryOperationException. So throw something that old
-            // callers can handle.
-            throw new NullPointerException("Expression too complex for row filter. Type=\"" + expr + "\"");
+            throw new RuntimeException("Expression too complex for row filter. Type=\"" + expr + "\"");
         }
         oData4jExpression = (BinaryCommonExpression) expr;
     }
@@ -76,7 +71,7 @@ public class RowFilter {
         try {
             name = new FieldName(oData4jExpression.getLHS());
         } catch (UnsupportedQueryOperationException e) {
-            new RuntimeException("LHS incompatible with FieldName.");
+            throw new RuntimeException("LHS incompatible with FieldName.");
         }
         return name;
     }
@@ -92,6 +87,6 @@ public class RowFilter {
     }
 
     public String getValue() {
-        return (ODataParser.OData4jToFilters(oData4jExpression.getRHS()));
+        return ODataParser.OData4jToFilters(oData4jExpression.getRHS());
     }
 }
