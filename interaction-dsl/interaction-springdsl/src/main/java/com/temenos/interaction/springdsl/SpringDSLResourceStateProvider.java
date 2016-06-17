@@ -448,6 +448,8 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
             if(pathTree.get(url) != null) {
                 Set<String> allowedMethods = pathTree.get(url).keySet();
                 throw new MethodNotAllowedException(allowedMethods);
+            } else {
+                return null;
             }
         }
         return getResourceState(resourceStateId);

@@ -141,6 +141,8 @@ public class DefaultResourceStateProvider implements ResourceStateProvider {
             if(paths.get(url) != null) {
                 Set<String> allowedMethods = paths.get(url).keySet();
                 throw new MethodNotAllowedException(allowedMethods);
+            } else {
+                return null;
             }
         }
         return getResourceState(resourceStateId);
