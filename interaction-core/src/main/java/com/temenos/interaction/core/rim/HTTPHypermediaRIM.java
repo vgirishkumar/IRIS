@@ -652,7 +652,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             List<Transition> autoTransitions = getTransitions(ctx, currentState, Transition.AUTO);
             if (!autoTransitions.isEmpty()) {
                 ResponseWrapper autoResponse = resolveAutomaticTransitions(headers, ctx, responseBuilder, currentState, autoTransitions);
-                responseBuilder = HeaderHelper.locationHeader(responseBuilder, autoResponse.getSelfLink().getHref() + HeaderHelper.encodeMultivalueQueryParameters(autoResponse.getRequestParameters()));
+                responseBuilder = HeaderHelper.locationHeader(responseBuilder, autoResponse.getSelfLink().getHref(), autoResponse.getRequestParameters());
                 resource = (RESTResource) ((GenericEntity<?>) autoResponse.getResponse().getEntity()).getEntity();
             }
             assert (resource != null && resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
@@ -666,7 +666,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             List<Transition> autoTransitions = getTransitions(ctx, currentState, Transition.AUTO);
             if (!autoTransitions.isEmpty()) {
                 ResponseWrapper autoResponse = resolveAutomaticTransitions(headers, ctx, responseBuilder, currentState, autoTransitions);
-                responseBuilder = HeaderHelper.locationHeader(responseBuilder, autoResponse.getSelfLink().getHref() + HeaderHelper.encodeMultivalueQueryParameters(autoResponse.getRequestParameters()));
+                responseBuilder = HeaderHelper.locationHeader(responseBuilder, autoResponse.getSelfLink().getHref(), autoResponse.getRequestParameters());
                 resource = (RESTResource) ((GenericEntity<?>) autoResponse.getResponse().getEntity()).getEntity();
             }
             assert (resource != null && resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";

@@ -36,10 +36,24 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 
+ * This class contains a number of utility methods to manipulate
+ * HTTP response headers via a system of ResponseBuilders.
+ *
+ * @author dgroves
+ *
+ */
 public class HeaderHelper {
     
     private static final Logger logger = LoggerFactory.getLogger(HeaderHelper.class);
 
+    /**
+     * Add an HTTP Allow header to the response.
+     * @param rb
+     * @param httpMethods
+     * @return
+     */
     public static ResponseBuilder allowHeader(ResponseBuilder rb, Set<String> httpMethods) {
     	if (httpMethods != null) {
         	StringBuilder result = new StringBuilder();
@@ -52,13 +66,32 @@ public class HeaderHelper {
     	}
     	return rb;
     }
-
+    
+    /**
+     * Add an HTTP Location header to the response without query parameters.
+     * @param rb
+     * @param target
+     * @return
+     */
     public static ResponseBuilder locationHeader(ResponseBuilder rb, String target) {
-    	// RequestContext.getRequestContext().getBasePath().path(nextState.getPath())
-    	if (target != null) {
-        	return rb.header(HttpHeaders.LOCATION, target);
-    	}
-    	return rb;
+    	return locationHeader(rb, target, null);
+    }
+    
+    /**
+     * Add an HTTP Location header to the response with query parameters.
+     * @param rb
+     * @param target
+     * @param queryParam
+     * @return
+     */
+    public static ResponseBuilder locationHeader(ResponseBuilder rb, String target, MultivaluedMap<String, String> queryParam) {
+        if (target != null && queryParam != null) {
+            return rb.header(HttpHeaders.LOCATION, target + encodeMultivalueQueryParameters(queryParam));
+        }else if(target != null){
+            return rb.header(HttpHeaders.LOCATION, target);
+        }else{
+            return rb;
+        }
     }
 
     /**

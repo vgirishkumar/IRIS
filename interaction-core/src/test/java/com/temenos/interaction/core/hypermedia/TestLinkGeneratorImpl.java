@@ -59,7 +59,7 @@ import com.temenos.interaction.core.web.RequestContext;
 /**
  * Created by ikarady on 06/04/2016.
  */
-public class TestLinkGenerator {
+public class TestLinkGeneratorImpl {
 
     @Before
     public void setup() {
