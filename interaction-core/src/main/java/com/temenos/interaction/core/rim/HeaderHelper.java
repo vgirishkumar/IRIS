@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 public class HeaderHelper {
     
     private static final Logger logger = LoggerFactory.getLogger(HeaderHelper.class);
+    private static final String DEFAULT_ENCODING = "UTF-8";
 
     /**
      * Add an HTTP Allow header to the response.
@@ -167,23 +168,15 @@ public class HeaderHelper {
     
     private static String constructQueryKeyValuePairing(String key, List<String> values, boolean appendAmpersand) {
         StringBuilder sb = new StringBuilder();
-        String generatedQueryParam = "";
         int index = 0;
         for(String value : values){
-            try{
-                generatedQueryParam = key+"="+value;
-                sb.append(encodeQueryParameter(key));
-                sb.append("=");
-                sb.append(encodeQueryParameter(value));
-                if(index < values.size() - 1){
-                    sb.append("&");
-                }
-                index++;
-            }catch(UnsupportedEncodingException uee){
-                logger.error("Unable to decode query parameter {}; "
-                        + "this will be omitted.", generatedQueryParam);
-                index++;
+            sb.append(encodeQueryParameter(key, DEFAULT_ENCODING));
+            sb.append("=");
+            sb.append(encodeQueryParameter(value, DEFAULT_ENCODING));
+            if(index < values.size() - 1){
+                sb.append("&");
             }
+            index++;
         }
         if(appendAmpersand && sb.length() > 0){
             sb.append("&");
@@ -191,8 +184,14 @@ public class HeaderHelper {
         return sb.toString();
     }
     
-    private static String encodeQueryParameter(String queryParam) throws UnsupportedEncodingException{
-        return URLEncoder.encode(queryParam, "UTF-8");
+    private static String encodeQueryParameter(String queryParam, String encoding){
+        try{
+            return URLEncoder.encode(queryParam, encoding);
+        }catch(UnsupportedEncodingException uee){
+            logger.error("Unsupported encoding type {} used to encode {}",
+                    encoding, queryParam);
+            throw new RuntimeException(uee);
+        }
     }
 
 }
