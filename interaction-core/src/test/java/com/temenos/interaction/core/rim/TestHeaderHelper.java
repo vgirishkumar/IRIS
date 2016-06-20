@@ -29,7 +29,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
@@ -184,28 +183,8 @@ public class TestHeaderHelper {
         );
     }
     
-    @Test
-    public void testEncodeQueryParametersURLEncoderThrowsException() throws Exception{
-        PowerMockito.spy(HeaderHelper.class);
-        PowerMockito.doThrow(new UnsupportedEncodingException()).when(
-                HeaderHelper.class, "encodeQueryParameter", eq("customerName")
-        );
-        MultivaluedMap<String, String> values = new MultivaluedMapImpl<String>();
-        values.add("customerNam=", "J&ck");
-        values.add("customerName", "Jack");
-        values.add("customerName", "Jill");
-        values.add("trans&ction", "!0!");
-        String queryParam = HeaderHelper.encodeMultivalueQueryParameters(values);
-        assertThat(queryParam, allOf(
-                startsWith("?"),
-                containsString("customerNam%3D=J%26ck"),
-                containsString("trans%26ction=%210%21")
-        ));
-        assertThat(StringUtils.countMatches(queryParam, "&"), equalTo(1));
-    }
-    
-    @Test
-    public void testEncodeQueryParametersURLEncoderAlwaysThrowsExceptions() throws Exception {
+    @Test(expected = RuntimeException.class)
+    public void testEncodeQueryParametersURLEncoderThrowsException() throws Exception {
         PowerMockito.spy(HeaderHelper.class);
         PowerMockito.doThrow(new UnsupportedEncodingException()).when(
                 HeaderHelper.class, "encodeQueryParameter", anyString()
@@ -215,7 +194,6 @@ public class TestHeaderHelper {
         values.add("customerName", "Jack");
         values.add("customerName", "Jill");
         values.add("trans&ction", "!0!");
-        String queryParam = HeaderHelper.encodeMultivalueQueryParameters(values);
-        assertThat(queryParam, equalTo(""));
+        HeaderHelper.encodeMultivalueQueryParameters(values);
     }
 }
