@@ -154,7 +154,7 @@ public class OutputExpressionNode {
             break;
 
         default:
-            new RuntimeException("Too many arguments for an operator \"" + op + "\". Trailing args ignored.");
+            throw new RuntimeException("Too many arguments for an operator \"" + op + "\". Trailing args ignored.");
         }
     }
 
@@ -213,7 +213,6 @@ public class OutputExpressionNode {
 
     public boolean addArgument(String argument) {
         if (MAX_SUB_NODES <= arguments.size()) {
-            new RuntimeException("Too many argumentents for any function or operator. Trailing args ignored.");
             return false;
         }
         arguments.add(argument);
@@ -222,7 +221,6 @@ public class OutputExpressionNode {
 
     public boolean setOp(String op) {
         if (null != this.op) {
-            new RuntimeException("Operator already set. Subsequent set ignored.");
             return false;
         }
         this.op = op;

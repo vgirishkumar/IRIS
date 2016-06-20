@@ -233,7 +233,7 @@ public class MetadataOData4j {
 			edmEntitySet = getEdmMetadata().getEdmEntitySet(type);
 		} catch (Exception e) {
 			// Ignore.... as we will be try lazy loading after this
-			logger.debug("EntitySet for [" + type + "] not found in EdmDataServices, try loading it seperately...");
+			logger.debug("EntitySet for [" + type + "] not found in EdmDataServices, try loading it seperately...", e);
 		}
 		// If its null
 		if (edmEntitySet == null) {
@@ -257,7 +257,7 @@ public class MetadataOData4j {
 			edmEntitySet = ODataHelper.getEntitySet(entityName, getEdmMetadata());
 		} catch (Exception e) {
 			// Ignore.... as we will be try lazy loading after this
-			logger.debug("EntitySet for [" + entityName + "] not found in EdmDataServices, try loading it seperately...");
+			logger.debug("EntitySet for [" + entityName + "] not found in EdmDataServices, try loading it seperately...", e);
 		}
 		// If its null
 		if (edmEntitySet == null) {

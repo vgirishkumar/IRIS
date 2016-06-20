@@ -104,7 +104,7 @@ public class OutputExpressionVisitor extends PrintExpressionVisitor {
 
     protected void append(String str) {
         if (!currentNode.setOp(str)) {
-            new RuntimeException("Internal error adding:" + str);
+            throw new RuntimeException("Internal error adding:" + str);
         }
     }
 
@@ -114,8 +114,7 @@ public class OutputExpressionVisitor extends PrintExpressionVisitor {
         OutputExpressionNode parentNode = currentNode.getParent();
         if (null == parentNode) {
             // Tried to go above the top of the tree.
-            new RuntimeException("Tried to go above tree root.");
-            return;
+           throw new RuntimeException("Tried to go above tree root.");
         }
 
         // Child is complete. Print it into parent arguments.
@@ -135,8 +134,7 @@ public class OutputExpressionVisitor extends PrintExpressionVisitor {
         OutputExpressionNode parentNode = currentNode.getParent();
         if (null == parentNode) {
             // Tried to go above the top of the tree.
-            new RuntimeException("Tried to go above tree root.");
-            return;
+            throw new RuntimeException("Tried to go above tree root.");
         }
 
         // Child is complete. Print it into parent arguments.

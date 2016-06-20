@@ -70,6 +70,9 @@ import com.temenos.interaction.sdk.interaction.transition.IMTransition;
 import com.temenos.interaction.sdk.rimdsl.RimDslGenerator;
 import com.temenos.interaction.sdk.util.IndentationFormatter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * This class is the main entry point to the IRIS SDK. It is a simple front end
  * for generating JPA classes, and associated configuration files. With these
@@ -79,7 +82,8 @@ import com.temenos.interaction.sdk.util.IndentationFormatter;
  * 
  */
 public class JPAResponderGen {
-
+    private final static Logger LOGGER = LoggerFactory.getLogger(JPAResponderGen.class);
+    
 	// generator properties
 	public final static String PROPERTY_KEY_ROOT = "com.temenos.interaction.sdk";
 	public final static String STRICT_ODATA_KEY = "strictodata";
@@ -357,8 +361,7 @@ public class JPAResponderGen {
 			fos = new FileOutputStream(classFileName);
 			fos.write(generatedClass.getBytes("UTF-8"));
 		} catch (IOException e) {
-			// TODO add slf4j logger here
-			e.printStackTrace();
+		    LOGGER.warn("Failed to write class: " + classFileName, e);
 			return false;
 		} finally {
 			try {
@@ -541,8 +544,7 @@ public class JPAResponderGen {
 			fos = new FileOutputStream(new File(metaInfDir, JPA_CONFIG_FILE));
 			fos.write(generatedPersistenceXML.getBytes("UTF-8"));
 		} catch (IOException e) {
-			// TODO add slf4j logger here
-			e.printStackTrace();
+	        LOGGER.warn("Failed to write : " + JPA_CONFIG_FILE, e);
 			return false;
 		} finally {
 			try {
@@ -566,8 +568,7 @@ public class JPAResponderGen {
 				fos.write(generatedSpringXML.getBytes("UTF-8"));
 			}
 		} catch (IOException e) {
-			// TODO add slf4j logger here
-			e.printStackTrace();
+            LOGGER.warn("Failed to write : " + filename, e);		    
 			return false;
 		} finally {
 			try {
@@ -588,8 +589,7 @@ public class JPAResponderGen {
 			fos = new FileOutputStream(new File(metaInfDir, RESPONDER_INSERT_FILE));
 			fos.write(generateResponderDML.getBytes("UTF-8"));
 		} catch (IOException e) {
-			// TODO add slf4j logger here
-			e.printStackTrace();
+            LOGGER.warn("Failed to write : " + RESPONDER_INSERT_FILE, e);
 			return false;
 		} finally {
 			try {
@@ -613,8 +613,7 @@ public class JPAResponderGen {
 				fos.write(generatedMetadata.getBytes("UTF-8"));
 			}
 		} catch (IOException e) {
-			// TODO add slf4j logger here
-			e.printStackTrace();
+		    LOGGER.warn("Failed to write : " + METADATA_FILE, e);
 			return false;
 		} finally {
 			try {
@@ -638,8 +637,7 @@ public class JPAResponderGen {
 				fos.write(generatedRimDsl.getBytes("UTF-8"));
 			}
 		} catch (IOException e) {
-			// TODO add slf4j logger here
-			e.printStackTrace();
+		    LOGGER.warn("Failed to write : " + rimDslFilename, e);
 			return false;
 		} finally {
 			try {
@@ -663,8 +661,7 @@ public class JPAResponderGen {
 				fos.write(generateResponderSettings.getBytes("UTF-8"));
 			}
 		} catch (IOException e) {
-			// TODO add slf4j logger here
-			e.printStackTrace();
+		    LOGGER.warn("Failed to write : " + RESPONDER_SETTINGS_FILE, e);
 			return false;
 		} finally {
 			try {

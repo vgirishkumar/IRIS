@@ -62,8 +62,7 @@ public class AccessProfile {
         try {
             return rowFilters.asRowFilters();
         } catch (UnsupportedQueryOperationException e) {
-            new RuntimeException("Could not convert to row filters");
-            return null;
+            throw new RuntimeException("Could not convert to row filters");
         }
     }
     

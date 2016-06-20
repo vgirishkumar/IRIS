@@ -44,24 +44,24 @@ import org.slf4j.LoggerFactory;
  * inject them into a database. 
  */
 public class ResponderDBUtils {
-	private final static Logger logger = LoggerFactory.getLogger(ResponderDBUtils.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(ResponderDBUtils.class);
 
 	public static String fillDatabase(DataSource dataSource) {
 		Connection conn = null;
 		String line = "";
 		try {
-			logger.debug("Attempting to connect to database");
+			LOGGER.debug("Attempting to connect to database");
 			conn = dataSource.getConnection();
 			Statement statement = conn.createStatement();
 			
-			logger.debug("Loading SQL INSERTs file");
+			LOGGER.debug("Loading SQL INSERTs file");
 			InputStream xml = ResponderDBUtils.class.getResourceAsStream("/META-INF/responder_insert.sql");
 			if (xml == null){
 				return "ERROR: DML file not found [/META-INF/responder_insert.sql].";
 			}
 			BufferedReader br = new BufferedReader(new InputStreamReader(xml, "UTF-8"));
 
-			logger.debug("Reading SQL INSERTs file");
+			LOGGER.debug("Reading SQL INSERTs file");
 			statement.execute("SET REFERENTIAL_INTEGRITY FALSE;");		//The order of INSERTs may not respect foreign key constraints
 			int count = 0;
 			while ((line = br.readLine()) != null) {
@@ -71,7 +71,7 @@ public class ResponderDBUtils {
 					line = line.replace("'0x", "'");
 
 					if (line.length() > 5) {
-						logger.debug("Inserting record: " + line);
+						LOGGER.debug("Inserting record: " + line);
 						statement.executeUpdate(line);
 						count++;
 					}
@@ -81,17 +81,16 @@ public class ResponderDBUtils {
 			
 			br.close();
 			statement.close();
-			logger.info(count + " rows have been inserted into the database.");
+			LOGGER.info(count + " rows have been inserted into the database.");
 
 		} catch (Exception ex) {
-			logger.error("Failed to insert SQL statements.");
-			ex.printStackTrace();
+			LOGGER.error("Failed to insert SQL statements.", ex);
 		} finally {
 			if (conn != null) {
 				try {
 					conn.close();
 				} catch (SQLException ex) {
-					// do nothing
+					LOGGER.error("Failed to close connection", ex);
 				}
 			}
 		}
@@ -111,6 +110,7 @@ public class ResponderDBUtils {
 				try {
 					out.close();
 				} catch (IOException e) {
+					LOGGER.error("Failed to write file.", e);					
 				}
 			}
 		}
@@ -140,11 +140,11 @@ public class ResponderDBUtils {
 				in.close();
 
 			} catch (IOException ex) {
-				logger.error("There was an error", ex);
+				LOGGER.error("There was an error", ex);
 			}
 
 		} catch (Exception ex) {
-			logger.error("There was an error", ex);
+			LOGGER.error("There was an error", ex);
 		}
 
 		return strBuilder.toString();
