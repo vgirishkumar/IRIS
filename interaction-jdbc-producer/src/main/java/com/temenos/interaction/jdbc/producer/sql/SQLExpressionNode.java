@@ -39,7 +39,7 @@ import com.temenos.interaction.jdbc.exceptions.JdbcException;
 
 public class SQLExpressionNode {
 
-    private final static Logger logger = LoggerFactory.getLogger(SQLExpressionNode.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(SQLExpressionNode.class);
 
     // Node will either contain a relation or a list of arguments.
     private List<String> arguments = new ArrayList<String>();
@@ -79,7 +79,7 @@ public class SQLExpressionNode {
         }
 
         if ((null != rel) && (arguments.isEmpty())) {
-            new JdbcException(Status.INTERNAL_SERVER_ERROR, "Node has no content.");
+            throw new JdbcException(Status.INTERNAL_SERVER_ERROR, "Node has no content.");
         }
 
         if (null != rel) {
@@ -140,7 +140,7 @@ public class SQLExpressionNode {
 
         for (Integer i : rel.getArgumentSequence()) {
             if (i >= arguments.size()) {
-                new JdbcException(Status.INTERNAL_SERVER_ERROR, "Argument index \"" + i + "\" too big.");
+                throw new JdbcException(Status.INTERNAL_SERVER_ERROR, "Argument index \"" + i + "\" too big.");
             } else {
                 first = appendFunctionArgument(sb, arguments.get(i), first);
             }
@@ -183,7 +183,7 @@ public class SQLExpressionNode {
             break;
 
         default:
-            new JdbcException(Status.INTERNAL_SERVER_ERROR, "Too many arguments for an operator \""
+            throw new JdbcException(Status.INTERNAL_SERVER_ERROR, "Too many arguments for an operator \""
                     + rel.getSqlSymbol() + "\".");
         }
     }
@@ -264,8 +264,7 @@ public class SQLExpressionNode {
 
     public boolean addArgument(String argument) {
         if (MAX_ARGUMENTS <= arguments.size()) {
-            new JdbcException(Status.INTERNAL_SERVER_ERROR, "Too many argumentents for function or operator.");
-            return false;
+            throw new JdbcException(Status.INTERNAL_SERVER_ERROR, "Too many argumentents for function or operator.");
         }
         arguments.add(argument);
         return true;
@@ -273,8 +272,7 @@ public class SQLExpressionNode {
 
     public boolean setRelation(SqlRelation rel) {
         if (null != this.rel) {
-            new JdbcException(Status.INTERNAL_SERVER_ERROR, "Relation already set.");
-            return false;
+            throw new JdbcException(Status.INTERNAL_SERVER_ERROR, "Relation already set.");
         }
         this.rel = rel;
         return true;

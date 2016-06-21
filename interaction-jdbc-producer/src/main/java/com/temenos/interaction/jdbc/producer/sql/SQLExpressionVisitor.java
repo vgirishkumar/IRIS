@@ -111,7 +111,7 @@ public class SQLExpressionVisitor extends PrintExpressionVisitor {
 
     protected void append(String str) {
         if (!currentNode.addArgument(str)) {
-            new JdbcException(Status.INTERNAL_SERVER_ERROR, "Internal error adding:" + str);
+            throw new JdbcException(Status.INTERNAL_SERVER_ERROR, "Internal error adding:" + str);
         }
     }
 
@@ -150,8 +150,7 @@ public class SQLExpressionVisitor extends PrintExpressionVisitor {
     private void toParent() {
         SQLExpressionNode parentNode = currentNode.getParent();
         if (null == parentNode) {
-            new JdbcException(Status.INTERNAL_SERVER_ERROR, "Tried to go above expression tree root.");
-            return;
+            throw new JdbcException(Status.INTERNAL_SERVER_ERROR, "Tried to go above expression tree root.");
         }
 
         // Child is complete. Print it as a parent argument.
