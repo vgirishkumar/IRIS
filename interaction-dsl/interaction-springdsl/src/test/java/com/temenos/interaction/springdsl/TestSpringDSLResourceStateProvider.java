@@ -168,4 +168,27 @@ public class TestSpringDSLResourceStateProvider {
         assertEquals("Number of resources: ", 1, rsp.getResourceMethodsByState().size());
     }
 
+    @Test(expected=MethodNotAllowedException.class)
+    public void testMethodNotAllowedExceptionforGetResourceStateId() throws Exception {
+        SpringDSLResourceStateProvider rsp = (SpringDSLResourceStateProvider) resourceStateProvider;
+
+        // allowed method
+        String resourceId = rsp.getResourceStateId("GET", "/test");
+        assertEquals("SimpleModel_Home_home", resourceId);
+
+        // not allowed method
+        rsp.getResourceStateId("DELETE", "/test");
+    }
+    
+    @Test(expected=MethodNotAllowedException.class)
+    public void testMethodNotAllowedExceptionforGetResourceState() throws Exception {
+        SpringDSLResourceStateProvider rsp = (SpringDSLResourceStateProvider) resourceStateProvider;
+        
+        // allowed method
+        ResourceState resource = rsp.getResourceState("GET", "/test");
+        assertEquals("home", resource.getName());
+
+        // not allowed method
+        rsp.getResourceState("DELETE", "/test");
+    }
 }

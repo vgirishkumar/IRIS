@@ -455,7 +455,7 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
         return getResourceState(resourceStateId);
     }
     
-    public String getResourceStateId(String httpMethod, String url) {
+    public String getResourceStateId(String httpMethod, String url) throws MethodNotAllowedException {
         Map<String,String> methodToState = null;
         
         initialise();
@@ -465,6 +465,12 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
         
         if(methodToState != null) {
             resourceStateId = methodToState.get(httpMethod);
+            if(resourceStateId == null) {
+                if(pathTree.get(url) != null) {
+                    Set<String> allowedMethods = pathTree.get(url).keySet();
+                    throw new MethodNotAllowedException(allowedMethods);
+                }
+            }
         } else {
             return null;
         }

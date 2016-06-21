@@ -81,6 +81,7 @@ public interface ResourceStateProvider {
      * the id (the ResourceState class doesn't have this information).
      *  
      * @return the id used to store the resource state with the provider
+     * @throws MethodNotAllowedException if the URL is registered but not the method 
      */
-    public String getResourceStateId(String httpMethod, String url);
+    public String getResourceStateId(String httpMethod, String url) throws MethodNotAllowedException;
 }
