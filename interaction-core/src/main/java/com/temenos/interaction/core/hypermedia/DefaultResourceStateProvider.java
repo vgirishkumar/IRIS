@@ -149,7 +149,7 @@ public class DefaultResourceStateProvider implements ResourceStateProvider {
     }
 
     @Override
-    public String getResourceStateId(String httpMethod, String url) {
+    public String getResourceStateId(String httpMethod, String url) throws MethodNotAllowedException {
         Map<String,String> methodToState = null;
         
         methodToState = paths.get(url);
@@ -158,6 +158,12 @@ public class DefaultResourceStateProvider implements ResourceStateProvider {
         
         if(methodToState != null) {
             resourceStateId = methodToState.get(httpMethod);
+            if(resourceStateId == null) {
+                if(paths.get(url) != null) {
+                    Set<String> allowedMethods = paths.get(url).keySet();
+                    throw new MethodNotAllowedException(allowedMethods);
+                }
+            }
         } else {
             return null;
         }

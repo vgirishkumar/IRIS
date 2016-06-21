@@ -179,4 +179,27 @@ public class TestDefaultResourceStateProvider {
         assertEquals(rsp.getResourceStateId("DELETE", "/published"), "publishedDeleted");
     }
 
+    @Test(expected=MethodNotAllowedException.class)
+    public void testMethodNotAllowedExceptionforGetResourceStateId() throws Exception {
+        DefaultResourceStateProvider rsp = new DefaultResourceStateProvider(hypermediaEngine);
+
+        // allowed method
+        String resourceId = rsp.getResourceStateId("GET", "/entity");
+        assertEquals("initial", resourceId);
+
+        // not allowed method
+        rsp.getResourceStateId("DELETE", "/entity");
+    }
+    
+    @Test(expected=MethodNotAllowedException.class)
+    public void testMethodNotAllowedExceptionforGetResourceState() throws Exception {
+        DefaultResourceStateProvider rsp = new DefaultResourceStateProvider(hypermediaEngine);
+        
+        // allowed method
+        ResourceState resource = rsp.getResourceState("GET", "/entity");
+        assertEquals("initial", resource.getName());
+
+        // not allowed method
+        rsp.getResourceState("DELETE", "/entity");
+    }
 }
