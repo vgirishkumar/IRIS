@@ -32,13 +32,10 @@ import java.util.Set;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
 
 /**
  * @author aburgos
  */
-@RunWith(MockitoJUnitRunner.class)
 public class TestDefaultResourceStateProvider {
 
     static ResourceStateMachine hypermediaEngine;
