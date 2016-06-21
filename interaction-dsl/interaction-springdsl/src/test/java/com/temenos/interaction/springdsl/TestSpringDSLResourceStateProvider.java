@@ -22,8 +22,11 @@ package com.temenos.interaction.springdsl;
  */
 
 
+import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -38,6 +41,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import com.temenos.interaction.core.hypermedia.Event;
+import com.temenos.interaction.core.hypermedia.MethodNotAllowedException;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 import com.temenos.interaction.core.hypermedia.Transition;
@@ -89,6 +93,13 @@ public class TestSpringDSLResourceStateProvider {
 		assertEquals(1, statesByPath.get("/test").size());
 		assertEquals("SimpleModel_Home_home", statesByPath.get("/test").toArray()[0]);
 	}
+	
+    @Test
+    public void testGetResourceMethodsByState() {
+        Map<String, Set<String>> methods = resourceStateProvider.getResourceMethodsByState();
+        assertNotNull(methods);
+        assertEquals("Methods for state SimpleModel_Home_home", 2, methods.get("SimpleModel_Home_home").size());
+    }
 
 	@Test
 	public void testGetResourceStateByRequest() {
@@ -100,6 +111,24 @@ public class TestSpringDSLResourceStateProvider {
 	}
 
     @Test
+    public void testGetResourceStateByMethodUrl() throws MethodNotAllowedException {
+        // properties: SimpleModel_Home_home=GET,PUT /test
+        ResourceState foundGetState = resourceStateProvider.getResourceState("GET", "/test");
+        assertEquals("home", foundGetState.getName());
+        ResourceState foundPutState = resourceStateProvider.getResourceState("PUT", "/test");
+        assertEquals("home", foundPutState.getName());
+    }
+
+    @Test
+    public void testGetResourceStateId() throws MethodNotAllowedException {
+        String actual = resourceStateProvider.getResourceStateId("GET", "/test");
+        assertEquals("SimpleModel_Home_home", actual);
+        // as opposed to "home", which is the resource state name
+        ResourceState foundGetState = resourceStateProvider.getResourceState("GET", "/test");
+        assertThat("SimpleModel_Home_home", not(foundGetState.getName()));
+    }
+    
+    @Test
     public void testIsLoaded() {
         SpringDSLResourceStateProvider rsp = (SpringDSLResourceStateProvider) resourceStateProvider;
 
@@ -107,7 +136,7 @@ public class TestSpringDSLResourceStateProvider {
         assertFalse(rsp.isLoaded("inexistentState"));
 
         // this is the current way of loading resources...
-        ResourceState unused = rsp.getResourceState("SimpleModel_Home_home");
+        rsp.getResourceState("SimpleModel_Home_home");
 
         assertTrue(rsp.isLoaded("SimpleModel_Home_home"));
         assertFalse(rsp.isLoaded("inexistentState"));
@@ -118,7 +147,7 @@ public class TestSpringDSLResourceStateProvider {
         SpringDSLResourceStateProvider rsp = (SpringDSLResourceStateProvider) resourceStateProvider;
         
         // loading the resource
-        ResourceState unused = rsp.getResourceState("SimpleModel_Home_home");
+        rsp.getResourceState("SimpleModel_Home_home");
         
         assertTrue(rsp.isLoaded("SimpleModel_Home_home"));
         rsp.unload("SimpleModel_Home_home");
@@ -132,11 +161,11 @@ public class TestSpringDSLResourceStateProvider {
 
         String inexistentStateName = "inexistentState";
         // try to load the resource
-        ResourceState unused = rsp.getResourceState(inexistentStateName);
+        rsp.getResourceState(inexistentStateName);
 
         assertFalse(rsp.isLoaded(inexistentStateName));
         rsp.unload(inexistentStateName);
         assertEquals("Number of resources: ", 1, rsp.getResourceMethodsByState().size());
     }
-    
+
 }

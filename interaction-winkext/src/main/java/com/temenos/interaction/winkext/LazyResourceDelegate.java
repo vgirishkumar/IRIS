@@ -134,37 +134,45 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
 		return null;
     }
 	
+	/*
+	 * This method unregisters in the resource state machine resources that are not currently loaded.
+	 * It also registers the resource of interest even if it's already loaded, since being loaded doesn't
+	 * imply it's registered, and currently there is no way of checking this.
+	 */
 	private HTTPHypermediaRIM getResource(UriInfo uriInfo, String httpMethod) throws MethodNotAllowedException {
-        ResourceState resourceState = resourceStateProvider.getResourceState(httpMethod, "/" + uriInfo.getPath(false));
+        String resourceStateId = resourceStateProvider.getResourceStateId(httpMethod, "/" + uriInfo.getPath(false));
         
-        if(resourceState == null) {
+        if(resourceStateId == null) {
         	return null;
         } else {
-            String stateName = resourceState.getName();
             
-            boolean loaded = resourceStateProvider.isLoaded(stateName);
-            
-            if(!loaded) {
-                Map<String, Set<String>> stateNameToHttpMethods = resourceStateProvider.getResourceMethodsByState();
-                Set<String> httpMethods = stateNameToHttpMethods.get(stateName);
+            boolean loaded = resourceStateProvider.isLoaded(resourceStateId);
+            // to register the resource state we are forced to call getResourceState,
+            // which loads the resource if it wasn't
+            ResourceState resourceState = resourceStateProvider.getResourceState(resourceStateId);
+            // however, if it wasn't loaded we're assuming the resource has changed, see below
 
-                if(httpMethods == null) {
-                    // Load a "real" IRIS state
-                    hypermediaEngine.register(resourceState, httpMethod);                    
-                } else {
-                    for (String tmpHttpMethod : httpMethods) {
-                        // We're dealing with a lazy state - Unload placeholder state
+            Map<String, Set<String>> stateNameToHttpMethods = resourceStateProvider.getResourceMethodsByState();
+            Set<String> httpMethods = stateNameToHttpMethods.get(resourceStateId);
+
+            if(httpMethods == null) {
+                // here it is assumed the resource wasn't loaded, so no need to unregister
+                hypermediaEngine.register(resourceState, httpMethod);                    
+            } else {
+                for (String tmpHttpMethod : httpMethods) {
+                    // if the resource wasn't loaded, we assume it has changed and therefore it needs
+                    // first to be unregistered with the resource state machine
+                    if(!loaded) {
+                        // unregister unloaded resource state
                         hypermediaEngine.unregister(resourceState, tmpHttpMethod);
-
-                        // Load a "real" IRIS state
-                        hypermediaEngine.register(resourceState, tmpHttpMethod);
-                    }                    
-                }
+                    }
+                    hypermediaEngine.register(resourceState, tmpHttpMethod);
+                }                    
             }
+            
+            return new HTTPHypermediaRIM(null, commandController, hypermediaEngine, metadata, resourceState.getPath(), false);              
         }
-        
-        return new HTTPHypermediaRIM(null, commandController, hypermediaEngine, metadata, resourceState.getPath(), false);        	    
-	}
+  	}
 
 	@Override
 	public Response get(HttpHeaders headers, String id, UriInfo uriInfo) {		

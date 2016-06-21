@@ -29,7 +29,8 @@ public interface ResourceStateProvider {
 	/**
 	 * Return true if resource state for name can be found
 	 * 
-	 * @param name
+	 * @param name   the id taken from a properties file,
+	 *               *NOT* the name of the resource state
 	 * @return
 	 */
 	public boolean isLoaded(String name);
@@ -37,8 +38,8 @@ public interface ResourceStateProvider {
 	/**
 	 * Lookup and return a single {@link ResourceState} by name
 	 * 
-	 * @param name
-	 * @return
+     * @param name   the id taken from a properties file,
+     *               *NOT* the name of the resource state
 	 */
 	public ResourceState getResourceState(String name);
 
@@ -46,16 +47,12 @@ public interface ResourceStateProvider {
 	 * Using the supplied event and path return the {@link ResourceState} that
 	 * is being requested.
 	 * 
-	 * @param event
-	 * @param resourcePath
-	 * @return
 	 */
 	public ResourceState determineState(Event event, String resourcePath);
 
 	/**
 	 * Return a map of resource state names where the path is the key.
 	 * 
-	 * @return
 	 */
 	public Map<String, Set<String>> getResourceStatesByPath();
 
@@ -63,16 +60,27 @@ public interface ResourceStateProvider {
 	 * Return a map of resource methods accepted by a resources where the
 	 * resource state name is the key.
 	 * 
-	 * @return
 	 */
 	public Map<String, Set<String>> getResourceMethodsByState();
 
 	/**
 	 * Return a map to a resource path where the resource state name is the key.
 	 * 
-	 * @return
 	 */
 	public Map<String, String> getResourcePathsByState();
-
+	
+    /**
+     * Lookup and return a single {@link ResourceState} by HTTP method and URL.
+     *  
+     */
 	public ResourceState getResourceState(String httpMethod, String url) throws MethodNotAllowedException;
+	
+    /**
+     * Retrieves the resource state id from a HTPP method and URL. This is needed
+     * to check, for instance, if a resource state is loaded when we do not have
+     * the id (the ResourceState class doesn't have this information).
+     *  
+     * @return the id used to store the resource state with the provider
+     */
+    public String getResourceStateId(String httpMethod, String url);
 }
