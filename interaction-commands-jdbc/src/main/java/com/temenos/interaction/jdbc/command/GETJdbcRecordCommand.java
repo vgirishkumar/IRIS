@@ -37,6 +37,7 @@ import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.jdbc.exceptions.JdbcException;
 import com.temenos.interaction.jdbc.producer.JdbcProducer;
 
 public class GETJdbcRecordCommand implements JdbcCommand {
@@ -70,7 +71,7 @@ public class GETJdbcRecordCommand implements JdbcCommand {
 		EntityResource<Entity> result = null;
 		try {
 			result = producer.queryEntity(tableName, key, ctx, entityType);
-		} catch (InteractionException e) {
+		} catch (JdbcException e) {
 			logger.error("Jdbc query failed. " + e);
 
 			if (Status.NOT_FOUND == e.getHttpStatus()) {
@@ -79,7 +80,7 @@ public class GETJdbcRecordCommand implements JdbcCommand {
 			}
 
 			// Other Interaction exceptions should thrown up to the framework.
-			throw e;
+			throw new InteractionException(e.getHttpStatus(), e);
 		} catch (Exception e) {
 			logger.error("Jdbc query failed with internal error. " + e);
 

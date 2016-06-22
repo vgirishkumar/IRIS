@@ -59,7 +59,7 @@ import com.temenos.interaction.odataext.odataparser.data.FieldName;
 import com.temenos.interaction.odataext.odataparser.data.RowFilters;
 
 public class AuthorizationCommand extends AbstractAuthorizationCommand implements InteractionCommand {
-	private final static Logger logger = LoggerFactory.getLogger(AuthorizationCommand.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(AuthorizationCommand.class);
 
 	// Normal constructor
 	public AuthorizationCommand(IAuthorizationProvider authorizationBean) {
@@ -78,7 +78,7 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 		Iterator<String> it = ctx.getQueryParameters().keySet().iterator();
 		while (it.hasNext()) {
 			String theKey = (String) it.next();
-			logger.info("    Key " + theKey + " = Value " + ctx.getQueryParameters().getFirst(theKey));
+			LOGGER.info("    Key " + theKey + " = Value " + ctx.getQueryParameters().getFirst(theKey));
 		}
 
 		EntityQueryInfo queryInfo = ODataParser.getEntityQueryInfo(ctx);
@@ -112,7 +112,9 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 		try {
 			addRowFilter(ctx, newList, oldFilter);
 		} catch (UnsupportedQueryOperationException e) {
-			throw (new AuthorizationException(Status.UNAUTHORIZED, e.toString()));
+		    LOGGER.warn("Attempted to do unauthorized action", e);
+		    
+			throw new AuthorizationException(Status.UNAUTHORIZED, e);
 		}
 
 		Set<FieldName> authSet = accessProfile.getFieldNames();
@@ -141,7 +143,7 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 		}
 
 		// Return the entries specified by the filter.
-		return (true);
+		return true;
 	}
 
 	private void addColFilter(InteractionContext ctx, Set<FieldName> authSet, List<EntitySimpleProperty> oldSelect) {
