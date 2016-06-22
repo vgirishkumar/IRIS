@@ -124,6 +124,8 @@ public class MatchCommand implements InteractionCommand {
 				return Result.FAILURE;
 			}
 		} catch (Exception e) {
+		    LOGGER.error("There was an issue while evaluating the expression", e);
+		    
 			return Result.FAILURE;
 		}
 	}	
