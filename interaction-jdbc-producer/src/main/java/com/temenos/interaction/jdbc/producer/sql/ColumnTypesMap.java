@@ -30,6 +30,7 @@ package com.temenos.interaction.jdbc.producer.sql;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,7 +45,7 @@ import com.temenos.interaction.jdbc.exceptions.JdbcException;
 import com.temenos.interaction.jdbc.producer.JdbcProducer;
 
 public class ColumnTypesMap {
-    private final static Logger logger = LoggerFactory.getLogger(ColumnTypesMap.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ColumnTypesMap.class);
 
     // Default primary key
     private static String DEFAULT_PRIMARY_KEY = "RECID";
@@ -62,7 +63,7 @@ public class ColumnTypesMap {
     // Somewhere to store primary key.
     private String primaryKeyName;
 
-    public ColumnTypesMap(JdbcProducer producer, String tableName, boolean primaryKeyNameRequired) throws Exception {
+    public ColumnTypesMap(JdbcProducer producer, String tableName, boolean primaryKeyNameRequired) throws SQLException, JdbcException {
         // This will open a new connection. Remember to close it latter.
         DataSource ds = producer.getDataSource();
         Connection conn = ds.getConnection();
@@ -77,14 +78,15 @@ public class ColumnTypesMap {
         if (primaryKeyNameRequired) {
             try {
                 this.primaryKeyName = readPrimaryKey(dsMetaData, tableName);
-            } catch (Exception e) {
+            } catch (SQLException sqlException) {
                 // Re-throw
-                throw (e);
+                throw sqlException;
+            } catch (JdbcException jdbcException) {
+                // Re-throw
+                throw jdbcException;
             } finally {
                 // Remember to close the connection
-                if (null != conn) {
-                    conn.close();
-                }
+                conn.close();                
             }
         }
 
@@ -113,7 +115,7 @@ public class ColumnTypesMap {
     Integer get(String columnName) {
         Integer type = typesMap.get(columnName);
         if (null == type) {
-            throw (new SecurityException("Jdbc column \"" + columnName + "\" does not exist."));
+            throw new SecurityException("Jdbc column \"" + columnName + "\" does not exist.");
         }
         return type;
     }
@@ -136,7 +138,7 @@ public class ColumnTypesMap {
     /*
      * Utility to read primary key for a given table.
      */
-    String readPrimaryKey(DatabaseMetaData dsMetaData, String tableName) throws Exception {
+    String readPrimaryKey(DatabaseMetaData dsMetaData, String tableName) throws SQLException, JdbcException {
         String key = null;
 
         ResultSet result = dsMetaData.getPrimaryKeys(null, null, tableName);
@@ -146,8 +148,8 @@ public class ColumnTypesMap {
             key = result.getString("COLUMN_NAME");
 
             if (result.next()) {
-                throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Table \"" + tableName
-                        + "\" has multiple primary keys. Not currently supported."));
+                throw new JdbcException(Status.INTERNAL_SERVER_ERROR, "Table \"" + tableName
+                        + "\" has multiple primary keys. Not currently supported.");
             }
         }
 
@@ -157,13 +159,13 @@ public class ColumnTypesMap {
             if (typesMap.containsKey(DEFAULT_PRIMARY_KEY)) {
                 key = DEFAULT_PRIMARY_KEY;
             } else {
-                throw (new JdbcException(
+                throw new JdbcException(
                         Status.INTERNAL_SERVER_ERROR,
                         "Table \""
                                 + tableName
                                 + "\" does not have a primary key or "
                                 + DEFAULT_PRIMARY_KEY
-                                + " column. For this table try multiple version of the command with \"?$filter=<Key name> eq <key_value>\"."));
+                                + " column. For this table try multiple version of the command with \"?$filter=<Key name> eq <key_value>\".");
             }
         }
         return key;
@@ -172,7 +174,7 @@ public class ColumnTypesMap {
     /*
      * Utility to read column types for a given table.
      */
-    public Map<String, Integer> readColumnTypes(DatabaseMetaData dsMetaData, String tableName) throws Exception {
+    public Map<String, Integer> readColumnTypes(DatabaseMetaData dsMetaData, String tableName) throws SQLException  {
         // Create type map
         typesMap = new HashMap<String, Integer>();
 
@@ -186,7 +188,7 @@ public class ColumnTypesMap {
         if (0 == columnCount) {
             // Maybe there aren't any columns. So not necessarily an error.
             // However not normally expected so warn.
-            logger.warn("No column types found for. " + tableName + " Maybe not supported on this database.");
+            LOGGER.warn("No column types found for. " + tableName + " Maybe not supported on this database.");
         }
         return typesMap;
     }
