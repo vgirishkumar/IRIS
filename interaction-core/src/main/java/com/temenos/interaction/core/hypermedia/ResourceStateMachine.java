@@ -491,16 +491,16 @@ public class ResourceStateMachine {
         if (stateInteractions != null)
             stateInteractions.remove(method);
 
-        // Process resource states by path
-        final Set<String> pathStateNames = resourceStateNamesByPath.get(state.getResourcePath());
-        if (pathStateNames != null) {
-            pathStateNames.remove(state);
-        }
-
-		// only remove if there are no methods associated with the state
+		// only remove resources by path and by name if there are no methods associated with it
 		if(stateInteractions != null)
-			if(stateInteractions.isEmpty())
+			if(stateInteractions.isEmpty()) {
+		        // Process resource states by path
+		        final Set<String> pathStateNames = resourceStateNamesByPath.get(state.getResourcePath());
+		        if (pathStateNames != null) {
+		            pathStateNames.remove(state.getName());
+		        }
 		        resourceStatesByName.remove(state.getName());
+            }
 	}
 
 	public void setParameterResolverProvider(ResourceParameterResolverProvider parameterResolverProvider) {
@@ -609,7 +609,6 @@ public class ResourceStateMachine {
 	 * of the internal maps.
 	 * 
 	 * @invariant initial state not null
-	 * @return
 	 */
 	public Map<String, Set<ResourceState>> getResourceStatesByPath() {
         Map<String, Set<ResourceState>> stateMap = new HashMap<String, Set<ResourceState>>();
