@@ -358,7 +358,7 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 					}
 				}
 			} catch (ODataParser.UnsupportedQueryOperationException e) {
-				logger.error("Could not interpret OData " + ODataParser.FILTER_KEY + " = " + filterOption);
+				logger.error("Could not interpret OData " + ODataParser.FILTER_KEY + " = " + filterOption, e);
 				return;
 			}
 		}
