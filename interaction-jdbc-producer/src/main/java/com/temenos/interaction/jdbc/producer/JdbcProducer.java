@@ -71,7 +71,7 @@ public class JdbcProducer {
     private ServerMode serverMode;
     private ServerMode h2ServerMode = null;
 
-    private final static Logger logger = LoggerFactory.getLogger(JdbcProducer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcProducer.class);
 
     /*
      * Constructor called when a DataSource object to be obtained from Jndi.
@@ -141,14 +141,13 @@ public class JdbcProducer {
             throws UnsupportedQueryOperationException, JdbcException, Exception {
         // Not much point selecting from a null table
         if (null == tableName) {
-            logger.error("Jdbc producer cannot select from null table.");
-            throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Null table name"));
+            LOGGER.error("Jdbc producer cannot select from null table.");
+            throw new JdbcException(Status.INTERNAL_SERVER_ERROR, "Null table name");
         }
 
         // Get column types from Jdbc. We need these both for constructing the
         // command and processing it's result set.
         // We need the primary key for row ordering.
-        // TODO Eventually this should be cached.
         ColumnTypesMap colTypesMap = new ColumnTypesMap(this, tableName, true);
 
         // Unpack the commands $filter and $select terms.
@@ -166,7 +165,7 @@ public class JdbcProducer {
                 orderBy, serverMode);
         String sqlCommand = sqlBuilder.getCommand();
 
-        logger.info("Jdbc producer about to execute \"" + sqlCommand + "\"");
+        LOGGER.info("Jdbc producer about to execute \"" + sqlCommand + "\"");
 
         // Execute the SQL command
         return query(sqlCommand);
@@ -197,7 +196,7 @@ public class JdbcProducer {
 
         // Set cursor to first row
         if (!rowSet.next()) {
-            throw (new JdbcException(Status.NOT_FOUND, "Row not found. Entry with given key possibly not present."));
+            throw new JdbcException(Status.NOT_FOUND, "Row not found. Entry with given key possibly not present.");
         }
 
         // Build up properties for this row
@@ -225,7 +224,7 @@ public class JdbcProducer {
         // Check for additional rows. Not expected for a 'single'
         // command.
         if (rowSet.next()) {
-            throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Multiple rows returned for a single entity"));
+            throw new JdbcException(Status.INTERNAL_SERVER_ERROR, "Multiple rows returned for a single entity");
         }
 
         return entityResource;
@@ -289,19 +288,15 @@ public class JdbcProducer {
         try {
             connection = template.getDataSource().getConnection();
         } catch (SQLException ex) {
-            throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Could get connection to datasource. ", ex));
+            throw new JdbcException(Status.INTERNAL_SERVER_ERROR, "Could get connection to datasource. ", ex);
         }
 
         try {
             url = connection.getMetaData().getURL();
         } catch (SQLException ex) {
-            throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Could not get server URL. ", ex));
+            throw new JdbcException(Status.INTERNAL_SERVER_ERROR, "Could not get server URL. ", ex);
         } finally {
-            try {
-                connection.close();
-            } catch (SQLException ex) {
-                throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Could not close connection to datasource. ", ex));
-            }
+            closeConnection(connection);
         }
 
         // Extract server type from URL
@@ -318,15 +313,25 @@ public class JdbcProducer {
             }
 
             if ("h2".equals(serverType)) {
-                logger.warn("Running under H2 but no server compatibility mode specified. Defaulting to emulated MSSQL mode.");
+                LOGGER.warn("Running under H2 but no server compatibility mode specified. Defaulting to emulated MSSQL mode.");
                 return ServerMode.H2_MSSQL;
             }
 
-            throw (new JdbcException(Status.PRECONDITION_FAILED, "JDBC Server type \"" + serverType
-                    + "\" not supported."));
+            throw new JdbcException(Status.PRECONDITION_FAILED, "JDBC Server type \"" + serverType
+                    + "\" not supported.");
         }
 
-        throw (new JdbcException(Status.INTERNAL_SERVER_ERROR,
-                "Failed to detect JDBC server type from connection URL \"" + url.toString() + "\"."));
+        throw new JdbcException(Status.INTERNAL_SERVER_ERROR,
+                "Failed to detect JDBC server type from connection URL \"" + url + "\".");
+    }
+    
+    private static void closeConnection(Connection connection) {
+        try {
+            if (null != connection) {
+                connection.close();
+            }
+        } catch (SQLException ex) {
+            throw new JdbcException(Status.INTERNAL_SERVER_ERROR, "Could not close connection to datasource. ", ex);
+        }
     }
 }

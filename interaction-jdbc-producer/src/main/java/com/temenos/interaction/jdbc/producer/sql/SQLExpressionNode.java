@@ -5,9 +5,6 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.temenos.interaction.jdbc.SqlRelation;
 import com.temenos.interaction.jdbc.exceptions.JdbcException;
 
@@ -38,8 +35,6 @@ import com.temenos.interaction.jdbc.exceptions.JdbcException;
  */
 
 public class SQLExpressionNode {
-
-    private final static Logger LOGGER = LoggerFactory.getLogger(SQLExpressionNode.class);
 
     // Node will either contain a relation or a list of arguments.
     private List<String> arguments = new ArrayList<String>();
@@ -72,7 +67,7 @@ public class SQLExpressionNode {
      * Method to print a complete node as an SQL command.
      */
     public String toSqlParameter() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
 
         if (isBracketed) {
             appendOpenBracket(sb);
@@ -114,14 +109,14 @@ public class SQLExpressionNode {
         return str;
     }
 
-    private void appendFunction(StringBuffer sb) {
+    private void appendFunction(StringBuilder sb) {
         appendSymbol(sb);
         appendOpenBracket(sb);
         appendFunctionArguments(sb);
         appendCloseBracket(sb);
     }
 
-    private void appendFunctionArguments(StringBuffer sb) {
+    private void appendFunctionArguments(StringBuilder sb) {
         boolean first = true;
 
         if (null == rel.getArgumentSequence()) {
@@ -135,7 +130,7 @@ public class SQLExpressionNode {
         }
     }
 
-    private void appendOrderedFunctionArguments(StringBuffer sb) {
+    private void appendOrderedFunctionArguments(StringBuilder sb) {
         boolean first = true;
 
         for (Integer i : rel.getArgumentSequence()) {
@@ -147,15 +142,16 @@ public class SQLExpressionNode {
         }
     }
 
-    private boolean appendFunctionArgument(StringBuffer sb, String argument, boolean first) {
-        if (first) {
-            first = false;
+    private boolean appendFunctionArgument(StringBuilder sb, String argument, boolean first) {
+        boolean firstReturn = first;
+        if (firstReturn) {
+            firstReturn = false;
         } else {
             appendCommaSpace(sb);
         }
         sb.append(argument);
 
-        return first;
+        return firstReturn;
     }
 
     /*
@@ -163,11 +159,11 @@ public class SQLExpressionNode {
      * (e.g. 'a eq b') or as a function (e.g. 'func(a, b...')). In this case we
      * have a formatted sting into which the arguments must be inserted.
      */
-    private void appendFormatString(StringBuffer sb) {
+    private void appendFormatString(StringBuilder sb) {
         sb.append(String.format(rel.getSqlSymbol(), arguments.toArray()));
     }
 
-    private void appendOperator(StringBuffer sb) {
+    private void appendOperator(StringBuilder sb) {
         switch (arguments.size()) {
         case 0:
             // Just append self
@@ -188,7 +184,7 @@ public class SQLExpressionNode {
         }
     }
 
-    private void appendBinaryOperator(StringBuffer sb) {
+    private void appendBinaryOperator(StringBuilder sb) {
         sb.append(arguments.get(0));
 
         if (isSpaced()) {
@@ -205,11 +201,11 @@ public class SQLExpressionNode {
         sb.append(arguments.get(1));
     }
 
-    private void appendSymbol(StringBuffer sb) {
+    private void appendSymbol(StringBuilder sb) {
         sb.append(rel.getSqlSymbol());
     }
 
-    private void appendUnaryOperator(StringBuffer sb) {
+    private void appendUnaryOperator(StringBuilder sb) {
         if (null != rel) {
             appendSymbol(sb);
 
@@ -220,7 +216,7 @@ public class SQLExpressionNode {
         sb.append(arguments.get(0));
     }
 
-    private void appendValue(StringBuffer sb) {
+    private void appendValue(StringBuilder sb) {
         // Add the first argument.
         sb.append(arguments.get(0));
     }
@@ -228,30 +224,30 @@ public class SQLExpressionNode {
     /*
      * Add space if not already present.
      */
-    private void appendSingleSpace(StringBuffer sb) {
+    private void appendSingleSpace(StringBuilder sb) {
         if ((0 < sb.length()) && !(' ' == sb.charAt(sb.length() - 1))) {
             appendSpace(sb);
         }
     }
 
-    private void appendCommaSpace(StringBuffer sb) {
+    private void appendCommaSpace(StringBuilder sb) {
         appendComma(sb);
         appendSpace(sb);
     }
 
-    private void appendOpenBracket(StringBuffer sb) {
+    private void appendOpenBracket(StringBuilder sb) {
         sb.append("(");
     }
 
-    private void appendCloseBracket(StringBuffer sb) {
+    private void appendCloseBracket(StringBuilder sb) {
         sb.append(")");
     }
 
-    private void appendSpace(StringBuffer sb) {
+    private void appendSpace(StringBuilder sb) {
         sb.append(" ");
     }
 
-    private void appendComma(StringBuffer sb) {
+    private void appendComma(StringBuilder sb) {
         sb.append(",");
     }
 
@@ -293,7 +289,7 @@ public class SQLExpressionNode {
     public boolean isFunction() {
         if (null == rel) {
             // If there is no relation it's not a functions.
-            return (false);
+            return false;
         }
         return rel.isFunctionCall();
     }

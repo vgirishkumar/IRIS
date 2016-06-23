@@ -173,9 +173,9 @@ public class SQLExpressionVisitor extends PrintExpressionVisitor {
         currentNode = new SQLExpressionNode(currentNode);
     }
 
-    // Don't append the 'orderBy' tag.
     @Override
     public void visit(OrderByExpression expr) {
+        // Don't append the 'orderBy' tag.
     }
 
     // Double quote column names.
@@ -393,18 +393,10 @@ public class SQLExpressionVisitor extends PrintExpressionVisitor {
     @Override
     public void visit(DateTimeOffsetLiteral expr) {
         throw new UnsupportedOperationException("DateTimeOffsetLiteral not supported.");
-
-        // TODO Maybe should be something like.
-        // append("%sZ",
-        // InternalUtil.formatDateTimeOffsetForXml(expr.getValue()));
     }
 
     @Override
     public void visit(TimeLiteral expr) {
         throw new UnsupportedOperationException("TimeLiteral not supported.");
-
-        // TODO Maybe should be something like.
-        // append("%s",
-        // expr.getValue().toString(ExpressionParser.TIME_FORMATTER));
     }
 }
