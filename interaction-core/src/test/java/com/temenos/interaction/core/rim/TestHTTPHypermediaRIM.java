@@ -21,18 +21,25 @@ package com.temenos.interaction.core.rim;
  * #L%
  */
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +48,7 @@ import java.util.Map;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
@@ -85,7 +93,7 @@ public class TestHTTPHypermediaRIM {
         actions.add(new Action("GET", Action.TYPE.VIEW));
         return actions;
     }
-
+    
     private CommandController mockCommandController() {
         CommandController cc = mock(CommandController.class);
         try {
@@ -95,6 +103,9 @@ public class TestHTTPHypermediaRIM {
             InteractionCommand mockCommand1 = mock(InteractionCommand.class);
             when(mockCommand1.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
             when(cc.fetchCommand("GET")).thenReturn(mockCommand1);
+            InteractionCommand mockCommand2 = mock(InteractionCommand.class);
+            when(mockCommand2.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
+            when(cc.fetchCommand("POST")).thenReturn(mockCommand2);
         } catch (InteractionException ie) {
             Assert.fail(ie.getMessage());
         }
@@ -105,6 +116,7 @@ public class TestHTTPHypermediaRIM {
         CommandController cc = mock(CommandController.class);
         when(cc.fetchCommand("DO")).thenReturn(mockCommand);
         when(cc.fetchCommand("GET")).thenReturn(mockCommand);
+        when(cc.fetchCommand("POST")).thenReturn(mockCommand);
         return cc;
     }
 
@@ -815,6 +827,55 @@ public class TestHTTPHypermediaRIM {
 
         // execute
         rim.put(httpHeaders, "id", uriInfo, null); // resource is null
+    }
+    
+    @Test
+    @SuppressWarnings({ "unchecked" })
+    public void testDoubleAutotransitionResolution() throws InteractionException{
+        //construct resource states
+        ResourceState initialState = new ResourceState("entity", "state", 
+                Arrays.asList(new Action[]{new Action("GET", Action.TYPE.VIEW)}), "/test"),
+            nextState = new ResourceState("next", "nextState", 
+                        Arrays.asList(new Action[]{new Action("GET", Action.TYPE.VIEW)}), "/nextState"),
+            postState = new ResourceState("entity", "state_unsafe", 
+                        Arrays.asList(new Action[]{new Action("POST", Action.TYPE.ENTRY)}), "/test_unsafe");
+        
+        //build transitions between resource states
+        initialState.addTransition(new Transition.Builder().flags(2).target(nextState).build());
+        nextState.addTransition(new Transition.Builder().flags(2).target(postState).build());
+        //fake an InteractionCommand that always returns SUCCESS and spy 
+        InteractionCommand mockCommand = new InteractionCommand() {
+            public Result execute(InteractionContext ctx) {
+                ctx.setResource(new EntityResource<Object>());
+                return Result.SUCCESS;
+            }
+        };
+        mockCommand = spy(mockCommand);
+
+        //create mock command controller and return the faked InteractionCommand for every command we issue
+        CommandController mockCommandController = mock(CommandController.class);
+        when(mockCommandController.fetchCommand(anyString())).thenReturn(mockCommand);
+        
+        //instantiate the class under test using the command controller that we created
+        HTTPHypermediaRIM rim = spy(new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(
+                initialState), createMockMetadata()));
+        
+        UriInfo uriInfo = mock(UriInfo.class);
+        when(uriInfo.getPathParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+        when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+        doAnswer(new Answer<ResponseBuilder>(){
+            @Override
+            public ResponseBuilder answer(InvocationOnMock invocation) throws Throwable {
+                return (ResponseBuilder)invocation.getArguments()[0];
+            }
+        }).when(rim).setLocationHeader(any(ResponseBuilder.class), anyString(), any(MultivaluedMap.class));
+        
+        //execute the request and verify that we have executed InteractionCommand 
+        //as many times as the number of ResourceState objects that are participating
+        Response response = rim.get(mock(HttpHeaders.class), "id", uriInfo);
+        assertThat(response.getStatus(), equalTo(200));
+        verify(mockCommand, times(3)).execute(any(InteractionContext.class));
+        verify(rim, times(1)).setLocationHeader(any(ResponseBuilder.class), eq("http://localhost/myservice.svc/test_unsafe"), any(MultivaluedMap.class));
     }
 
     @SuppressWarnings({ "unchecked" })

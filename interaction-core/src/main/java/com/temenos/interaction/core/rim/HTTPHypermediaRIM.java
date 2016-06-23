@@ -324,9 +324,15 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 
         return response;
     }
-
+    
     protected Response handleRequest(@Context HttpHeaders headers, InteractionContext ctx, Event event,
             InteractionCommand action, EntityResource<?> resource, ResourceRequestConfig config) {
+        return handleRequest(headers, ctx, event, action, resource, config, false);
+    }
+
+
+    protected Response handleRequest(@Context HttpHeaders headers, InteractionContext ctx, Event event,
+            InteractionCommand action, EntityResource<?> resource, ResourceRequestConfig config, boolean ignoreAutoTransitions) {
         assert (event != null);
         StatusType status = Status.NOT_FOUND;
 
@@ -398,7 +404,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         }
 
         // build response
-        return buildResponse(headers, ctx.getPathParameters(), status, ctx.getResource(), null, ctx, event.isSafe());
+        return buildResponse(headers, ctx.getPathParameters(), status, ctx.getResource(), null, ctx, event.isSafe(), ignoreAutoTransitions);
     }
 
     private ResourceState initialiseInteractionContext(HttpHeaders headers, Event event, InteractionContext ctx,
@@ -589,6 +595,12 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                 currentState, metadata);
         return ctx;
     }
+    
+    private Response buildResponse(HttpHeaders headers, MultivaluedMap<String, String> pathParameters,
+            StatusType status, RESTResource resource, Set<String> interactions, InteractionContext ctx,
+            boolean cacheable) {
+        return buildResponse(headers, pathParameters, status, resource, interactions, ctx, cacheable, false);
+    }
 
     // param cacheable true if this response is to an in-principle cacheable
     // request (i.e. a GET). This method will
@@ -596,7 +608,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     // considered for caching
     private Response buildResponse(HttpHeaders headers, MultivaluedMap<String, String> pathParameters,
             StatusType status, RESTResource resource, Set<String> interactions, InteractionContext ctx,
-            boolean cacheable) {
+            boolean cacheable, boolean ignoreAutoTransitions) {
         assert (status != null); // not a valid get command
 
         // The key that this should be cached under, if any
@@ -644,16 +656,16 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                 LinkGenerator linkGenerator = new LinkGeneratorImpl(hypermediaEngine, redirectTransition, null).setAllQueryParameters(true);
                 Collection<Link> links = linkGenerator.createLink(pathParameters, ctx.getQueryParameters(), entity);
                 Link target = (!links.isEmpty()) ? links.iterator().next() : null;
-                responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
+                responseBuilder = setLocationHeader(responseBuilder, target.getHref(), null);
             }
         } else if (status.equals(Response.Status.CREATED)) {
             ResourceState currentState = ctx.getCurrentState();
             assert (currentState.getAllTargets() != null && currentState.getAllTargets().size() > 0) : "A pseudo state that creates a new resource MUST contain an auto transition to that new resource";
             List<Transition> autoTransitions = getTransitions(ctx, currentState, Transition.AUTO);
-            if (!autoTransitions.isEmpty()) {
+            if (!autoTransitions.isEmpty() && !ignoreAutoTransitions) {
                 assert (resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
                 ResponseWrapper autoResponse = resolveAutomaticTransitions(headers, ctx, responseBuilder, currentState, autoTransitions);
-                responseBuilder = HeaderHelper.locationHeader(responseBuilder, autoResponse.getSelfLink().getHref(), autoResponse.getRequestParameters());
+                responseBuilder = setLocationHeader(responseBuilder, autoResponse.getSelfLink().getHref(), autoResponse.getRequestParameters());
                 resource = (RESTResource) ((GenericEntity<?>) autoResponse.getResponse().getEntity()).getEntity();
             }
             assert (resource != null);
@@ -665,10 +677,10 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             assert (resource != null);
             ResourceState currentState = ctx.getCurrentState();
             List<Transition> autoTransitions = getTransitions(ctx, currentState, Transition.AUTO);
-            if (!autoTransitions.isEmpty()) {
+            if (!autoTransitions.isEmpty() && !ignoreAutoTransitions) {
                 assert (resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
                 ResponseWrapper autoResponse = resolveAutomaticTransitions(headers, ctx, responseBuilder, currentState, autoTransitions);
-                responseBuilder = HeaderHelper.locationHeader(responseBuilder, autoResponse.getSelfLink().getHref(), autoResponse.getRequestParameters());
+                responseBuilder = setLocationHeader(responseBuilder, autoResponse.getSelfLink().getHref(), autoResponse.getRequestParameters());
                 resource = (RESTResource) ((GenericEntity<?>) autoResponse.getResponse().getEntity()).getEntity();
             }
             assert (resource != null);
@@ -856,7 +868,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             InteractionContext newCtx = new InteractionContext(ctx, headers, newPathParameters, newQueryParameters,
                     targetState);
             Response response = handleRequest(headers, newCtx, event, action, (EntityResource<?>) currentResource,
-                    config);
+                    config, true);
             ResponseWrapper wrapper = new ResponseWrapper(response, new ArrayList<Link>(
                     new LinkGeneratorImpl(hypermediaEngine, targetState.getSelfTransition(), newCtx
                     ).createLink(newPathParameters, newQueryParameters, response.getEntity())
@@ -1101,6 +1113,11 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 
     public String toString() {
         return ("HTTPHypermediaRIM [" + getFQResourcePath() + "]");
+    }
+    
+    protected ResponseBuilder setLocationHeader(ResponseBuilder builder, 
+            String dest, MultivaluedMap<String, String> param){
+        return HeaderHelper.locationHeader(builder, dest, param);
     }
 
 }
