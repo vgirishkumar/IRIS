@@ -98,7 +98,7 @@ public abstract class SqlBuilder {
         } catch (SecurityException e) {
             // Not found. This is what we want.
             exists = false;
-            LOGGER.debug("Column name " + INNER_RN_NAME + " does not exist:"+ e);
+            LOGGER.debug("Column name " + INNER_RN_NAME + " does not exist",e);
         }
         if (exists) {
             // Possibly should throw or maybe dynamically work out an unique
@@ -118,7 +118,7 @@ public abstract class SqlBuilder {
             // Java "BigDecimal" appears to be the closest data type to Jdbc
             // "numeric".
             BigDecimal x = new BigDecimal(value);
-            return (x != null) ? true : false;
+            return x != null ? true : false;
         } catch (NumberFormatException e) {
             return false;
         }

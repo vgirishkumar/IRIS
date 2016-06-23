@@ -40,10 +40,9 @@ import com.temenos.interaction.odataext.odataparser.data.OrderBy;
  * @author sjunejo
  *
  */
-public class SqlBuilderFactory {
+public final class SqlBuilderFactory {
     
     private SqlBuilderFactory() {
-        super();
     }
 
     public static SqlBuilder getSqlBuilder(String tableName, String keyValue, AccessProfile accessProfile, ColumnTypesMap colTypesMap, String top,

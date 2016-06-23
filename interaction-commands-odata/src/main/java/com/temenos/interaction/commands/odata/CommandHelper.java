@@ -180,7 +180,7 @@ public class CommandHelper {
 				key = OEntityKey.parse(id);
 			}
 		} catch (Exception e) {
-			logger.warn("Entity key type " + keyType + " is not supported by CommandHelper, trying OEntityKey.parse. Error:" + e);
+			logger.warn("Entity key type " + keyType + " is not supported by CommandHelper, trying OEntityKey.parse.",e);
 		}
 		// could not parse the key, have one last attempt with OEntityKey create
 		if (key == null) {
@@ -193,7 +193,7 @@ public class CommandHelper {
 					key = OEntityKey.create(id);
 				}					
 			} catch (Exception e) {
-				logger.error("OEntityKey.parse failed to parse id [" + id + "] Error:" + e);
+				logger.error("OEntityKey.parse failed to parse id [" + id + "]", e);
 			}
 		}
 		if (key == null)
