@@ -962,6 +962,8 @@ public class TestResourceStateMachine {
         // noteState should be unregistered now
         assertEquals("Number of states", 2, stateMachine.getStates().size());
         // one resource registered under the path
+        assertEquals("Number of states for noteState's path", 1,
+                stateMachine.getResourceStatesByPath().get(noteState.getPath()).size());
         assertEquals("Number of states under \"/notes('{id}')\" path", 1, stateMachine.getResourceStatesForPath("/notes('{id}')").size());
         // check that noteState is NOT present in the resource state machine
         assertFalse(stateMachine.getResourceStateByName().containsKey(noteState.getName()));
@@ -972,6 +974,9 @@ public class TestResourceStateMachine {
         // we expect no changes
         assertEquals("Number of states", 2, stateMachine.getStates().size());
         assertEquals("Number of interactions for initialState", 1, stateMachine.getInteractions(initialState).size());
+        assertEquals("Number of states for noteState's path", 1,
+                stateMachine.getResourceStatesByPath().get(noteState.getPath()).size());
+        assertEquals("Number of states under \"/notes('{id}')\" path", 1, stateMachine.getResourceStatesForPath("/notes('{id}')").size());
         assertTrue(stateMachine.getResourceStateByName().containsKey(initialState.getName()));
 
         // unregister initial state 
@@ -979,12 +984,18 @@ public class TestResourceStateMachine {
 
         // check for changes
         assertEquals("Number of states", 1, stateMachine.getStates().size());
+        assertEquals("Number of states for noteState's path", 1,
+                stateMachine.getResourceStatesByPath().get(noteState.getPath()).size());
+        assertEquals("Number of states under \"/notes('{id}')\" path", 1, stateMachine.getResourceStatesForPath("/notes('{id}')").size());
         assertFalse(stateMachine.getResourceStateByName().containsKey(initialState.getName()));
         
         // clean-up
         stateMachine.unregister(samePathState, "GET");
 
         assertEquals("Number of states", 0, stateMachine.getStates().size());
+        assertEquals("Number of states for noteState's path", 0,
+                stateMachine.getResourceStatesByPath().get(noteState.getPath()).size());
+        assertEquals("Number of states under \"/notes('{id}')\" path", 0, stateMachine.getResourceStatesForPath("/notes('{id}')").size());
     }
     
     /*
