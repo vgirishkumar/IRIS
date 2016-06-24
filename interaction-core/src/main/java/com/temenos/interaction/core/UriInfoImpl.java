@@ -21,7 +21,6 @@ package com.temenos.interaction.core;
  * #L%
  */
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.util.List;
@@ -116,19 +115,24 @@ public class UriInfoImpl implements UriInfo {
     @Override
     public MultivaluedMap<String, String> getPathParameters(boolean decode) {
         try {
-        for (Map.Entry<String, List<String>> entry : pathParameters.entrySet()) {
-            // remove the encoded parameters from the object
-            pathParameters.remove(entry.getKey());
-            for (int i = 0; i < entry.getValue().size(); i++) {
-                // add the parameters decoded again to the object
+            for (Map.Entry<String, List<String>> entry : pathParameters.entrySet()) {
+                // remove the encoded parameters from the object
+                pathParameters.remove(entry.getKey());
+                
+                for (int i = 0; i < entry.getValue().size(); i++) {
+                    // add the parameters decoded again to the object
                     pathParameters.add(entry.getKey(), URLDecoder.decode(entry.getValue().get(i), "UTF-8"));
                 }
             }
+            
             return pathParameters;
         } catch (Exception e) {
+            if(LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Failed to decode parameter", e);
+            }
+            
             return pathParameters;
-        }
-        
+        }        
     }
 
     @Override

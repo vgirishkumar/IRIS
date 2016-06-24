@@ -77,7 +77,7 @@ import com.temenos.interaction.core.workflow.AbortOnErrorWorkflowStrategyCommand
  * 
  */
 public class ResourceStateMachine {
-	private final Logger logger = LoggerFactory.getLogger(ResourceStateMachine.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ResourceStateMachine.class);
 
 	// members
 	ResourceState initial;
@@ -185,7 +185,7 @@ public class ResourceStateMachine {
 																											// view
 																											// actions
 						if (state != null && state.getViewAction() != null) {
-							logger.error("Multiple matching resource states for [" + event + "] event on ["
+							LOGGER.error("Multiple matching resource states for [" + event + "] event on ["
 									+ resourcePath + "], [" + state + "] and [" + s + "]");
 						}
 						state = s;
@@ -236,7 +236,7 @@ public class ResourceStateMachine {
 			ResourceLocatorProvider resourceLocatorProvider, ResourceStateProvider resourceStateProvider) {
 		if (initialState == null)
 			throw new RuntimeException("Initial state must be supplied");
-		logger.info("Constructing ResourceStateMachine with initial state [" + initialState + "]");
+		LOGGER.info("Constructing ResourceStateMachine with initial state [" + initialState + "]");
 		assert (exceptionState == null || exceptionState.isException());
 		this.initial = initialState;
 		this.initial.setInitial(true);
@@ -426,11 +426,11 @@ public class ResourceStateMachine {
 	private void collectTransitionsByRelForState(ResourceState state) {
 		for (Transition transition : state.getTransitions()) {
 			if (transition == null) {
-				logger.debug("collectTransitionsByRel : null transition detected");
+				LOGGER.debug("collectTransitionsByRel : null transition detected");
 			} else if (transition.getTarget() == null) {
-				logger.debug("collectTransitionsByRel : null target detected");
+				LOGGER.debug("collectTransitionsByRel : null target detected");
 			} else if (transition.getTarget().getRel() == null) {
-				logger.debug("collectTransitionsByRel : null relation detected");
+				LOGGER.debug("collectTransitionsByRel : null relation detected");
 			} else {
 				transitionsByRel.put(transition.getTarget().getRel(), transition);
 			}
@@ -666,12 +666,12 @@ public class ResourceStateMachine {
 				String path = next.getResourcePath();
 				if (result.get(path) != null) {
 					if (!result.get(path).contains(next.getName())) {
-						logger.debug("Adding to existing ResourceState[" + path + "] set (" + result.get(path) + "): "
+						LOGGER.debug("Adding to existing ResourceState[" + path + "] set (" + result.get(path) + "): "
 								+ next);
 						result.get(path).add(next.getName());
 					}
 				} else {
-					logger.debug("Putting a ResourceState[" + path + "]: " + next);
+					LOGGER.debug("Putting a ResourceState[" + path + "]: " + next);
 					Set<String> set = new HashSet<String>();
 					set.add(next.getName());
 					result.put(path, set);
@@ -738,7 +738,7 @@ public class ResourceStateMachine {
 		for (ResourceState next : currentState.getAllTargets()) {
 			if (next != null && next != currentState) {
 				String name = next.getName();
-				logger.debug("Putting a ResourceState[" + name + "]: " + next);
+				LOGGER.debug("Putting a ResourceState[" + name + "]: " + next);
 				result.put(name, next);
 			}
 			collectResourceStatesByName(result, states, next);
@@ -798,11 +798,11 @@ public class ResourceStateMachine {
 		} else if (resourceEntity instanceof CollectionResource) {
 			collectionResource = (CollectionResource<?>) resourceEntity;
 			// TODO add support for properties on collections
-			logger.warn("Injecting links into a collection, only support simple, non template, links as there are no properties on the collection at the moment");
+			LOGGER.warn("Injecting links into a collection, only support simple, non template, links as there are no properties on the collection at the moment");
 		} else if (resourceEntity instanceof MetaDataResource) {
 			// TODO deprecate all resource types apart from item
 			// (EntityResource) and collection (CollectionResource)
-			logger.debug("Returning from the call to getLinks for a MetaDataResource without doing anything");
+			LOGGER.debug("Returning from the call to getLinks for a MetaDataResource without doing anything");
 			return links;
 		} else {
 			throw new RuntimeException("Unable to get links, an error occurred");
@@ -820,7 +820,7 @@ public class ResourceStateMachine {
 		List<Transition> transitions = state.getTransitions();
 		for (Transition transition : transitions) {
             if (transition.getTarget() == null) {
-				logger.warn("Skipping invalid transition: " + transition);
+				LOGGER.warn("Skipping invalid transition: " + transition);
 				continue;
 			}
 
@@ -876,7 +876,7 @@ public class ResourceStateMachine {
                                     Method method = tmpObj.getClass().getMethod(methodName);
                                     ids.add(method.invoke(tmpObj).toString());
                                 } catch (Exception e) {
-                                    logger.warn(
+                                    LOGGER.warn(
                                             "Failed to add record id while trying to embed current collection resource",
                                             e);
                                 }
@@ -926,7 +926,7 @@ public class ResourceStateMachine {
 			if (links != null) {
 				for (Link link : links) {
 					if (link == null) {
-						logger.warn("embedResources : null Link detected.");
+						LOGGER.warn("embedResources : null Link detected.");
 					} else {
 						Transition t = link.getTransition();
 						/*
@@ -984,13 +984,13 @@ public class ResourceStateMachine {
 				if (Family.SUCCESSFUL.equals(Status.fromStatusCode(result.getStatus()).getFamily())) {
 					resourceResults.put(transition, result.getResource());
 				} else {
-					logger.error("Failed to embed resource for transition [" + transition.getId() + "]");
+					LOGGER.error("Failed to embed resource for transition [" + transition.getId() + "]");
 				}
 			}
 			resource.setEmbedded(resourceResults);
 			return resourceResults;
 		} catch (InteractionException ie) {
-            logger.error(
+            LOGGER.error(
                     "Failed to embed resources [" + ctx.getCurrentState().getId() + "] with error ["
 					+ ie.getHttpStatus() + " - " + ie.getHttpStatus().getReasonPhrase() + "]: ", ie);
 			throw new RuntimeException(ie);
@@ -1078,7 +1078,7 @@ public class ResourceStateMachine {
 
         if (tmpState == null) {
 			// A dead link, target could not be found
-            logger.error("Dead link - Failed to resolve resource using "
+            LOGGER.error("Dead link - Failed to resolve resource using "
                     + dynamicResourceState.getResourceLocatorName() + " resource locator");
 		} else {
 			boolean registrationRequired = false;
@@ -1104,7 +1104,7 @@ public class ResourceStateMachine {
 					ParameterAndValue[] paramsAndValues = parameterResolver.resolve(aliases);
 					result.setParams(paramsAndValues);
 				} catch (IllegalArgumentException e) {
-					// noop - No parameter resolver configured for this resource
+				    LOGGER.warn("Failed to find parameter resolver for: " + locatorName, e);
 				}
 			}
 		}
@@ -1178,7 +1178,7 @@ public class ResourceStateMachine {
 		// Obtain entity properties
 		Map<String, Object> entityProperties = null;
 		if (entity != null && transformer != null) {
-			logger.debug("Using transformer [" + transformer + "] to build properties for link [" + transition + "]");
+			LOGGER.debug("Using transformer [" + transformer + "] to build properties for link [" + transition + "]");
 			entityProperties = transformer.transform(entity);
 			if (entityProperties != null) {
 				transitionProps.putAll(entityProperties);
@@ -1221,7 +1221,7 @@ public class ResourceStateMachine {
 					if (transition.getTarget() != null) {
 						ResourceState tt = resourceStateProvider.getResourceState(transition.getTarget().getName());
 						if (tt == null) {
-							logger.error("Invalid transition [" + transition.getId() + "]");
+							LOGGER.error("Invalid transition [" + transition.getId() + "]");
 						}
 						transition.setTarget(tt);
 					}
