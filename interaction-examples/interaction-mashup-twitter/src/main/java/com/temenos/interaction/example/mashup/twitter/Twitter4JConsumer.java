@@ -24,10 +24,14 @@ package com.temenos.interaction.example.mashup.twitter;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import twitter4j.Paging;
 import twitter4j.Status;
@@ -38,13 +42,23 @@ import twitter4j.auth.AccessToken;
 import com.temenos.interaction.example.mashup.twitter.model.Tweet;
 
 public class Twitter4JConsumer {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(Twitter4JConsumer.class);
 
-	private final static String CONSUMER_KEY = "QYUNmSke0Q3BEo58gnvw";
-	private final static String CONSUMER_SECRET = "mkbaqfBZtAyOzpLR55XhKhrbgyAriQWN9FQoZQtV79U";	
+	private static final String CONSUMER_KEY = "QYUNmSke0Q3BEo58gnvw";
+	private static final String CONSUMER_SECRET = "mkbaqfBZtAyOzpLR55XhKhrbgyAriQWN9FQoZQtV79U";	
 	
+	/**
+	 * Empty constructor to be used by GETUserTwitterUpdatesCommand
+	 */
 	public Twitter4JConsumer() {
+	    // Empty constructor to be used by GETUserTwitterUpdatesCommand
 	}
-	
+
+	/**
+	 * @param otherUser
+	 * @return
+	 */
 	public Collection<Tweet> requestTweetsByUser(String otherUser) {
 		List<Tweet> tweets = new ArrayList<Tweet>();
 		try {
@@ -53,36 +67,40 @@ public class Twitter4JConsumer {
 		    AccessToken accessToken = loadAccessToken(1);
 		    twitter.setOAuthConsumer(CONSUMER_KEY, CONSUMER_SECRET);
 		    twitter.setOAuthAccessToken(accessToken);
-			System.out.println("Fetching latest 100 tweets for [" + otherUser + "]");
+		    if (LOGGER.isInfoEnabled()) {
+		        LOGGER.info("Fetching latest 100 tweets for [" + otherUser + "]");
+		    }
 		    // First param of Paging() is the page number, second is the number per page (this is capped around 200 I think.
 		    Paging paging = new Paging(1, 100);
 		    List<Status> statuses = twitter.getUserTimeline(otherUser, paging);
 			for (Status status : statuses) {
 				tweets.add(new Tweet(otherUser, status.getText(), (status.getGeoLocation() != null ? status.getGeoLocation().getLatitude() + "," + status.getGeoLocation().getLongitude() : "")));
-			    System.out.println(status.getUser().getName() + "(" + status.getGeoLocation() + "):" +
-			                       status.getText());
+				if (LOGGER.isInfoEnabled()) {
+				    LOGGER.info(status.getUser().getName() + "(" + status.getGeoLocation() + "):" + status.getText());
+				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
+		    LOGGER.error("Error on requestTweetsByUser", e);
+			throw new TwitterMashupException(e);
 		}
 	    return tweets;
 	}
 
-	private static AccessToken loadAccessToken(int useId) throws Exception {
+	private static AccessToken loadAccessToken(int useId) throws IOException, ClassNotFoundException {
 		File accessTokenStore = new File("/tmp", "Twitter4jAccessToken.ser");
 		if (!accessTokenStore.exists())
-			throw new RuntimeException(
-					"Access token not found, run OAuthRequester.main()");
+			throw new TwitterMashupException("Access token not found, run OAuthRequester.main()");
 		ObjectInputStream ois = null;
 		AccessToken at = null;
 		try {
 			ois = new ObjectInputStream(new FileInputStream(accessTokenStore));
 			at = (AccessToken) ois.readObject();
 		} catch (Exception e) {
-			e.printStackTrace();
+		    LOGGER.error("Error reading the object", e);
 		} finally {
-			ois.close();
+			if(ois != null) {
+			    ois.close();
+			}
 		}
 		return at;
 	}
