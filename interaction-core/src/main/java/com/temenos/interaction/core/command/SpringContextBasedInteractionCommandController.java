@@ -36,7 +36,7 @@ import org.springframework.context.ApplicationContext;
 public class SpringContextBasedInteractionCommandController
         implements CommandController {
 
-    private static final Logger logger = LoggerFactory.getLogger(SpringContextBasedInteractionCommandController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SpringContextBasedInteractionCommandController.class);
 
     private ApplicationContext applicationContext = null;
 
@@ -51,14 +51,14 @@ public class SpringContextBasedInteractionCommandController
     @Override
     public InteractionCommand fetchCommand(String name) {
         if (applicationContext == null) {
-            logger.warn("ApplicationContext not initialised in fetchCommand of {}", this.getClass().getName());
+            LOGGER.warn("ApplicationContext not initialised in fetchCommand of {}", this.getClass().getName());
             return null;
         }
         try {
-            logger.trace("{} requesting bean implementing InteractionCommand under name {} from underlying ApplicationContext", this.getClass().getName(), name);
+            LOGGER.trace("{} requesting bean implementing InteractionCommand under name {} from underlying ApplicationContext", this.getClass().getName(), name);
             return applicationContext.getBean(name, InteractionCommand.class);
         } catch (BeansException ex) {
-            logger.trace("Could not find bean implementing interaction command under name {}", name);
+            LOGGER.trace(String.format("Could not find bean implementing interaction command under name %s", name), ex);
             return null;
         }
     }
@@ -74,14 +74,14 @@ public class SpringContextBasedInteractionCommandController
     @Override
     public boolean isValidCommand(String name) {
         if (applicationContext == null) {
-            logger.warn("applicationContext not initialised in isValidCommand of " + this.getClass());
+            LOGGER.warn("applicationContext not initialised in isValidCommand of " + this.getClass());
             return false;
         }
         try {
-            logger.trace("{} requesting bean implementing InteractionCommand under name {} from underlying ApplicationContext", this.getClass().getName(), name);
+            LOGGER.trace("{} requesting bean implementing InteractionCommand under name {} from underlying ApplicationContext", this.getClass().getName(), name);
             return (applicationContext.getBean(name, InteractionCommand.class) != null);
         } catch (BeansException ex) {
-            logger.trace("Could not find bean implementing interaction command under name {}", name);
+            LOGGER.trace(String.format("Could not find bean implementing interaction command under name %s", name), ex);
             return false;
         }
     }
