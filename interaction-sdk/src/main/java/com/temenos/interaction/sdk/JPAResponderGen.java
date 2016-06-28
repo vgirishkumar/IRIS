@@ -41,6 +41,8 @@ import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.edm.EdmType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
@@ -70,9 +72,6 @@ import com.temenos.interaction.sdk.interaction.transition.IMTransition;
 import com.temenos.interaction.sdk.rimdsl.RimDslGenerator;
 import com.temenos.interaction.sdk.util.IndentationFormatter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * This class is the main entry point to the IRIS SDK. It is a simple front end
  * for generating JPA classes, and associated configuration files. With these
@@ -82,26 +81,29 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class JPAResponderGen {
-    private final static Logger LOGGER = LoggerFactory.getLogger(JPAResponderGen.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JPAResponderGen.class);
     
 	// generator properties
-	public final static String PROPERTY_KEY_ROOT = "com.temenos.interaction.sdk";
-	public final static String STRICT_ODATA_KEY = "strictodata";
-	public final static String REGENERATE_OUTPUT_KEY = "regenerate";
+	public static final String PROPERTY_KEY_ROOT = "com.temenos.interaction.sdk";
+	public static final String STRICT_ODATA_KEY = "strictodata";
+	public static final String REGENERATE_OUTPUT_KEY = "regenerate";
 	
-	public final static String JPA_CONFIG_FILE = "jpa-persistence.xml";
-	public final static String SPRING_CONFIG_FILE = "spring-beans.xml";
-	public final static String SPRING_RESOURCEMANAGER_FILE = "resourcemanager-context.xml";
-	public final static String RESPONDER_INSERT_FILE = "responder_insert.sql";
-	public final static String RESPONDER_SETTINGS_FILE = "responder.properties";
-	public final static String BEHAVIOUR_CLASS_FILE = "Behaviour.java";
-	public final static String METADATA_FILE = "metadata.xml";
+	public static final String JPA_CONFIG_FILE = "jpa-persistence.xml";
+	public static final String SPRING_CONFIG_FILE = "spring-beans.xml";
+	public static final String SPRING_RESOURCEMANAGER_FILE = "resourcemanager-context.xml";
+	public static final String RESPONDER_INSERT_FILE = "responder_insert.sql";
+	public static final String RESPONDER_SETTINGS_FILE = "responder.properties";
+	public static final String BEHAVIOUR_CLASS_FILE = "Behaviour.java";
+	public static final String METADATA_FILE = "metadata.xml";
 
-	public final static Parameter COMMAND_SERVICE_DOCUMENT = new Parameter("ServiceDocument", false, "");
-	public final static Parameter COMMAND_METADATA_ODATA4J = new Parameter("metadataOData4j", true, "");
-	public final static Parameter COMMAND_METADATA = new Parameter("Metadata", false, "");
-	public final static Parameter COMMAND_METADATA_SOURCE_ODATAPRODUCER = new Parameter("producer", true, "odataProducer");
-	public final static Parameter COMMAND_METADATA_SOURCE_MODEL = new Parameter("edmMetadata", true, "edmMetadata");
+	public static final Parameter COMMAND_SERVICE_DOCUMENT = new Parameter("ServiceDocument", false, "");
+	public static final Parameter COMMAND_METADATA_ODATA4J = new Parameter("metadataOData4j", true, "");
+	public static final Parameter COMMAND_METADATA = new Parameter("Metadata", false, "");
+	public static final Parameter COMMAND_METADATA_SOURCE_ODATAPRODUCER = new Parameter("producer", true, "odataProducer");
+	public static final Parameter COMMAND_METADATA_SOURCE_MODEL = new Parameter("edmMetadata", true, "edmMetadata");
+	
+	public static final String FAILED_TO_WRITE = "Failed to write";
+	public static final String FAILED_TO_CLOSE = "Failed to close";
 			
 	private boolean strictOData; 		//Indicates whether it should generate strict odata paths etc. (e.g. Flight(1)/flightschedule rather than FlightSchedule(2051))
 	private boolean overwriteAllOutput = true;
@@ -295,7 +297,7 @@ public class JPAResponderGen {
 		for (String key : rims.keySet()) {
 			String rimDslFilename = key + ".rim";
 			if (!writeRimDsl(configOutputPath, rimDslFilename, rims.get(key))) {
-				System.out.print("Failed to write " + key);
+				LOGGER.error(FAILED_TO_WRITE +" "+ key);
 				ok = false;
 				break;
 			}
@@ -361,14 +363,14 @@ public class JPAResponderGen {
 			fos = new FileOutputStream(classFileName);
 			fos.write(generatedClass.getBytes("UTF-8"));
 		} catch (IOException e) {
-		    LOGGER.warn("Failed to write class: " + classFileName, e);
+		    LOGGER.warn(FAILED_TO_WRITE+" class: " + classFileName, e);
 			return false;
 		} finally {
 			try {
 				if (fos != null)
 					fos.close();
 			} catch (IOException e) {
-				// don't hide original exception
+			    LOGGER.warn(FAILED_TO_CLOSE+" class: " + classFileName, e);
 			}
 		}
 		return true;
@@ -544,14 +546,14 @@ public class JPAResponderGen {
 			fos = new FileOutputStream(new File(metaInfDir, JPA_CONFIG_FILE));
 			fos.write(generatedPersistenceXML.getBytes("UTF-8"));
 		} catch (IOException e) {
-	        LOGGER.warn("Failed to write : " + JPA_CONFIG_FILE, e);
+	        LOGGER.warn(FAILED_TO_WRITE+" : " + JPA_CONFIG_FILE, e);
 			return false;
 		} finally {
 			try {
 				if (fos != null)
 					fos.close();
 			} catch (IOException e) {
-				// don't hide original exception
+			    LOGGER.warn(FAILED_TO_CLOSE+" : " + JPA_CONFIG_FILE, e);
 			}
 		}
 		return true;
@@ -568,14 +570,14 @@ public class JPAResponderGen {
 				fos.write(generatedSpringXML.getBytes("UTF-8"));
 			}
 		} catch (IOException e) {
-            LOGGER.warn("Failed to write : " + filename, e);		    
+            LOGGER.warn(FAILED_TO_WRITE+" : " + filename, e);		    
 			return false;
 		} finally {
 			try {
 				if (fos != null)
 					fos.close();
 			} catch (IOException e) {
-				// don't hide original exception
+			    LOGGER.warn(FAILED_TO_CLOSE + " : " + filename, e);
 			}
 		}
 		return true;
@@ -589,14 +591,14 @@ public class JPAResponderGen {
 			fos = new FileOutputStream(new File(metaInfDir, RESPONDER_INSERT_FILE));
 			fos.write(generateResponderDML.getBytes("UTF-8"));
 		} catch (IOException e) {
-            LOGGER.warn("Failed to write : " + RESPONDER_INSERT_FILE, e);
+            LOGGER.warn(FAILED_TO_WRITE + " : " + RESPONDER_INSERT_FILE, e);
 			return false;
 		} finally {
 			try {
 				if (fos != null)
 					fos.close();
 			} catch (IOException e) {
-				// don't hide original exception
+			    LOGGER.warn(FAILED_TO_CLOSE + " : " + RESPONDER_INSERT_FILE, e);
 			}
 		}
 		return true;
@@ -613,14 +615,14 @@ public class JPAResponderGen {
 				fos.write(generatedMetadata.getBytes("UTF-8"));
 			}
 		} catch (IOException e) {
-		    LOGGER.warn("Failed to write : " + METADATA_FILE, e);
+		    LOGGER.warn(FAILED_TO_WRITE+" : " + METADATA_FILE, e);
 			return false;
 		} finally {
 			try {
 				if (fos != null)
 					fos.close();
 			} catch (IOException e) {
-				// don't hide original exception
+			    LOGGER.warn(FAILED_TO_CLOSE+" : " + METADATA_FILE, e);
 			}
 		}
 		return true;
@@ -637,14 +639,14 @@ public class JPAResponderGen {
 				fos.write(generatedRimDsl.getBytes("UTF-8"));
 			}
 		} catch (IOException e) {
-		    LOGGER.warn("Failed to write : " + rimDslFilename, e);
+		    LOGGER.warn(FAILED_TO_WRITE + " : " + rimDslFilename, e);
 			return false;
 		} finally {
 			try {
 				if (fos != null)
 					fos.close();
 			} catch (IOException e) {
-				// don't hide original exception
+			    LOGGER.warn(FAILED_TO_CLOSE + " : " + rimDslFilename, e);
 			}
 		}
 		return true;
@@ -661,14 +663,14 @@ public class JPAResponderGen {
 				fos.write(generateResponderSettings.getBytes("UTF-8"));
 			}
 		} catch (IOException e) {
-		    LOGGER.warn("Failed to write : " + RESPONDER_SETTINGS_FILE, e);
+		    LOGGER.warn(FAILED_TO_WRITE + " : " + RESPONDER_SETTINGS_FILE, e);
 			return false;
 		} finally {
 			try {
 				if (fos != null)
 					fos.close();
 			} catch (IOException e) {
-				// don't hide original exception
+			    LOGGER.warn(FAILED_TO_CLOSE + " : " + RESPONDER_SETTINGS_FILE, e);
 			}
 		}
 		return true;
@@ -793,24 +795,24 @@ public class JPAResponderGen {
 			
 			// check our configuration
 			if (!edmxFile.exists()) {
-				System.out.println("EDMX file not found");
+			    LOGGER.error("EDMX file not found");
 				ok = false;
 			}
 			if (!targetDirectory.exists() || !targetDirectory.isDirectory()) {
-				System.out.println("Target directory is invalid");
+			    LOGGER.error("Target directory is invalid");
 				ok = false;
 			}
 			
 			if (ok) {
 				JPAResponderGen rg = new JPAResponderGen();
-				System.out.println("Writing source and configuration to [" + targetDirectory + "]");
+				LOGGER.error("Writing source and configuration to [" + targetDirectory + "]");
 				ok = rg.generateArtifacts(new EDMXAdapter(edmxFilePath), targetDirectory, targetDirectory, true);
 			}
 		} else {
 			ok = false;
 		}
 		if (!ok) {
-			System.out.print(usage());
+		    LOGGER.error(usage());
 		}
 
 	}
