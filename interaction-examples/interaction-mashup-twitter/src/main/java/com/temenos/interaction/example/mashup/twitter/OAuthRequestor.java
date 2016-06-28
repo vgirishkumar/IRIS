@@ -25,8 +25,12 @@ package com.temenos.interaction.example.mashup.twitter;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -35,6 +39,8 @@ import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 
 public class OAuthRequestor {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(OAuthRequestor.class);
 
 	/* The twitter dev tokens */
 	private final static String CONSUMER_KEY = "QYUNmSke0Q3BEo58gnvw";
@@ -48,11 +54,12 @@ public class OAuthRequestor {
 		AccessToken accessToken = null;
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		while (null == accessToken) {
-			System.out
-					.println("Open the following URL and grant access to your account:");
-			System.out.println(requestToken.getAuthorizationURL());
-			System.out
-					.print("Enter the PIN(if aviailable) or just hit enter.[PIN]:");
+			if (LOGGER.isDebugEnabled()) {
+			    LOGGER.debug("Open the following URL and grant access to your account:");
+			    LOGGER.debug(requestToken.getAuthorizationURL());
+			    LOGGER.debug("Enter the PIN(if aviailable) or just hit enter.[PIN]:");
+			}
+			
 			String pin = br.readLine();
 			try {
 				if (pin.length() > 0) {
@@ -62,10 +69,10 @@ public class OAuthRequestor {
 					accessToken = twitter.getOAuthAccessToken();
 				}
 			} catch (TwitterException te) {
-				if (401 == te.getStatusCode()) {
-					System.out.println("Unable to get the access token.");
+				if (401 == te.getStatusCode() && LOGGER.isInfoEnabled()) {
+				    LOGGER.info("Unable to get the access token.");
 				} else {
-					te.printStackTrace();
+				    LOGGER.error("Error writing the object.", te);
 				}
 			}
 		}
@@ -78,15 +85,17 @@ public class OAuthRequestor {
 		System.exit(0);
 	}
 
-	private static void storeAccessToken(long useId, AccessToken accessToken) throws Exception {
-		System.out.println(accessToken.getToken() + " " + accessToken.getTokenSecret());
+	private static void storeAccessToken(long useId, AccessToken accessToken) throws IOException {
+	    if (LOGGER.isInfoEnabled()) {
+	        LOGGER.info(accessToken.getToken() + " " + accessToken.getTokenSecret());
+	    }
 		File accessTokenStore = new File("/tmp", "Twitter4jAccessToken.ser");
 		ObjectOutputStream os = null;
 		try {
 			os = new ObjectOutputStream(new FileOutputStream(accessTokenStore));
 			os.writeObject(accessToken);
 		} catch (Exception e) {
-			e.printStackTrace();
+		    LOGGER.error("Error writing the object.", e);
 		} finally {
 			if (os != null)
 				os.close();

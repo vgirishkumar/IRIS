@@ -105,7 +105,7 @@ import com.temenos.interaction.odataext.entity.MetadataOData4j;
 @Produces({ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML})
 public class AtomXMLProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
 	private static final String UTF_8 = "UTF-8";
-	private static final Logger logger = LoggerFactory.getLogger(AtomXMLProvider.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(AtomXMLProvider.class);
 	private static final Pattern STRING_KEY_RESOURCE_PATTERN = Pattern.compile("(\\('.*'\\))");
 
 	@Context
@@ -143,11 +143,11 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		this.metadataOData4j = metadataOData4j;
 		this.metadata = metadata;
 		this.resourceStateProvider = resourceStateProvider;
-		assert(resourceStateProvider != null);
+		assert resourceStateProvider != null;
 		this.serviceDocument = serviceDocument;
 		if (serviceDocument == null)
 			throw new RuntimeException("No 'ServiceDocument' found.");
-		assert(metadata != null);
+		assert metadata != null;
 		this.transformer = transformer;
 		entryWriter = new AtomEntryFormatWriter(serviceDocument);
 		feedWriter = new AtomFeedFormatWriter(serviceDocument);
@@ -191,8 +191,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			MultivaluedMap<String, Object> httpHeaders,
 			OutputStream entityStream) throws IOException,
 			WebApplicationException {
-		assert (resource != null);
-		assert(uriInfo != null);
+		assert resource != null;
+		assert uriInfo != null;
 		ByteArrayOutputStream buffer = new ByteArrayOutputStream();  		
         RESTResource restResource = processLinks((RESTResource) resource);
         Collection<Link> processedLinks = restResource.getLinks();
@@ -259,7 +259,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
             AtomEntityFeedFormatWriter entityFeedWriter = new AtomEntityFeedFormatWriter(serviceDocument, metadata);
             entityFeedWriter.write(uriInfo, new OutputStreamWriter(buffer, UTF_8), collectionResource, inlineCount, skipToken, metadata.getModelName());
         } else {
-            logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
+            LOGGER.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
         IOUtils.copy(new ByteArrayInputStream(buffer.toByteArray()), entityStream);
@@ -306,7 +306,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		
 		//Add entity links
 		List<OLink> olinks = new ArrayList<OLink>();
-		if (entityResource.getLinks() != null && entityResource.getLinks().size() > 0) {
+		if (entityResource.getLinks() != null && !entityResource.getLinks().isEmpty()) {
 			for(Link link : entityResource.getLinks()) {
 				addLinkToOLinks(olinks, link, entityResource);
 			}		
@@ -363,8 +363,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 
 	private void addLinkToOLinks(List<OLink> olinks, Link link, RESTResource resource) {
 		RequestContext requestContext = RequestContext.getRequestContext();
-		assert(link != null);
-		assert(link.getTransition() != null);
+		assert link != null;
+		assert link.getTransition() != null;
 		Map<Transition,RESTResource> embeddedResources = resource.getEmbedded();
 		String rel = link.getRel();
 		String href = link.getHref();
@@ -435,8 +435,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			throws IOException, WebApplicationException {
 		
 		// check media type can be handled, isReadable must have been called
-		assert(ResourceTypeHelper.isType(type, genericType, EntityResource.class));
-		assert(mediaType.isCompatible(MediaType.APPLICATION_ATOM_XML_TYPE));
+		assert ResourceTypeHelper.isType(type, genericType, EntityResource.class);
+		assert mediaType.isCompatible(MediaType.APPLICATION_ATOM_XML_TYPE);
 		
 		try {
 			OEntityKey entityKey = null;
@@ -464,7 +464,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				
 				Response response = Response.status(405).header("Allow", allowHeader.toString().substring(0, allowHeader.length() - 2)).build();
 				
-				throw new WebApplicationException(response);
+				throw new WebApplicationException(e1, response);
 			}
 			
 			if (currentState == null)
@@ -512,12 +512,12 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			
 			// Lets parse the request content
 			Reader reader = new InputStreamReader(verifiedStream);
-			assert(entitySetName != null) : "Must have found a resource or thrown exception";
+			assert entitySetName != null : "Must have found a resource or thrown exception";
 			Entry e = new AtomEntryFormatParserExt(metadataOData4j, entitySetName, entityKey, null).parse(reader);
 			
 			return new EntityResource<OEntity>(e.getEntity());
 		} catch (IllegalStateException e) {
-			logger.warn("Malformed request from client", e);
+			LOGGER.warn("Malformed request from client", e);
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 
@@ -536,12 +536,17 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				if (targetEntitySet != null)
 					entitySetName = targetEntitySet.getName();
 			}
-		} catch (NotFoundException e) {}
+		} catch (NotFoundException e) {
+		    if(LOGGER.isDebugEnabled()) {
+		        LOGGER.debug("Failed to get entity set name", e);
+		    }
+		}
+		
 		if (entitySetName == null) {
 			try {
 				entitySetName = getEdmEntitySet(state.getEntityName()).getName();
 			} catch (NotFoundException e) {
-				logger.warn("Entity [" + fqTargetEntityName + "] is not an entity set.");
+				LOGGER.warn("Entity [" + fqTargetEntityName + "] is not an entity set.", e);
 			}
 			if(entitySetName == null) {
 				entitySetName = state.getName();
@@ -605,7 +610,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	private InputStream verifyContentReceieved(InputStream stream) throws IOException {
 
 		if (stream == null) {					// Check if its null
-			logger.debug("Request stream received as null");
+			LOGGER.debug("Request stream received as null");
 			return null;
 		} else if (stream.markSupported()) {	// Check stream supports mark/reset
 			// mark() and read the first byte just to check
@@ -617,7 +622,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				return stream;
 			} else {
 			    //stream empty
-				logger.debug("Request received with empty body");
+				LOGGER.debug("Request received with empty body");
 				return null;
 			}
 		} else {
@@ -630,7 +635,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				return pbs;
 			} else {
 				// Empty stream detected
-				logger.debug("Request received with empty body!");
+				LOGGER.debug("Request received with empty body!");
 				return null;
 			}
 		}
@@ -675,8 +680,11 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		try {
 			entitySet = getEdmDataService().getEdmEntitySet(entityType);
 		} catch (Exception e) {
-			//logger.error("Unable to find entity set for [" +entityName + "]");
+		    if(LOGGER.isDebugEnabled()) {
+		        LOGGER.debug("Unable to find entity set for [" +entityName + "]", e);
+		    }
 		}
+		
 		if(entitySet == null) {
 			return metadataOData4j.getEdmEntitySetByEntityName(entityName);
 		}
