@@ -23,8 +23,10 @@ package com.temenos.interaction.loader.classloader;
  * #L%
  */
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.security.MessageDigest;
 import java.util.Collection;
 import java.util.HashSet;
@@ -39,8 +41,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.primitives.Longs;
 import com.temenos.interaction.core.loader.FileEvent;
 import com.temenos.interaction.loader.objectcreation.ParameterizedFactory;
-import java.io.IOException;
-import java.net.URLClassLoader;
 
 /**
  * This class manages the creation of URLClassLoaders, which are responsible for making new
@@ -58,7 +58,7 @@ import java.net.URLClassLoader;
  */
 public class CachingParentLastURLClassloaderFactory implements ParameterizedFactory<FileEvent<File>, ClassLoader> {
 
-    private static final Logger logger = LoggerFactory.getLogger(CachingParentLastURLClassloaderFactory.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CachingParentLastURLClassloaderFactory.class);
 
     private URLClassLoader cache = null;
     private Object lastState = null;
@@ -69,7 +69,7 @@ public class CachingParentLastURLClassloaderFactory implements ParameterizedFact
 
         Object state = calculateCurrentState(param);
         if (lastState == null || (!lastState.equals(state))) {
-            logger.debug("Detected state change, creating new classloader");
+            LOGGER.debug("Detected state change, creating new classloader");
             Object previousState = lastState;
             URLClassLoader previousCL = cache;
             File previousTempDir = lastClassloaderTempDir;
@@ -85,20 +85,20 @@ public class CachingParentLastURLClassloaderFactory implements ParameterizedFact
 
     protected synchronized URLClassLoader createClassLoader(Object currentState, FileEvent<File> param) {
         try {
-                logger.debug("Classloader requested from CachingParentLastURLClassloaderFactory, based on FileEvent reflecting change in {}", param.getResource().getAbsolutePath());
+            LOGGER.debug("Classloader requested from CachingParentLastURLClassloaderFactory, based on FileEvent reflecting change in {}", param.getResource().getAbsolutePath());
             Set<URL> urls = new HashSet<URL>();
             File newTempDir = new File(FileUtils.getTempDirectory(),currentState.toString());
             FileUtils.forceMkdir(newTempDir);
             Collection<File> files = FileUtils.listFiles(param.getResource(), new String[]{"jar"}, true);
             for (File f : files) {
                 try {
-                    logger.trace("Adding {} to list of URLs to create classloader from", f.toURI().toURL());
+                    LOGGER.trace("Adding {} to list of URLs to create classloader from", f.toURI().toURL());
                     FileUtils.copyFileToDirectory(f, newTempDir);
                     urls.add(new File(newTempDir, f.getName()).toURI().toURL());
                 } catch (MalformedURLException ex) {
                     // should not happen, we do have the file there
                     // but if, what can we do - just log it
-                    logger.warn("Trying to intilialize classloader based on URL failed!", ex);
+                    LOGGER.warn("Trying to intilialize classloader based on URL failed!", ex);
                 }
             }
             lastClassloaderTempDir = newTempDir;
@@ -119,7 +119,7 @@ public class CachingParentLastURLClassloaderFactory implements ParameterizedFact
         }
         
         Object state = Hex.encodeHexString(md.digest());
-            logger.trace("Calculated representation /hash/ of state of collection of URLs for classloader creation to: {}", state);
+        LOGGER.trace("Calculated representation /hash/ of state of collection of URLs for classloader creation to: {}", state);
         return state;
     }
 
@@ -129,14 +129,14 @@ public class CachingParentLastURLClassloaderFactory implements ParameterizedFact
     			previousCL.close();
     		}
         } catch (IOException ex) {
-            logger.error("Failed to close classloader - potential resource and memory leak!");
+            LOGGER.error("Failed to close classloader - potential resource and memory leak!", ex);
         }
         try {
             if(previousTempDir != null){
             	FileUtils.forceDelete(previousTempDir);
             }
         } catch (IOException ex) {
-            logger.error("Failed to delete temporary directory, possible resource leak!");
+            LOGGER.error("Failed to delete temporary directory, possible resource leak!", ex);
         }
     }
 }

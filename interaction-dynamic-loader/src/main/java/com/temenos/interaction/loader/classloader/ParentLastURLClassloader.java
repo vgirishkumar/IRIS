@@ -24,7 +24,6 @@ package com.temenos.interaction.loader.classloader;
 
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.net.URLStreamHandlerFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +45,7 @@ import org.slf4j.LoggerFactory;
 
 public class ParentLastURLClassloader extends URLClassLoader {
 	
-	private static final Logger logger = LoggerFactory.getLogger(ParentLastURLClassloader.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ParentLastURLClassloader.class);
 
     public ParentLastURLClassloader(URL[] urls, ClassLoader cl) {
         super(urls, cl);
@@ -66,10 +65,13 @@ public class ParentLastURLClassloader extends URLClassLoader {
                 result = findClass(name);
             } catch (ClassNotFoundException ex) {
                 // Next, delegate to the parent, if not found locally.
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("Next, delegate to the parent, if not found locally.", ex);
+                }
                 try {
                 result = getParent().loadClass(name);
                 } catch (ClassNotFoundException ex2) {
-					logger.warn("Classloader failed to find class " + name, ex2);
+                    LOGGER.warn("Classloader failed to find class " + name, ex2);
                 }
             }
         }
