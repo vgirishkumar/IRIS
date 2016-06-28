@@ -36,8 +36,8 @@ import com.temenos.interaction.core.resource.EntityResource;
 public class InteractionProducerException extends ODataProducerException {	
 	private static final long serialVersionUID = 1L;
 	private final String entitySetName;
-	private final EntityResource<?> entityResource;
-	private final StatusType httpStatus;
+	private final transient EntityResource<?> entityResource;
+	private final transient StatusType httpStatus;
 
 	/**
 	 * @param error
