@@ -21,7 +21,6 @@ package com.temenos.interaction.loader.properties;
  * #L%
  */
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -34,7 +33,7 @@ import org.springframework.core.io.Resource;
  * Useful base class for implementing {@link ReloadableProperties}. Credit to:
  * http://www.wuenschenswert.net/wunschdenken/archives/127
  */
-public class ReloadablePropertiesBase extends DelegatingProperties implements ReloadableProperties, Serializable {
+public class ReloadablePropertiesBase extends DelegatingProperties implements ReloadableProperties {
 	private static final long serialVersionUID = 1882584866192427533L;
 	private transient List<ReloadablePropertiesListener> listeners = new ArrayList<ReloadablePropertiesListener>();
 	private Properties internalProperties;
