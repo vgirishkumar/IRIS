@@ -24,7 +24,6 @@ package com.temenos.interaction.core.rim;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
-import static org.hamcrest.core.StringStartsWith.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
@@ -103,6 +102,22 @@ public class TestHeaderHelper {
 	}
 	
 	@Test
+	public void testLocationWithQueryParam(){
+	    MultivaluedMap<String, String> values = new MultivaluedMapImpl<String>();
+	    values.add("transactionId", "101");
+	    Response r = HeaderHelper.locationHeader(Response.ok(), "/path?customerName=Jack", values).build();
+	    assertThat((String)r.getMetadata().getFirst("Location"), containsString("?customerName=Jack&transactionId=101"));
+	}
+	
+	@Test
+    public void testLocationWithoutQueryParam(){
+        MultivaluedMap<String, String> values = new MultivaluedMapImpl<String>();
+        values.add("transactionId", "101");
+        Response r = HeaderHelper.locationHeader(Response.ok(), "/path", values).build();
+        assertThat((String)r.getMetadata().getFirst("Location"), containsString("?transactionId=101"));
+    }
+	
+	@Test
 	public void testEtag() {
 		Response r = HeaderHelper.etagHeader(Response.ok(), "ABCDEFG").build();
 		assertEquals("ABCDEFG", r.getMetadata().getFirst(HttpHeaders.ETAG));
@@ -134,12 +149,12 @@ public class TestHeaderHelper {
         values.add("transaction", "101");
         String queryParam = HeaderHelper.encodeMultivalueQueryParameters(values);
         assertThat(queryParam, allOf(
-                startsWith("?"),
                 containsString("customerName=Jack"),
                 containsString("customerName=Jill"),
                 containsString("transaction=101")
         ));
         assertThat(StringUtils.countMatches(queryParam, "&"), equalTo(2));
+        assertThat(StringUtils.countMatches(queryParam, "?"), equalTo(0));
     }
     
     @Test
@@ -151,7 +166,6 @@ public class TestHeaderHelper {
         values.add("transaction", "102");
         String queryParam = HeaderHelper.encodeMultivalueQueryParameters(values);
         assertThat(queryParam, allOf(
-                startsWith("?"),
                 containsString("customerName=Jack"),
                 containsString("transaction=101"),
                 containsString("transaction=102")
@@ -167,7 +181,6 @@ public class TestHeaderHelper {
         values.add("trans&ction", "!0!");
         String queryParam = HeaderHelper.encodeMultivalueQueryParameters(values);
         assertThat(queryParam, allOf(
-                startsWith("?"),
                 containsString("customerNam%3D=J%26ck"),
                 containsString("trans%26ction=%210%21")
         ));

@@ -85,9 +85,12 @@ public class HeaderHelper {
      * @param queryParam
      * @return
      */
-    public static ResponseBuilder locationHeader(ResponseBuilder rb, String target, MultivaluedMap<String, String> queryParam) {
-        if (target != null && queryParam != null) {
-            return rb.header(HttpHeaders.LOCATION, target + encodeMultivalueQueryParameters(queryParam));
+    public static ResponseBuilder locationHeader(ResponseBuilder rb, String target, 
+            MultivaluedMap<String, String> queryParam) {
+        if (target != null && !isNullOrEmpty(queryParam) && target.indexOf("?") != -1) {
+            return rb.header(HttpHeaders.LOCATION, target + "&" + encodeMultivalueQueryParameters(queryParam));
+        }else if(target != null && !isNullOrEmpty(queryParam)){
+            return rb.header(HttpHeaders.LOCATION, target + "?" + encodeMultivalueQueryParameters(queryParam));
         }else if(target != null){
             return rb.header(HttpHeaders.LOCATION, target);
         }else{
@@ -148,14 +151,11 @@ public class HeaderHelper {
             filter.clear();
             outerIndex++;
         }
-        if(sb.length() > 0){
-            sb.insert(0, "?");
-        }
         return sb.toString();
     }
     
     private static boolean isNullOrEmpty(MultivaluedMap<String, String> queryParam){
-        return queryParam == null || queryParam.isEmpty();
+        return queryParam == null || queryParam.size() == 0;
     }
     
     private static void filterDuplicateQueryKeyValuePairings(List<String> src, List<String> dest){
