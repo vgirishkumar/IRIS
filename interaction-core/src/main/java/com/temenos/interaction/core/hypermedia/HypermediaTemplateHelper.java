@@ -106,7 +106,7 @@ public class HypermediaTemplateHelper {
 					}
 					if (normalizedProperties.containsKey(param)) {
 						// replace template tokens
-						result = template.replaceAll("\\{" + Pattern.quote(param) + "\\}", URLEncoder.encode(normalizedProperties.get(param).toString(), "UTF-8"));
+						result = result.replaceAll("\\{" + Pattern.quote(param) + "\\}", URLEncoder.encode(normalizedProperties.get(param).toString(), "UTF-8"));
 					}
 				}
 			}
