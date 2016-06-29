@@ -29,12 +29,16 @@ import javax.ws.rs.HttpMethod;
 
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.resource.EntityResource;
 
 public class POSTFundTransferCommand implements InteractionCommand {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(POSTFundTransferCommand.class);
 
 	/* Implement InteractionCommand interface */
 
@@ -59,7 +63,7 @@ public class POSTFundTransferCommand implements InteractionCommand {
 			er = new EntityResource<FundTransfer>(new FundTransfer(key, jsonObject.toString()));
 		}
 		catch(JSONException je) {
-			je.printStackTrace();
+			LOGGER.error("Error passing JSON Object to Entity", je);
 		}
 		ctx.setResource(er);
 		return Result.SUCCESS;

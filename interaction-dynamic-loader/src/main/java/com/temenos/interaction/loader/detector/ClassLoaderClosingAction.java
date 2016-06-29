@@ -26,9 +26,13 @@ package com.temenos.interaction.loader.detector;
  * #L%
  */
 
-import com.temenos.interaction.core.loader.Action;
 import java.io.Closeable;
 import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.temenos.interaction.core.loader.Action;
 
 /**
  * Closes a ClassLoader marked to be closed and releases any system resources associated with it.
@@ -39,6 +43,8 @@ import java.io.IOException;
  * @author trojan
  */
 public class ClassLoaderClosingAction implements Action<ClassLoader> {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClassLoaderClosingAction.class);
 
     ClassLoader previous = null;
 
@@ -49,7 +55,7 @@ public class ClassLoaderClosingAction implements Action<ClassLoader> {
                 ((Closeable) previous).close();
             }
         } catch (IOException ex) {
-            // TODO: log properly
+            LOGGER.error("Error closing the class loader.", ex);
         }
         if (!(toClose instanceof Closeable)) {
             previous = null;

@@ -39,6 +39,8 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.temenos.useragent.generic.Result;
 import com.temenos.useragent.generic.context.ConnectionConfig;
@@ -51,6 +53,8 @@ import com.temenos.useragent.generic.context.ContextFactory;
  *
  */
 public class DefaultHttpClientHelper {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultHttpClientHelper.class);
 
 	/**
 	 * Builds and returns the {@link HttpMessage http message} with the request
@@ -111,7 +115,7 @@ public class DefaultHttpClientHelper {
 				AuthScope.ANY,
 				new UsernamePasswordCredentials(config
 						.getValue(ConnectionConfig.USER_NAME), config
-						.getValue(ConnectionConfig.PASSWORD)));
+						.getValue(ConnectionConfig.PASS_WORD)));
 		return credentialsProvider;
 	}
 
@@ -181,6 +185,9 @@ public class DefaultHttpClientHelper {
 			transformer.transform(xmlInput, xmlOutput);
 			return xmlOutput.getWriter().toString();
 		} catch (Exception e) {
+		    if(LOGGER.isDebugEnabled()) {
+		        LOGGER.debug("Not a valid XML document so return as-is.", e);
+		    }
 			// Not a valid XML document so return as-is
 			return xmlDoc;
 		}

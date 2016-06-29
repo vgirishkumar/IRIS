@@ -73,9 +73,9 @@ import com.temenos.interaction.loader.objectcreation.ParameterizedFactory;
  */
 public class SpringBasedLoaderAction implements Action<FileEvent<File>>, ApplicationContextAware, InitializingBean {
 
-    private static final Logger logger = LoggerFactory.getLogger(SpringBasedLoaderAction.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SpringBasedLoaderAction.class);
 
-    public final static String DEFAULT_COMMAND_CONTROLLER_BEAN_NAME = "commandController";
+    public static final String DEFAULT_COMMAND_CONTROLLER_BEAN_NAME = "commandController";
 
     List<String> configPatterns = new ArrayList();
     private ApplicationContext currentContext = null;
@@ -91,13 +91,13 @@ public class SpringBasedLoaderAction implements Action<FileEvent<File>>, Applica
 
     @Override
     public void execute(FileEvent<File> dirEvent) {
-        logger.debug("Creation of new Spring ApplicationContext based CommandController triggerred by change in", dirEvent.getResource().getAbsolutePath());
+        LOGGER.debug("Creation of new Spring ApplicationContext based CommandController triggerred by change in", dirEvent.getResource().getAbsolutePath());
 
         Collection<File> jars = FileUtils.listFiles(dirEvent.getResource(), new String[]{"jar"}, true);
         Set<URL> urls = new HashSet();
         for (File f : jars) {
             try {
-                logger.trace("Adding {} to list of URLs to create ApplicationContext from", f.toURI().toURL());
+                LOGGER.trace("Adding {} to list of URLs to create ApplicationContext from", f.toURI().toURL());
                 urls.add(f.toURI().toURL());
             } catch (MalformedURLException ex) {
                 // kindly ignore and log
@@ -118,7 +118,7 @@ public class SpringBasedLoaderAction implements Action<FileEvent<File>>, Applica
 
         if (!resources.isEmpty()) {
             // if resources are empty just clean up the previous ApplicationContext and leave!
-            logger.debug("Detected potential Spring config files to load");
+            LOGGER.debug("Detected potential Spring config files to load");
             ClassPathXmlApplicationContext context;
             if (parentContext != null) {
                 context = new ClassPathXmlApplicationContext(parentContext);
@@ -136,16 +136,19 @@ public class SpringBasedLoaderAction implements Action<FileEvent<File>>, Applica
 
             try {
                 cc = context.getBean(commandControllerBeanName, CommandController.class);
-                logger.debug("Detected pre-configured CommandController in added config files");
+                LOGGER.debug("Detected pre-configured CommandController in added config files");
             } catch (BeansException ex) {
+                if(LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("No detected pre-configured CommandController in added config files.", ex);
+                }
                 Map<String, InteractionCommand> commands = context.getBeansOfType(InteractionCommand.class);
                 if (!commands.isEmpty()) {
-                    logger.debug("Adding new commands");
+                    LOGGER.debug("Adding new commands");
                     SpringContextBasedInteractionCommandController scbcc = new SpringContextBasedInteractionCommandController();
                     scbcc.setApplicationContext(context);
                     cc = scbcc;
                 } else {
-                    logger.debug("No commands detected to be added");
+                    LOGGER.debug("No commands detected to be added");
                 }
             }
 
@@ -154,13 +157,13 @@ public class SpringBasedLoaderAction implements Action<FileEvent<File>>, Applica
 
                 // "unload" the previously loaded CommandController
                 if (previouslyAddedCommandController != null) {
-                    logger.debug("Removing previously added instance of CommandController");
+                    LOGGER.debug("Removing previously added instance of CommandController");
                     newCommandControllers.remove(previouslyAddedCommandController);
                 }
 
                 // if there is a new CommandController on the Spring file, add it on top of the chain
                 if (cc != null) {
-                    logger.debug("Adding newly created CommandController to ChainingCommandController");
+                    LOGGER.debug("Adding newly created CommandController to ChainingCommandController");
                     newCommandControllers.add(0, cc);
                     parentChainingCommandController.setCommandControllers(newCommandControllers);
                     previouslyAddedCommandController = cc;
@@ -168,7 +171,7 @@ public class SpringBasedLoaderAction implements Action<FileEvent<File>>, Applica
                     previouslyAddedCommandController = null;
                 }
             } else {
-                logger.debug("No ChainingCommandController set to add newly created CommandController to - skipping action");
+                LOGGER.debug("No ChainingCommandController set to add newly created CommandController to - skipping action");
             }
 
             if (previousAppCtx != null) {
@@ -176,13 +179,13 @@ public class SpringBasedLoaderAction implements Action<FileEvent<File>>, Applica
                     try {
                         ((Closeable) previousAppCtx).close();
                     } catch (Exception ex) {
-                        // log
+                        LOGGER.error("Error closing the ApplicationContext.", ex);
                     }
                 }
                 previousAppCtx = context;
             }
         } else {
-            logger.debug("No Spring config files detected in the JARs scanned");
+            LOGGER.debug("No Spring config files detected in the JARs scanned");
         }
     }
 

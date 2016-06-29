@@ -22,14 +22,10 @@ package com.temenos.interaction.media.odata.xml.error;
  */
 
 
-import java.io.Writer;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.apache.commons.httpclient.HttpStatus;
 
 /**
  * Base class for all Interaction Framework exception handlers.
@@ -54,9 +50,7 @@ public class InteractionExceptionHandler<T extends Exception> {
     }
     
     private String getStackTraceAsString(T exception){
-        Writer writer = new StringWriter();
-        exception.printStackTrace(new PrintWriter(writer));
-        String stackTrace = writer.toString();
+        String stackTrace = ExceptionUtils.getStackTrace(exception);
         return stackTrace.replaceAll("\\r\\n", "\n");
     }
 }

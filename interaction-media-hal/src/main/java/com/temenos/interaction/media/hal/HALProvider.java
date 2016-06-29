@@ -654,6 +654,9 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					try {
 						entity = buildEntityFromHal(wrappedStream, mediaType);
 					} catch (MethodNotAllowedException e) {
+					    if (logger.isDebugEnabled()) {
+					        logger.debug("Error building the entity.", e);
+					    }
 						StringBuilder allowHeader = new StringBuilder();
 
 						Set<String> allowedMethods = new HashSet<String>(e.getAllowedMethods());

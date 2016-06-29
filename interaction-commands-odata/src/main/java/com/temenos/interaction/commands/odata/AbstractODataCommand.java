@@ -28,6 +28,8 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.exceptions.NotFoundException;
 import org.odata4j.producer.ODataProducer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
@@ -35,6 +37,8 @@ import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 public abstract class AbstractODataCommand {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractODataCommand.class);
 	/**
 	 * Use this property to configure an action to use this entity 
 	 * instead of the entity specified for the Resource.
@@ -102,7 +106,7 @@ public abstract class AbstractODataCommand {
 		try {
 			return getEdmEntitySet(entityName).getName();
 		} catch (NotFoundException notFoundException) {
-			notFoundException.printStackTrace();
+		    LOGGER.error("Entity not found.", notFoundException);
 			throw notFoundException;
 		}
 	}

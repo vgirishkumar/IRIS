@@ -42,7 +42,7 @@ import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 
 public class GETNavPropertyCommand implements InteractionCommand {
-	private final Logger logger = LoggerFactory.getLogger(GETNavPropertyCommand.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(GETNavPropertyCommand.class);
 	// Command configuration
 	private String entitySetName;
 	private String navProperty;
@@ -59,7 +59,7 @@ public class GETNavPropertyCommand implements InteractionCommand {
 		this.edmDataServices = consumer.getMetadata();
 		this.entitySet = edmDataServices.getEdmEntitySet(entitySetName);
 		this.entityTypes = edmDataServices.getEntityTypes();
-		assert(entitySetName.equals(entitySet.getName()));
+		assert entitySetName.equals(entitySet.getName());
 	}
 
 	/* Implement InteractionCommand interface */
@@ -72,16 +72,17 @@ public class GETNavPropertyCommand implements InteractionCommand {
 		try {
 			key = CommandHelper.createEntityKey(entityTypes, entitySetName, ctx.getId());
 		} catch(Exception e) {
+		    LOGGER.warn("Failure to create the entity key.", e);
 			return Result.FAILURE;
 		}
 
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
 		if (queryParams == null){
-			logger.error("Query params null");
+		    LOGGER.error("Query params null");
 			return Result.FAILURE;
 		}
 		if (navProperty == null){
-			logger.error("NavProperty null");
+		    LOGGER.error("NavProperty null");
 			return Result.FAILURE;
 		}
 		
@@ -130,7 +131,7 @@ public class GETNavPropertyCommand implements InteractionCommand {
 	        	ctx.setResource(CommandHelper.createCollectionResource(entitySetName, entities));
 	        	return Result.SUCCESS;
 	    	} else {
-				logger.error("Other type of unsupported response from ODataProducer.getNavProperty");
+	    	    LOGGER.error("Other type of unsupported response from ODataProducer.getNavProperty");
 	        }
 		}
 		return Result.FAILURE;
@@ -138,8 +139,7 @@ public class GETNavPropertyCommand implements InteractionCommand {
 
 	public static int getAsInt(String value){
 		try {
-			int result = Integer.parseInt(value);
-			return result;
+			return Integer.parseInt(value);
 		} catch (NumberFormatException e) {
 			return 0;
 		}
