@@ -2641,7 +2641,7 @@ public class TestResourceStateMachine {
     @Test
     public void testResolveDynamicResourceSingleParam() {
         ResourceStateMachine rsm = createResourceStateMachineForResolveDynamicResource();
-        String[] resourceArgs = new String[] { "ABCD" };
+        String[] resourceArgs = new String[] { "{ABCD}" };
         DynamicResourceState resourceState = new DynamicResourceState("", "", "", resourceArgs);
 
         Map<String, Object> transitionProperties = new HashMap<String, Object>();

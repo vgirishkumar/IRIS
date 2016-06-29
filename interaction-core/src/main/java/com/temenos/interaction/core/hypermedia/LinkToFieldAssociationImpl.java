@@ -40,7 +40,7 @@ import org.springframework.util.CollectionUtils;
  */
 public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
 
-    private static final Pattern COLLECTION_PARAM_PATTERN = Pattern.compile("\\{*([a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)+)\\}*");
+    private static final Pattern COLLECTION_PARAM_PATTERN = Pattern.compile("\\{{1}([a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)+)\\}{1}");
     private static final String PARAM_REPLACEMENT_REGEX = "\\((\\d+)\\)";
     private static final Logger logger = LoggerFactory.getLogger(LinkToFieldAssociationImpl.class);
     private Transition transition;
