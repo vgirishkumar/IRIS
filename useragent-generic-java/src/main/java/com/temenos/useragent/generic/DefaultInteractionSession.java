@@ -131,7 +131,7 @@ public class DefaultInteractionSession implements InteractionSession {
 	public InteractionSession basicAuth(String username, String password) {
 		ContextFactory factory = ContextFactory.get();
 		factory.setConnectionProperty(ConnectionConfig.USER_NAME, username);
-		factory.setConnectionProperty(ConnectionConfig.PASSWORD, password);
+		factory.setConnectionProperty(ConnectionConfig.PASS_WORD, password);
 		return this;
 	}
 

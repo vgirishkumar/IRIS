@@ -1068,7 +1068,9 @@ public class GeneratorSpringPRDTest {
 				constructorValue1 = attribute.getValue();
 				System.out.println("constructorValue1 = " + attribute.getValue());
 				assertTrue(constructorValue1.equals("GETServiceDocument") || constructorValue1.equals("VIEW")
-						|| constructorValue1.equals("path") || constructorValue1.equals("ENTRY")|| constructorValue1.equals("UpdateEntity") || constructorValue1.equals("GetEntity") || constructorValue1.equals("GETEntities")  || constructorValue1.equals("GetException")  || constructorValue1.equals("GETEntities")  || constructorValue1.equals("GetException")  || constructorValue1.equals("VIEW") || constructorValue1.equals("rels") || constructorValue1.equals("uriSpec") || constructorValue1.equals("errorState") );
+						|| constructorValue1.equals("path") || constructorValue1.equals("ENTRY")|| constructorValue1.equals("UpdateEntity") 
+						|| constructorValue1.equals("GetEntity") || constructorValue1.equals("GETEntities")  || constructorValue1.equals("GetException") 
+                        || constructorValue1.equals("rels") || constructorValue1.equals("uriSpec") || constructorValue1.equals("errorState") );
 			} else if (constructorValue2 == null) {
 				constructorValue2 = attribute.getValue();
 				System.out.println("constructorValue2 = " + attribute.getValue());

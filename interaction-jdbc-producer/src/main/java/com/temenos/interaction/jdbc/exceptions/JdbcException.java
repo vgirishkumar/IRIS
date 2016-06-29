@@ -27,7 +27,7 @@ import javax.ws.rs.core.Response.StatusType;
 public class JdbcException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
-    private final StatusType httpStatus;	
+    private final transient StatusType httpStatus;	
 
 	/**
 	 * Construct a new exception

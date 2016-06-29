@@ -42,16 +42,16 @@ import org.odata4j.producer.ODataProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
+import com.temenos.interaction.core.resource.EntityResource;
 
 public class CreateEntityCommand extends AbstractODataCommand implements InteractionCommand {
-	private final Logger logger = LoggerFactory.getLogger(CreateEntityCommand.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CreateEntityCommand.class);
 
 	public CreateEntityCommand(ODataProducer producer) {
 		super(producer);
@@ -72,22 +72,25 @@ public class CreateEntityCommand extends AbstractODataCommand implements Interac
 		try {
 			entity = ((EntityResource<OEntity>) ctx.getResource()).getEntity();
 		} catch (ClassCastException cce) {
+		    if(LOGGER.isDebugEnabled()) {
+		        LOGGER.debug("OEntity class not found.", cce);
+		    }
 			entity = create(((EntityResource<Entity>) ctx.getResource()).getEntity());
 		}
 		String entityName = getEntityName(ctx);
 		
-		logger.debug("Creating entity for " + entityName);
+		LOGGER.debug("Creating entity for " + entityName);
 		OEntity oEntity;
 		try {
 			EntityResponse er = producer.createEntity(entityName, entity);
 			oEntity = er.getEntity();
 		}
 		catch(ODataProducerException ope) {
-			logger.debug("Failed to create entity [" + entityName + "]: ", ope);
+		    LOGGER.debug("Failed to create entity [" + entityName + "]: ", ope);
 			throw new InteractionException(ope.getHttpStatus(), ope);
 		}
 		catch(Exception e) {
-			logger.debug("Error while creating entity [" + entityName + "]: ", e);
+		    LOGGER.debug("Error while creating entity [" + entityName + "]: ", e);
 			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e);
 		}
 		

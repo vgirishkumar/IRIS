@@ -35,7 +35,7 @@ import org.springframework.core.io.Resource;
  */
 public class ReloadablePropertiesBase extends DelegatingProperties implements ReloadableProperties {
 	private static final long serialVersionUID = 1882584866192427533L;
-	private List<ReloadablePropertiesListener> listeners = new ArrayList<ReloadablePropertiesListener>();
+	private transient List<ReloadablePropertiesListener> listeners = new ArrayList<ReloadablePropertiesListener>();
 	private Properties internalProperties;
 
 	public void setListeners(List<ReloadablePropertiesListener> listeners) {
