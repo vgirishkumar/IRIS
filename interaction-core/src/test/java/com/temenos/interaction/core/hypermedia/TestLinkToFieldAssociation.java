@@ -43,42 +43,49 @@ public class TestLinkToFieldAssociation {
 
     @Test
     public void testNotSupportedNullTargetEmptyCollectionParams() {
-        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition(null, false, new String[] { "filter", "Id={AB.CD}" }), new HashMap<String, Object>());
+        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition(null, false, null, new String[] { "filter", "Id={AB.CD}" }), new HashMap<String, Object>());
         assertFalse(linkToFieldAssociation.isTransitionSupported());
     }
 
     @Test
     public void testNotSupportedNullTargetCollectionDynamicResource() {
-        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition(null, true), new HashMap<String, Object>());
+        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition(null, true, new String[]{"{AB.CD}","{XX.YY}"}), new HashMap<String, Object>());
         assertFalse(linkToFieldAssociation.isTransitionSupported());
     }
 
     @Test
     public void testNotSupportedAllCollectionParamsDifferentParent() {
-        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("targetFieldName", false, new String[] { "filter", "value is {AB.CD} or {XX.MN}" }), new HashMap<String, Object>());
+        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("targetFieldName", false, null, new String[] { "filter", "value is {AB.CD} or {XX.MN}" }), new HashMap<String, Object>());
+        assertFalse(linkToFieldAssociation.isTransitionSupported());
+    }
+    
+    @Test
+    public void testNotSupportDynamicResourceDifferentParents()
+    {
+        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("AB.CD", true, new String[]{"{AB.CD}","{XX.YY}"}, new String[] { "filter", "value is {AB.CD} or {AB.MN}" }), new HashMap<String, Object>());
         assertFalse(linkToFieldAssociation.isTransitionSupported());
     }
 
     @Test
     public void testIsSupported() {
-        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("targetFieldName", false, new String[] { "filter", "value is {AB.CD} or {AB.MN}" }), new HashMap<String, Object>());
+        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("targetFieldName", false, null, new String[] { "filter", "value is {AB.CD} or {AB.MN}" }), new HashMap<String, Object>());
         assertTrue(linkToFieldAssociation.isTransitionSupported());
     }
 
     @Test
     public void testSingleTargetFieldNoCollectionParam() {
-        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("targetFieldName", false), new HashMap<String, Object>());
-        List<LinkTransitionProperties> transitionPropsList = linkToFieldAssociation.getTransitionProperties();
+        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("targetFieldName", false, null), new HashMap<String, Object>());
+        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getTransitionProperties();
         assertEquals(1, transitionPropsList.size());
     }
 
     @Test
     public void testSingleTargetFieldWithCollectionParam() {
         Map<String, Object> transitionPropertiesMap = createTransitionPropertiesMap(new String[] { "AB(0).CD", "value1", "AB(1).CD", "value2" });
-        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("targetFieldName", false, new String[] { "filter", "id={AB.CD}" }), transitionPropertiesMap);
-        List<LinkTransitionProperties> transitionPropsList = linkToFieldAssociation.getTransitionProperties();
+        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("targetFieldName", false, null, new String[] { "filter", "id={AB.CD}" }), transitionPropertiesMap);
+        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getTransitionProperties();
         assertEquals(2, transitionPropsList.size());
-        for (LinkTransitionProperties linkTransitionProps : transitionPropsList) {
+        for (LinkProperties linkTransitionProps : transitionPropsList) {
             assertEquals("targetFieldName", linkTransitionProps.getTargetFieldFullyQualifiedName());
 
             Map<String, Object> transitionMap = linkTransitionProps.getTransitionProperties();
@@ -91,10 +98,10 @@ public class TestLinkToFieldAssociation {
     @Test
     public void testCollectionTargetFieldNoCollectionParameter() {
         Map<String, Object> transitionPropertiesMap = createTransitionPropertiesMap(new String[] { "AB(0).CD", "value1", "AB(1).CD", "value2" });
-        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("AB.CD", false), transitionPropertiesMap);
-        List<LinkTransitionProperties> transitionPropsList = linkToFieldAssociation.getTransitionProperties();
+        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("AB.CD", false, null), transitionPropertiesMap);
+        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getTransitionProperties();
         assertEquals(2, transitionPropsList.size());
-        for (LinkTransitionProperties linkTransitionProps : transitionPropsList) {
+        for (LinkProperties linkTransitionProps : transitionPropsList) {
             String fullyQualifiedTargetField = linkTransitionProps.getTargetFieldFullyQualifiedName();
             assertTrue(StringUtils.equals("AB(0).CD", fullyQualifiedTargetField) || StringUtils.equals("AB(1).CD", fullyQualifiedTargetField));
         }
@@ -103,10 +110,10 @@ public class TestLinkToFieldAssociation {
     @Test
     public void testCollectionTargetFieldCollectionParameterSameParent() {
         Map<String, Object> transitionPropertiesMap = createTransitionPropertiesMap(new String[] { "AB(0).CD", "value1", "AB(1).CD", "value2", "AB(0).XX", "value1", "AB(1).XX", "value2" });
-        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("AB.CD", false, new String[] { "filter", "id={AB.XX}" }), transitionPropertiesMap);
-        List<LinkTransitionProperties> transitionPropsList = linkToFieldAssociation.getTransitionProperties();
+        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("AB.CD", false, null, new String[] { "filter", "id={AB.XX}" }), transitionPropertiesMap);
+        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getTransitionProperties();
         assertEquals(2, transitionPropsList.size());
-        for (LinkTransitionProperties linkTransitionProps : transitionPropsList) {
+        for (LinkProperties linkTransitionProps : transitionPropsList) {
             String fullyQualifiedTargetField = linkTransitionProps.getTargetFieldFullyQualifiedName();
             assertTrue(StringUtils.equals("AB(0).CD", fullyQualifiedTargetField) || StringUtils.equals("AB(1).CD", fullyQualifiedTargetField));
 
@@ -120,10 +127,10 @@ public class TestLinkToFieldAssociation {
     @Test
     public void testCollectionTargetFieldCollectionParameterDifferentParent() {
         Map<String, Object> transitionPropertiesMap = createTransitionPropertiesMap(new String[] { "AB(0).CD", "value1", "AB(1).CD", "value2", "ZZ(0).XX", "value1", "ZZ(1).XX", "value2" });
-        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("AB.CD", false, new String[] { "filter", "id={ZZ.XX}" }), transitionPropertiesMap);
-        List<LinkTransitionProperties> transitionPropsList = linkToFieldAssociation.getTransitionProperties();
+        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("AB.CD", false, null, new String[] { "filter", "id={ZZ.XX}" }), transitionPropertiesMap);
+        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getTransitionProperties();
         assertEquals(4, transitionPropsList.size());
-        for (LinkTransitionProperties linkTransitionProps : transitionPropsList) {
+        for (LinkProperties linkTransitionProps : transitionPropsList) {
             String fullyQualifiedTargetField = linkTransitionProps.getTargetFieldFullyQualifiedName();
             assertTrue(StringUtils.equals("AB(0).CD", fullyQualifiedTargetField) || StringUtils.equals("AB(1).CD", fullyQualifiedTargetField));
 
@@ -137,10 +144,10 @@ public class TestLinkToFieldAssociation {
     @Test
     public void testCollectionDynamicResource() {
         Map<String, Object> transitionPropertiesMap = createTransitionPropertiesMap(new String[] { "AB(0).CD", "value1", "AB(1).CD", "value2", "AB(0).XX", "value1", "AB(1).XX", "value2" });
-        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("AB.XX", true), transitionPropertiesMap);
-        List<LinkTransitionProperties> transitionPropsList = linkToFieldAssociation.getTransitionProperties();
+        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("AB.XX", true, new String[]{"{AB.CD}"}), transitionPropertiesMap);
+        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getTransitionProperties();
         assertEquals(2, transitionPropsList.size());
-        for (LinkTransitionProperties linkTransitionProps : transitionPropsList) {
+        for (LinkProperties linkTransitionProps : transitionPropsList) {
             String fullyQualifiedTargetField = linkTransitionProps.getTargetFieldFullyQualifiedName();
             assertTrue(StringUtils.equals("AB(0).XX", fullyQualifiedTargetField) || StringUtils.equals("AB(1).XX", fullyQualifiedTargetField));
 
@@ -150,19 +157,41 @@ public class TestLinkToFieldAssociation {
             assertTrue(StringUtils.equals("value1", value) || StringUtils.equals("value2", value));
         }
     }
+    
+    @Test
+    public void testCollectionDynamicResourceMultipleParams() {
+        Map<String, Object> transitionPropertiesMap = createTransitionPropertiesMap(new String[] { "AB(0).CD", "value1", "AB(1).CD", "value2", "AB(0).XX", "value1", "AB(1).XX", "value2", "AB(0).MN", "value1", "AB(1).MN", "value2"});
+        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("AB.XX", true, new String[] {"{AB.CD}", "{nextId}", "{AB.MN}"}), transitionPropertiesMap);
+        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getTransitionProperties();
+        assertEquals(2, transitionPropsList.size());
+        for (LinkProperties linkTransitionProps : transitionPropsList) {
+            String fullyQualifiedTargetField = linkTransitionProps.getTargetFieldFullyQualifiedName();
+            assertTrue(StringUtils.equals("AB(0).XX", fullyQualifiedTargetField) || StringUtils.equals("AB(1).XX", fullyQualifiedTargetField));
 
-    private Transition createTransition(String targetField, boolean dynamicResource, String... inputValues) {
+            Map<String, Object> transitionMap = linkTransitionProps.getTransitionProperties();
+            assertTrue(transitionMap.containsKey("AB.CD") || transitionMap.containsKey("AB.MN"));
+            if(transitionMap.containsKey("AB.CD"))
+            {
+                assertTrue(StringUtils.equals("value1", (String) transitionMap.get("AB.CD")) || StringUtils.equals("value2", (String) transitionMap.get("AB.CD")));
+            }
+            else //TransitionMap has AB.MN
+            {
+                assertTrue(StringUtils.equals("value1", (String) transitionMap.get("AB.MN")) || StringUtils.equals("value2", (String) transitionMap.get("AB.MN")));
+            }
+        }
+    }
+
+    private Transition createTransition(String targetField, boolean dynamicResource, String[] resourceArgs, String... uriMapProperties) {
         ResourceState resourceState = null;
         if (dynamicResource) {
-            String[] resourceArgs = new String[] { "AB.CD" };
             resourceState = new DynamicResourceState("entityName", "name", "resourceLocatorName", resourceArgs);
         } else {
             resourceState = new CollectionResourceState("entityName", "name", new ArrayList<Action>(), "/customer()", null, null);
         }
 
         Map<String, String> uriParameters = new HashMap<String, String>();
-        for (int i = 0; i < inputValues.length; i += 2) {
-            uriParameters.put(inputValues[i], inputValues[i + 1]);
+        for (int i = 0; i < uriMapProperties.length; i += 2) {
+            uriParameters.put(uriMapProperties[i], uriMapProperties[i + 1]);
         }
 
         return new Transition.Builder().method("GET").target(resourceState).uriParameters(uriParameters).flags(Transition.FOR_EACH).sourceField(targetField).build();

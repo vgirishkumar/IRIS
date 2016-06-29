@@ -28,17 +28,15 @@ import java.util.Map;
 /**
  * This class holds the properties required to resolve link multivalue fields.
  */
-public class LinkTransitionProperties {
+public class LinkProperties {
 
     private String targetFieldFullyQualifiedName;
 
     private Map<String, Object> transitionProperties = new HashMap<String, Object>();
 
-    public LinkTransitionProperties(String targetFieldName, Map<String, Object> transitionProperties) {
+    public LinkProperties(String targetFieldName, Map<String, Object> transitionProperties) {
         this.targetFieldFullyQualifiedName = targetFieldName;
-        for (String key : transitionProperties.keySet()) {
-            this.transitionProperties.put(key, transitionProperties.get(key));
-        }
+        this.transitionProperties.putAll(transitionProperties);
     }
 
     /**

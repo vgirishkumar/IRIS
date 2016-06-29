@@ -40,7 +40,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.Response.Status.Family;
 
-import org.apache.commons.lang.StringUtils;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.slf4j.Logger;
@@ -1124,37 +1123,23 @@ public class ResourceStateMachine {
 			DynamicResourceState dynamicResourceState, InteractionContext ctx) {
 		List<Object> aliases = new ArrayList<Object>();
 		
-		final Pattern pattern = Pattern.compile("\\{*([a-zA-Z0-9]+)\\}*");
-		final Pattern collectionPattern = Pattern.compile("\\{*([a-zA-Z0-9.]+)\\}*");
+		final Pattern pattern = Pattern.compile("\\{*([a-zA-Z0-9.]+)\\}*");
 
-		String[] resourceLocatorArgs = dynamicResourceState.getResourceLocatorArgs();
-		for(int i=0; i<resourceLocatorArgs.length; i++)
-		{
-		    String resourceLocatorArg = resourceLocatorArgs[i];
-		    String key = "";
-		    if(i==0) { //for the 1st argument, i.e. the resource state
-		        Matcher matcher = collectionPattern.matcher(resourceLocatorArg);
-                matcher.find();
-                key = matcher.group(1);
-		    }
-		    
-		    if(StringUtils.isBlank(key)) {
-		        Matcher matcher = pattern.matcher(resourceLocatorArg);
-		        matcher.find();
-                key = matcher.group(1);
-		    }
-		    
-		    if (transitionProperties.containsKey(key)) {
+		for (String resourceLocatorArg : dynamicResourceState.getResourceLocatorArgs()) {
+            Matcher matcher = pattern.matcher(resourceLocatorArg);
+            matcher.find();
+            String key = matcher.group(1);
+
+            if (transitionProperties.containsKey(key)) {
                 aliases.add(transitionProperties.get(key));
-            }
-		    else if (ctx != null) {
+            } else if (ctx != null) {
                 Object value = ctx.getAttribute(key);
 
                 if (value != null) {
                     aliases.add(value);
                 }
             }
-		}
+        }
 		
 		return aliases;
 	}

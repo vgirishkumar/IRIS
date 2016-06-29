@@ -35,7 +35,7 @@ public interface LinkToFieldAssociation {
      * The size of the list determines the number of links to generate for each underlying transition.
      * @return
      */
-    List<LinkTransitionProperties> getTransitionProperties();
+    List<LinkProperties> getTransitionProperties();
     
     /**
      * Determine whether the transition is supported by the implementation.

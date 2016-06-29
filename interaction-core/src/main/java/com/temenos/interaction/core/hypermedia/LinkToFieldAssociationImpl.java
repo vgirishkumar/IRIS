@@ -32,6 +32,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 
 /**
@@ -70,8 +71,14 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
             logger.error("Cannot generate links for transition " + transition + ". Parent of target field name and dynamic resource must be same.");
             return false;
         }
+        
+        if(isCollectionDynamicResourceName && !allParametersHaveSameParent(((DynamicResourceState) transition.getTarget()).getResourceLocatorArgs()))
+        {
+            logger.error("Cannot generate links for transition " + transition + ". All multivalue fields in the parameter list of the dynamic resource must have the same parent.");
+            return false;
+        }
 
-        if (!transitionCollectionParams.isEmpty() && !allParametersHaveSameParent()) {
+        if (!transitionCollectionParams.isEmpty() && !allParametersHaveSameParent(transitionCollectionParams.toArray(new String[0]))) {
             logger.error("Cannot generate links for transition " + transition + ". All collection parameters must have the same parent.");
             return false;
         }
@@ -80,9 +87,9 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
     }
 
     @Override
-    public List<LinkTransitionProperties> getTransitionProperties() {
+    public List<LinkProperties> getTransitionProperties() {
 
-        List<LinkTransitionProperties> transitionPropertiesList = new ArrayList<LinkTransitionProperties>();
+        List<LinkProperties> transitionPropertiesList = new ArrayList<LinkProperties>();
 
         List<String> childParamNames = new ArrayList<String>();
         for (String collectionParam : transitionCollectionParams) {
@@ -102,72 +109,79 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
         return transitionPropertiesList;
     }
 
-    private void createLinkPropertiesForMultivalueTarget(List<LinkTransitionProperties> transitionPropertiesList, List<String> childParamNames) {
-        List<String> targetFields = extractMatchingFieldsFromTransitionProperties(targetFieldName, true);
+    private void createLinkPropertiesForMultivalueTarget(List<LinkProperties> transitionPropertiesList, List<String> childParamNames) {
+        List<String> targetFields = extractMatchingFieldsFromTransitionProperties(targetFieldName);
+        //For non-multivalue target
+        if(targetFields.isEmpty()) {            
+            targetFields.add(targetFieldName);
+        }
+        
         String parentTargetFieldName = getParentNameOfCollectionValue(targetFieldName);
 
         boolean hasSameParent = false;
+        int numOfChildren = 0;
+        String parentResolvedName = new String();        
         if (transitionCollectionParams.size() > 0) {
             String firstCollectionParam = transitionCollectionParams.get(0);
             hasSameParent = StringUtils.equals(getParentNameOfCollectionValue(firstCollectionParam), parentTargetFieldName);
+            if(!hasSameParent)
+            {
+                numOfChildren = getNumberOfMultivalueChildren();
+                parentResolvedName = getParentOfMultivalueChildren();
+            }
         }
-
-        StringBuilder numOfChildren = new StringBuilder();
-        StringBuilder childParentResolvedName = new StringBuilder();
-        initChildParamProperties(numOfChildren, childParentResolvedName, hasSameParent);
 
         for (String targetField : targetFields) // Generate one or more map of properties for each target field
         {
-            String resolvedDynamicResourceName = getDynamicResourceResolvedName(transition.getTarget(), targetField);
+            List<String> resolvedDynamicResourceFieldNames = getDynamicResourceResolvedFieldName(transition.getTarget(), targetField);
             if (transitionCollectionParams.isEmpty()) // If URI parameter map does have any multivalue param
             {
-                LinkTransitionProperties linkTransitionProps = createLinkTransitionProperties(targetField, resolvedDynamicResourceName, childParamNames, null);
-                transitionPropertiesList.add(linkTransitionProps);
+                LinkProperties linkProps = createLinkProperties(targetField, resolvedDynamicResourceFieldNames, childParamNames, null);
+                transitionPropertiesList.add(linkProps);
             } else if (hasSameParent) // If parent of multivalue param in URI map is same as parent of target
             {
                 String parentResolvedTargetFieldName = getParentNameOfCollectionValue(targetField);
-                LinkTransitionProperties linkTransitionProps = createLinkTransitionProperties(targetField, resolvedDynamicResourceName, childParamNames, parentResolvedTargetFieldName);
-                transitionPropertiesList.add(linkTransitionProps);
+                LinkProperties linkProps = createLinkProperties(targetField, resolvedDynamicResourceFieldNames, childParamNames, parentResolvedTargetFieldName);
+                transitionPropertiesList.add(linkProps);
             } else {
-                for (int i = 0; i <= Integer.parseInt(numOfChildren.toString()); i++) {
-                    String childParentResolvedParamNewIndex = childParentResolvedName.substring(0, childParentResolvedName.lastIndexOf("(") + 1) + i + ")";
-                    LinkTransitionProperties linkTransitionProps = createLinkTransitionProperties(targetField, resolvedDynamicResourceName, childParamNames, childParentResolvedParamNewIndex);
-                    transitionPropertiesList.add(linkTransitionProps);
+                for (int i = 0; i <= numOfChildren; i++) {
+                    String childParentResolvedParamNewIndex = parentResolvedName + "(" + i + ")";
+                    LinkProperties linkProps = createLinkProperties(targetField, resolvedDynamicResourceFieldNames, childParamNames, childParentResolvedParamNewIndex);
+                    transitionPropertiesList.add(linkProps);
                 }
             }
         }
     }
 
-    private void createLinkPropertiesForSingleTarget(List<LinkTransitionProperties> transitionPropertiesList, List<String> childParamNames) {
+    private void createLinkPropertiesForSingleTarget(List<LinkProperties> transitionPropertiesList, List<String> childParamNames) {
         if (transitionCollectionParams.isEmpty()) // If URI parameter map does have any multivalue param
         {
-            LinkTransitionProperties linkTransitionProps = new LinkTransitionProperties(targetFieldName, transitionProperties);
-            transitionPropertiesList.add(linkTransitionProps);
+            LinkProperties linkProps = new LinkProperties(targetFieldName, transitionProperties);
+            transitionPropertiesList.add(linkProps);
         } else {
-            StringBuilder numOfChildren = new StringBuilder();
-            StringBuilder childParentResolvedName = new StringBuilder();
-            initChildParamProperties(numOfChildren, childParentResolvedName, false);
+            int numOfChildren = getNumberOfMultivalueChildren();
+            String parentResolvedName = getParentOfMultivalueChildren();
 
-            for (int i = 0; i <= Integer.parseInt(numOfChildren.toString()); i++) {
-                String childParentResolvedParamNewIndex = childParentResolvedName.substring(0, childParentResolvedName.lastIndexOf("(") + 1) + i + ")";
-                LinkTransitionProperties linkTransitionProps = createLinkTransitionProperties(targetFieldName, null, childParamNames, childParentResolvedParamNewIndex);
-                transitionPropertiesList.add(linkTransitionProps);
+            for (int i = 0; i <= numOfChildren; i++) {
+                String childParentResolvedParamNewIndex = parentResolvedName + "(" + i + ")";
+                LinkProperties linkProps = createLinkProperties(targetFieldName, null, childParamNames, childParentResolvedParamNewIndex);
+                transitionPropertiesList.add(linkProps);
             }
         }
     }
 
-    private LinkTransitionProperties createLinkTransitionProperties(String targetField, String resolvedDynamicResourceName, List<String> childParamNames, String resolvedParentName) {
+    private LinkProperties createLinkProperties(String targetField, List<String> resolvedDynamicResourceFieldNames, List<String> childParamNames, String resolvedParentName) {
         List<String> paramPropertyKeys = new ArrayList<String>();
         if (StringUtils.isNotBlank(resolvedParentName)) {
             paramPropertyKeys = getListOfParamPropertyKeys(childParamNames, resolvedParentName);
         }
 
-        if (StringUtils.isNotBlank(resolvedDynamicResourceName)) {
-            paramPropertyKeys.add(resolvedDynamicResourceName);
+        if (!CollectionUtils.isEmpty(resolvedDynamicResourceFieldNames)) {
+            paramPropertyKeys.addAll(resolvedDynamicResourceFieldNames);
         }
-        LinkTransitionProperties linkTransitionProps = new LinkTransitionProperties(targetField, transitionProperties);
-        addEntriesToLinkProperties(linkTransitionProps, paramPropertyKeys);
-        return linkTransitionProps;
+        LinkProperties linkProps = new LinkProperties(targetField, transitionProperties);
+        addEntriesToLinkProperties(linkProps, paramPropertyKeys);
+        return linkProps;
     }
 
     private List<String> getListOfParamPropertyKeys(List<String> childParamNames, String fullyQualifiedParentName) {
@@ -180,38 +194,45 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
         return propertyKeys;
     }
 
-    private String getDynamicResourceResolvedName(ResourceState targetResourceState, String targetField) {
+    private List<String> getDynamicResourceResolvedFieldName(ResourceState targetResourceState, String targetField) {
+        List<String> resolvedFieldNames = new ArrayList<String>();
         if (isCollectionDynamicResourceName) {
             String targetFieldParentName = getParentNameOfCollectionValue(targetField);
             DynamicResourceState dynamicResourceState = (DynamicResourceState) targetResourceState;
-            String[] resourceLocatorArgs = dynamicResourceState.getResourceLocatorArgs();
-
-            String resolvedDynamicResourceName = targetFieldParentName + "." + getChildNameOfCollectionValue(resourceLocatorArgs[0]).replaceAll("\\}", "");
-            return resolvedDynamicResourceName;
-        }
-        return null;
-    }
-
-    private void initChildParamProperties(StringBuilder numberOfChildren, StringBuilder childResolvedParentName, boolean hasSameParent) {
-        if (transitionCollectionParams.size() > 0 && !hasSameParent) {
-            boolean setResolvedParentName = true;
-            int maxNumberOfchildren = 0;
-            for (String collectionParam : transitionCollectionParams) {
-                List<String> entityParamFields = extractMatchingFieldsFromTransitionProperties(collectionParam, false);
-                for (String entityParam : entityParamFields) {
-                    if (setResolvedParentName) {
-                        childResolvedParentName.append(getParentNameOfCollectionValue(entityParam));
-                        setResolvedParentName = false;
-                    }
-
-                    int index = Integer.parseInt(entityParam.substring(entityParam.lastIndexOf("(") + 1, entityParam.lastIndexOf(")")));
-                    if (index > maxNumberOfchildren) {
-                        maxNumberOfchildren = index;
-                    }
+            for(String fieldName : dynamicResourceState.getResourceLocatorArgs())
+            {
+                if(fieldName.contains("."))
+                {
+                    resolvedFieldNames.add(targetFieldParentName + "." + getChildNameOfCollectionValue(fieldName).replaceAll("\\}", "")); //Remove enclosed curly brace
                 }
             }
-            numberOfChildren.append(maxNumberOfchildren);
         }
+        return resolvedFieldNames;
+    }
+    
+    private int getNumberOfMultivalueChildren()
+    {
+        //Find the number of children using the index of the parent in transition properties
+        //i.e. if we have A(0).B and A(1).B in the properties map, return 1
+        int numChildren = 0;
+        for (String collectionParam : transitionCollectionParams) {
+            List<String> entityParamFields = extractMatchingFieldsFromTransitionProperties(collectionParam);
+            for (String entityParam : entityParamFields) {
+                int index = Integer.parseInt(entityParam.substring(entityParam.lastIndexOf("(") + 1, entityParam.lastIndexOf(")")));
+                if (index > numChildren) {
+                    numChildren = index;
+                }
+            }
+        }
+        return numChildren;
+    }
+    
+    private String getParentOfMultivalueChildren()
+    {
+        String collectionParam = transitionCollectionParams.get(0);
+        List<String> matchingFields = extractMatchingFieldsFromTransitionProperties(collectionParam);
+        String parent = getParentNameOfCollectionValue(matchingFields.get(0));
+        return parent.substring(0, parent.lastIndexOf("("));        
     }
 
     private List<String> getCollectionParams(Map<String, String> transitionUriMap) {
@@ -244,13 +265,13 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
     private String getParentNameOfDynamicResource() {
         String[] resourceLocatorArgs = ((DynamicResourceState) transition.getTarget()).getResourceLocatorArgs();
         String parent = getParentNameOfCollectionValue(resourceLocatorArgs[0]);
-        if (parent != null) {
-            parent = parent.replaceAll("\\{", "").replaceAll("\\([0-9]+\\)", "");
+        if (parent != null && parent.length()>1) {
+            parent = parent.substring(1); //Remove starting curly brace {
         }
         return parent;
     }
 
-    private List<String> extractMatchingFieldsFromTransitionProperties(String fieldName, boolean forTargetField) {
+    private List<String> extractMatchingFieldsFromTransitionProperties(String fieldName) {
         List<String> matchingFieldList = new ArrayList<String>();
         for (String key : normalisedTransitionProperties.keySet()) {
             if (StringUtils.equals(fieldName, key.replaceAll(PARAM_REPLACEMENT_REGEX, ""))) {
@@ -258,10 +279,6 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
             }
         }
 
-        // For non multivalue field
-        if (forTargetField && matchingFieldList.isEmpty()) {
-            matchingFieldList.add(fieldName);
-        }
         return matchingFieldList;
     }
 
@@ -279,11 +296,11 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
         return null;
     }
 
-    private boolean allParametersHaveSameParent() {
+    private boolean allParametersHaveSameParent(String... parameters) {
         boolean haveSameParent = true;
         List<String> parents = new ArrayList<String>();
-        for (String transitionParam : transitionCollectionParams) {
-            String parent = getParentNameOfCollectionValue(transitionParam);
+        for (String param : parameters) {
+            String parent = getParentNameOfCollectionValue(param);
             if (parent == null) {
                 continue;
             } else if (parents.isEmpty()) {
@@ -298,8 +315,8 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
         return haveSameParent;
     }
 
-    private void addEntriesToLinkProperties(LinkTransitionProperties linkTransitionProps, List<String> keys) {
-        Map<String, Object> linkPropertiesMap = linkTransitionProps.getTransitionProperties();
+    private void addEntriesToLinkProperties(LinkProperties linkProps, List<String> keys) {
+        Map<String, Object> linkPropertiesMap = linkProps.getTransitionProperties();
         Set<String> unindexedKeys = new HashSet<String>();
         for (String key : keys) {
             Object value = this.normalisedTransitionProperties.get(key);
