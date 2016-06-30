@@ -73,7 +73,7 @@ public class ResourceTypeHelper {
 						if(actualTypeArgs.length == 1) {
 							Type actualType = actualTypeArgs[0];
 							if(actualType instanceof TypeVariable) {
-								return ((TypeVariable<?>) actualType).getName().equals(expectedTypeParameter.getSimpleName());
+								return getTypeVariableName(actualType).equals(getTypeVariableName(expectedTypeParameter));
 							}
 							else {
 								return actualType.equals(expectedTypeParameter);
@@ -84,12 +84,24 @@ public class ResourceTypeHelper {
 			}
 			else if (genericType instanceof TypeVariable) {
 				TypeVariable<?> typeVariable = (TypeVariable<?>) genericType;
-				return typeVariable.getName().equals(expectedTypeParameter.getSimpleName());
+				return getTypeVariableName(typeVariable).equals(getTypeVariableName(expectedTypeParameter));
 			}
 			else if(type.equals(expectedType) && genericType.equals(expectedTypeParameter)) {
 				return true;
 			}
 		}
 		return false;
+	}
+	
+	public static String getTypeVariableName(Object typeObject) {
+	    if(null != typeObject && typeObject instanceof TypeVariable<?>) {
+	        TypeVariable<?> typeVariable = (TypeVariable<?>) typeObject;
+	        return typeVariable.getName();
+	    } else if(null != typeObject && typeObject instanceof Class<?>) {
+	        Class<?> typeVariable = (Class<?>) typeObject;
+            return typeVariable.getSimpleName();
+        } else {
+	        return null;
+	    }
 	}
 }
