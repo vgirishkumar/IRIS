@@ -87,7 +87,7 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
     }
 
     @Override
-    public List<LinkProperties> getTransitionProperties() {
+    public List<LinkProperties> getProperties() {
 
         List<LinkProperties> transitionPropertiesList = new ArrayList<LinkProperties>();
 

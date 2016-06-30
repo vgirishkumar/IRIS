@@ -75,7 +75,7 @@ public class TestLinkToFieldAssociation {
     @Test
     public void testSingleTargetFieldNoCollectionParam() {
         LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("targetFieldName", false, null), new HashMap<String, Object>());
-        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getTransitionProperties();
+        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getProperties();
         assertEquals(1, transitionPropsList.size());
     }
 
@@ -83,7 +83,7 @@ public class TestLinkToFieldAssociation {
     public void testSingleTargetFieldWithCollectionParam() {
         Map<String, Object> transitionPropertiesMap = createTransitionPropertiesMap(new String[] { "AB(0).CD", "value1", "AB(1).CD", "value2" });
         LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("targetFieldName", false, null, new String[] { "filter", "id={AB.CD}" }), transitionPropertiesMap);
-        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getTransitionProperties();
+        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getProperties();
         assertEquals(2, transitionPropsList.size());
         for (LinkProperties linkTransitionProps : transitionPropsList) {
             assertEquals("targetFieldName", linkTransitionProps.getTargetFieldFullyQualifiedName());
@@ -99,7 +99,7 @@ public class TestLinkToFieldAssociation {
     public void testCollectionTargetFieldNoCollectionParameter() {
         Map<String, Object> transitionPropertiesMap = createTransitionPropertiesMap(new String[] { "AB(0).CD", "value1", "AB(1).CD", "value2" });
         LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("AB.CD", false, null), transitionPropertiesMap);
-        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getTransitionProperties();
+        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getProperties();
         assertEquals(2, transitionPropsList.size());
         for (LinkProperties linkTransitionProps : transitionPropsList) {
             String fullyQualifiedTargetField = linkTransitionProps.getTargetFieldFullyQualifiedName();
@@ -111,7 +111,7 @@ public class TestLinkToFieldAssociation {
     public void testCollectionTargetFieldCollectionParameterSameParent() {
         Map<String, Object> transitionPropertiesMap = createTransitionPropertiesMap(new String[] { "AB(0).CD", "value1", "AB(1).CD", "value2", "AB(0).XX", "value1", "AB(1).XX", "value2" });
         LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("AB.CD", false, null, new String[] { "filter", "id={AB.XX}" }), transitionPropertiesMap);
-        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getTransitionProperties();
+        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getProperties();
         assertEquals(2, transitionPropsList.size());
         for (LinkProperties linkTransitionProps : transitionPropsList) {
             String fullyQualifiedTargetField = linkTransitionProps.getTargetFieldFullyQualifiedName();
@@ -128,7 +128,7 @@ public class TestLinkToFieldAssociation {
     public void testCollectionTargetFieldCollectionParameterDifferentParent() {
         Map<String, Object> transitionPropertiesMap = createTransitionPropertiesMap(new String[] { "AB(0).CD", "value1", "AB(1).CD", "value2", "ZZ(0).XX", "value1", "ZZ(1).XX", "value2" });
         LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("AB.CD", false, null, new String[] { "filter", "id={ZZ.XX}" }), transitionPropertiesMap);
-        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getTransitionProperties();
+        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getProperties();
         assertEquals(4, transitionPropsList.size());
         for (LinkProperties linkTransitionProps : transitionPropsList) {
             String fullyQualifiedTargetField = linkTransitionProps.getTargetFieldFullyQualifiedName();
@@ -145,7 +145,7 @@ public class TestLinkToFieldAssociation {
     public void testCollectionDynamicResource() {
         Map<String, Object> transitionPropertiesMap = createTransitionPropertiesMap(new String[] { "AB(0).CD", "value1", "AB(1).CD", "value2", "AB(0).XX", "value1", "AB(1).XX", "value2" });
         LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("AB.XX", true, new String[]{"{AB.CD}"}), transitionPropertiesMap);
-        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getTransitionProperties();
+        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getProperties();
         assertEquals(2, transitionPropsList.size());
         for (LinkProperties linkTransitionProps : transitionPropsList) {
             String fullyQualifiedTargetField = linkTransitionProps.getTargetFieldFullyQualifiedName();
@@ -162,7 +162,7 @@ public class TestLinkToFieldAssociation {
     public void testCollectionDynamicResourceMultipleParams() {
         Map<String, Object> transitionPropertiesMap = createTransitionPropertiesMap(new String[] { "AB(0).CD", "value1", "AB(1).CD", "value2", "AB(0).XX", "value1", "AB(1).XX", "value2", "AB(0).MN", "value1", "AB(1).MN", "value2"});
         LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("AB.XX", true, new String[] {"{AB.CD}", "{nextId}", "{AB.MN}"}), transitionPropertiesMap);
-        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getTransitionProperties();
+        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getProperties();
         assertEquals(2, transitionPropsList.size());
         for (LinkProperties linkTransitionProps : transitionPropsList) {
             String fullyQualifiedTargetField = linkTransitionProps.getTargetFieldFullyQualifiedName();

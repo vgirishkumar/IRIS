@@ -71,7 +71,7 @@ public class LinkGeneratorImpl implements LinkGenerator {
 
         LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(transition, transitionProperties);
         if (linkToFieldAssociation.isTransitionSupported()) {
-            List<LinkProperties> linkPropertiesList = linkToFieldAssociation.getTransitionProperties();
+            List<LinkProperties> linkPropertiesList = linkToFieldAssociation.getProperties();
             for (LinkProperties linkProperties : linkPropertiesList) {
                 eLinks.add(createLink(linkProperties, queryParameters, entity));
             }
