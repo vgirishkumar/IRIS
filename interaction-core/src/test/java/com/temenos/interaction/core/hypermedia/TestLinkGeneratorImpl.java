@@ -22,6 +22,7 @@ package com.temenos.interaction.core.hypermedia;
  */
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -73,8 +74,8 @@ public class TestLinkGeneratorImpl {
         Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mockTarget("/test")).build();
         LinkGenerator linkGenerator = new LinkGeneratorImpl(engine, t, null);
         Collection<Link> links = linkGenerator.createLink(null, null, null);
-        Link result = (!links.isEmpty()) ? links.iterator().next() : null;
-        assertEquals("/baseuri/test", result.getHref());
+        assertFalse(links.isEmpty());
+        assertEquals("/baseuri/test", links.iterator().next().getHref());
     }
 
     @Test
@@ -84,8 +85,8 @@ public class TestLinkGeneratorImpl {
         Object entity = new TestNote("123");
         LinkGenerator linkGenerator = new LinkGeneratorImpl(engine, t, null);
         Collection<Link> links = linkGenerator.createLink(null, null, entity);
-        Link result = (!links.isEmpty()) ? links.iterator().next() : null;
-        assertEquals("/baseuri/test/123", result.getHref());
+        assertFalse(links.isEmpty());
+        assertEquals("/baseuri/test/123", links.iterator().next().getHref());
     }
 
     @Test
@@ -98,8 +99,8 @@ public class TestLinkGeneratorImpl {
         Object entity = new TestNote("123");
         LinkGenerator linkGenerator = new LinkGeneratorImpl(engine, t, null);
         Collection<Link> links = linkGenerator.createLink(null, null, entity);
-        Link result = (!links.isEmpty()) ? links.iterator().next() : null;
-        assertEquals("/baseuri/test?test=123", result.getHref());
+        assertFalse(links.isEmpty());
+        assertEquals("/baseuri/test?test=123", links.iterator().next().getHref());
     }
 
     @Test
@@ -112,8 +113,8 @@ public class TestLinkGeneratorImpl {
         queryParameters.add("noteId", "123");
         LinkGenerator linkGenerator = new LinkGeneratorImpl(engine, t, null);
         Collection<Link> links = linkGenerator.createLink(null, queryParameters, null);
-        Link result = (!links.isEmpty()) ? links.iterator().next() : null;
-        assertEquals("/baseuri/test?test=123", result.getHref());
+        assertFalse(links.isEmpty());
+        assertEquals("/baseuri/test?test=123", links.iterator().next().getHref());
     }
 
     @Test
@@ -126,8 +127,8 @@ public class TestLinkGeneratorImpl {
         queryParameters.add("$filter", "123");
         LinkGenerator linkGenerator = new LinkGeneratorImpl(engine, t, null);
         Collection<Link> links = linkGenerator.createLink(null, queryParameters, null);
-        Link result = (!links.isEmpty()) ? links.iterator().next() : null;
-        assertEquals("/baseuri/test?filter=123", result.getHref());
+        assertFalse(links.isEmpty());
+        assertEquals("/baseuri/test?filter=123", links.iterator().next().getHref());
     }
 
     @Test
@@ -138,8 +139,8 @@ public class TestLinkGeneratorImpl {
         queryParameters.add("$filter", "123");
         LinkGenerator linkGenerator = new LinkGeneratorImpl(engine, t, null).setAllQueryParameters(true);
         Collection<Link> links = linkGenerator.createLink(new MultivaluedMapImpl<String>(), queryParameters, null);
-        Link result = (!links.isEmpty()) ? links.iterator().next() : null;
-        assertEquals("/baseuri/test?$filter=123", result.getHref());
+        assertFalse(links.isEmpty());
+        assertEquals("/baseuri/test?$filter=123", links.iterator().next().getHref());
     }
 
     @Test
@@ -162,7 +163,8 @@ public class TestLinkGeneratorImpl {
 
         LinkGenerator linkGenerator = new LinkGeneratorImpl(engineMock, t, null).setAllQueryParameters(true);
         Collection<Link> links = linkGenerator.createLink(new MultivaluedMapImpl<String>(), queryParameters, null);
-        Link result = (!links.isEmpty()) ? links.iterator().next() : null;
+        assertFalse(links.isEmpty());
+        Link result = links.iterator().next();        
         assertEquals("/baseuri/testDynamic?filter=123&filter2=564", result.getHref());
         assertEquals("resolvedTargetEntityName", result.getTransition().getTarget().getEntityName());
         assertEquals("resolvedTargetName", result.getTransition().getTarget().getName());

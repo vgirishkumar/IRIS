@@ -87,22 +87,20 @@ public class LinkGeneratorImpl implements LinkGenerator {
         assert (RequestContext.getRequestContext() != null);
         ResourceStateProvider resourceStateProvider = resourceStateMachine.getResourceStateProvider();
         try {
-            ResourceState targetState = transition.getTarget();
+            ResourceState targetState = transition.getTarget();            
 
+            if (targetState instanceof LazyResourceState || targetState instanceof LazyCollectionResourceState) {
+                targetState = resourceStateProvider.getResourceState(targetState.getName());
+            }
+            
             if (targetState == null) {
                 // a dead link, target could not be found
                 logger.error("Dead link to [" + transition.getId() + "]");
                 return null;
             }
 
-            if (targetState instanceof LazyResourceState || targetState instanceof LazyCollectionResourceState) {
-                targetState = resourceStateProvider.getResourceState(targetState.getName());
-            }
-
-            if (targetState != null) {
-                processEmbeddedTransitions(targetState, resourceStateProvider);
-                setErrorState(targetState, resourceStateProvider);
-            }
+            processEmbeddedTransitions(targetState, resourceStateProvider);
+            setErrorState(targetState, resourceStateProvider);
 
             UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath());
 
