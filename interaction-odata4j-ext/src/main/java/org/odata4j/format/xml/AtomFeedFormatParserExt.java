@@ -30,6 +30,7 @@ import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.xml.stream.XMLInputFactory;
 
+import org.apache.commons.lang.StringUtils;
 import org.core4j.Enumerable;
 import org.core4j.Func1;
 import org.odata4j.core.OCollection;
@@ -388,7 +389,7 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 		    List<OLink> rt = new ArrayList<OLink>(links.size());
 		    for (final AtomLink link : links) {
 
-		      if (link.relation.startsWith(XmlFormatWriter.related)) {
+		      if (!StringUtils.isEmpty(link.relation)) {
 		        if (link.type.equals(XmlFormatWriter.atom_feed_content_type)) {
 
 		          if (link.inlineContentExpected) {
