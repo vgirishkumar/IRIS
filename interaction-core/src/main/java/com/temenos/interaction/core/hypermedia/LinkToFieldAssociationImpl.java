@@ -91,6 +91,7 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
 
         List<LinkProperties> transitionPropertiesList = new ArrayList<LinkProperties>();
 
+        //Get list of child names, i.e. For AB.CD and AA.ZZ add CD, ZZ to list
         List<String> childParamNames = new ArrayList<String>();
         for (String collectionParam : transitionCollectionParams) {
             childParamNames.add(getChildNameOfCollectionValue(collectionParam));
@@ -111,7 +112,7 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
 
     private void createLinkPropertiesForMultivalueTarget(List<LinkProperties> transitionPropertiesList, List<String> childParamNames) {
         List<String> targetFields = extractMatchingFieldsFromTransitionProperties(targetFieldName);
-        //For non-multivalue target
+        //If properties does not contain the target, add unresolved target
         if(targetFields.isEmpty()) {            
             targetFields.add(targetFieldName);
         }
@@ -123,6 +124,7 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
         String parentResolvedName = new String();        
         if (transitionCollectionParams.size() > 0) {
             String firstCollectionParam = transitionCollectionParams.get(0);
+            //Determine if parent of target field and parent of parameters are same 
             hasSameParent = StringUtils.equals(getParentNameOfCollectionValue(firstCollectionParam), parentTargetFieldName);
             if(!hasSameParent)
             {
@@ -134,16 +136,17 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
         for (String targetField : targetFields) // Generate one or more map of properties for each target field
         {
             List<String> resolvedDynamicResourceFieldNames = getDynamicResourceResolvedFieldName(transition.getTarget(), targetField);
-            if (transitionCollectionParams.isEmpty()) // If URI parameter map does have any multivalue param
+            if (transitionCollectionParams.isEmpty()) // Create one link properties map per target
             {
                 LinkProperties linkProps = createLinkProperties(targetField, resolvedDynamicResourceFieldNames, childParamNames, null);
                 transitionPropertiesList.add(linkProps);
-            } else if (hasSameParent) // If parent of multivalue param in URI map is same as parent of target
+            } else if (hasSameParent) // Create one link properties map per target
             {
                 String parentResolvedTargetFieldName = getParentNameOfCollectionValue(targetField);
                 LinkProperties linkProps = createLinkProperties(targetField, resolvedDynamicResourceFieldNames, childParamNames, parentResolvedTargetFieldName);
                 transitionPropertiesList.add(linkProps);
-            } else {
+            } else { 
+                // Create multiple properties maps per target. Depends on the number of children in the entity in transition properties
                 for (int i = 0; i <= numOfChildren; i++) {
                     String childParentResolvedParamNewIndex = parentResolvedName + "(" + i + ")";
                     LinkProperties linkProps = createLinkProperties(targetField, resolvedDynamicResourceFieldNames, childParamNames, childParentResolvedParamNewIndex);
@@ -154,7 +157,7 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
     }
 
     private void createLinkPropertiesForSingleTarget(List<LinkProperties> transitionPropertiesList, List<String> childParamNames) {
-        if (transitionCollectionParams.isEmpty()) // If URI parameter map does have any multivalue param
+        if (transitionCollectionParams.isEmpty()) // Create one link properties map per target
         {
             LinkProperties linkProps = new LinkProperties(targetFieldName, transitionProperties);
             transitionPropertiesList.add(linkProps);
@@ -162,6 +165,7 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
             int numOfChildren = getNumberOfMultivalueChildren();
             String parentResolvedName = getParentOfMultivalueChildren();
 
+            // Create multiple properties maps per target. Depends on the number of children in the entity in transition properties
             for (int i = 0; i <= numOfChildren; i++) {
                 String childParentResolvedParamNewIndex = parentResolvedName + "(" + i + ")";
                 LinkProperties linkProps = createLinkProperties(targetFieldName, null, childParamNames, childParentResolvedParamNewIndex);
@@ -210,8 +214,7 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
         return resolvedFieldNames;
     }
     
-    private int getNumberOfMultivalueChildren()
-    {
+    private int getNumberOfMultivalueChildren() {
         //Find the number of children using the index of the parent in transition properties
         //i.e. if we have A(0).B and A(1).B in the properties map, return 1
         int numChildren = 0;
@@ -227,8 +230,7 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
         return numChildren;
     }
     
-    private String getParentOfMultivalueChildren()
-    {
+    private String getParentOfMultivalueChildren() {
         String collectionParam = transitionCollectionParams.get(0);
         List<String> matchingFields = extractMatchingFieldsFromTransitionProperties(collectionParam);
         String parent = getParentNameOfCollectionValue(matchingFields.get(0));
@@ -257,7 +259,6 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
             if (resourceLocatorArgs != null && resourceLocatorArgs.length > 0 && resourceLocatorArgs[0].contains(".")) {
                 return true;
             }
-            return false;
         }
         return false;
     }
@@ -302,10 +303,9 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
         for (String param : parameters) {
             String parent = getParentNameOfCollectionValue(param);
             if (parent == null) {
-                continue;
+                //Do nothing. Dealing with non multivalue field
             } else if (parents.isEmpty()) {
                 parents.add(parent);
-                continue;
             } else if (!parents.contains(parent)) {
                 haveSameParent = false;
                 break;

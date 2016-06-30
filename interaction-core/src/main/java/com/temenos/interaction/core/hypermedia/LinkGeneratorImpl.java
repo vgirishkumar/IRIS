@@ -70,8 +70,11 @@ public class LinkGeneratorImpl implements LinkGenerator {
         Map<String, Object> transitionProperties = resourceStateMachine.getTransitionProperties(transition, entity, pathParameters, queryParameters);
 
         LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(transition, transitionProperties);
+        //Determine if links can be generated for the transition
         if (linkToFieldAssociation.isTransitionSupported()) {
             List<LinkProperties> linkPropertiesList = linkToFieldAssociation.getProperties();
+            
+            //Generate one link for each item in linkPropertiesList and resolve fields using linkProperties
             for (LinkProperties linkProperties : linkPropertiesList) {
                 eLinks.add(createLink(linkProperties, queryParameters, entity));
             }
