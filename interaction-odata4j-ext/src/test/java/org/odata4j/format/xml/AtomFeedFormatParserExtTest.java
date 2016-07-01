@@ -146,6 +146,8 @@ public class AtomFeedFormatParserExtTest {
 		assertNotNull(entry);
 		OEntity entity = entry.getEntity();
 		assertNotNull(entity);
+		assertNotNull(entity.getLinks());
+		assertTrue(!entity.getLinks().isEmpty());
 
 		// We can add more asserts here to verify each OProperty
 
