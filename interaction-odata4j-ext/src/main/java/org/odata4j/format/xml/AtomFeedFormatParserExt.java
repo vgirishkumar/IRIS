@@ -389,7 +389,7 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 		    List<OLink> rt = new ArrayList<OLink>(links.size());
 		    for (final AtomLink link : links) {
 
-		      if (!StringUtils.isEmpty(link.relation)) {
+		      if (!StringUtils.isEmpty(link.relation) && !StringUtils.isEmpty(link.type)) {
 		        if (link.type.equals(XmlFormatWriter.atom_feed_content_type)) {
 
 		          if (link.inlineContentExpected) {
