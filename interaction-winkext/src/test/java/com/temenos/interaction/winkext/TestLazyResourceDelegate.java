@@ -22,6 +22,8 @@ package com.temenos.interaction.winkext;
  */
 
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -29,6 +31,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -36,6 +39,7 @@ import java.util.Set;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.wink.common.model.multipart.InMultiPart;
@@ -118,6 +122,108 @@ public class TestLazyResourceDelegate {
         verify(resourceStateProvider, Mockito.times(2)).getResourceState("resource");        
     }
     
+    /*
+     * LazyResourceDelegate assumes that a (resource,method) pair is not registered in the ResourceStateMachine
+     * when the ResourceStateProvider finds the resource but the requested method is not registered with it.
+     */
+    @Test
+    public void testGetWithUnregisteredResource() throws MethodNotAllowedException {
+        ResourceStateProvider resourceStateProvider = mock(ResourceStateProvider.class);
+        
+        ResourceState myResourceState = mock(ResourceState.class);
+        when(myResourceState.getName()).thenReturn("resource");
+        when(myResourceState.getPath()).thenReturn("/myResource");
+        when(resourceStateProvider.isLoaded("resource")).thenReturn(true);
+        when(resourceStateProvider.getResourceState("resource")).thenReturn(myResourceState);
+        when(resourceStateProvider.getResourceState(eq("GET"), eq("/myResource"))).thenReturn(myResourceState);
+        when(resourceStateProvider.getResourceStateId(eq("GET"), anyString())).thenReturn("resource");
+
+        ResourceStateMachine resourceStateMachine = mock(ResourceStateMachine.class);
+        
+        Set<String> myResourceMethods = new HashSet<String>();
+        myResourceMethods.add("GET");
+        Map<String, Set<String>> interactionsByPath = mock(HashMap.class);
+        when(interactionsByPath.get(eq("/myResource"))).thenReturn(myResourceMethods);
+        when(resourceStateMachine.getInteractionByPath()).thenReturn(interactionsByPath);
+
+        LazyResourceDelegate lazyResourceDelegate = new LazyResourceDelegate(resourceStateMachine,
+                resourceStateProvider, mock(CommandController.class), mock(Metadata.class), "test", "/", mock(HashSet.class));  
+        
+        HttpHeaders headers = mock(HttpHeaders.class);
+        String id = "123";
+        UriInfo uriInfo = mock(UriInfo.class);
+        
+        lazyResourceDelegate.get(headers, id, uriInfo);
+        
+        verify(resourceStateMachine).register(myResourceState, "GET");
+    }
+    
+    @Test
+    public void testGetWhenResourceNotFound() throws MethodNotAllowedException {
+        ResourceStateProvider resourceStateProvider = mock(ResourceStateProvider.class);
+
+        ResourceState myResourceState = mock(ResourceState.class);
+        when(myResourceState.getName()).thenReturn("resource");
+        when(myResourceState.getPath()).thenReturn("/myResource");
+        when(resourceStateProvider.getResourceStateId(eq("GET"), anyString())).thenReturn(null);
+
+        ResourceStateMachine resourceStateMachine = mock(ResourceStateMachine.class);
+        
+        Set<String> myResourceMethods = new HashSet<String>();
+        myResourceMethods.add("GET");
+        Map<String, Set<String>> interactionsByPath = mock(HashMap.class);
+        when(interactionsByPath.get(eq("/myResource"))).thenReturn(myResourceMethods);
+        when(resourceStateMachine.getInteractionByPath()).thenReturn(interactionsByPath);
+
+        LazyResourceDelegate lazyResourceDelegate = new LazyResourceDelegate(resourceStateMachine,
+                resourceStateProvider, mock(CommandController.class), mock(Metadata.class), "test", "/",
+                mock(HashSet.class));
+
+        HttpHeaders headers = mock(HttpHeaders.class);
+        String id = "123";
+        UriInfo uriInfo = mock(UriInfo.class);
+
+        Response status = lazyResourceDelegate.get(headers, id, uriInfo);
+
+        assertEquals(status.getStatus(), 404);
+    }
+    
+    @Test
+    public void testGetWithMethodNotAllowed() throws MethodNotAllowedException {
+        ResourceStateProvider resourceStateProvider = mock(ResourceStateProvider.class);
+        
+        ResourceState myResourceState = mock(ResourceState.class);
+        when(myResourceState.getName()).thenReturn("resource");
+        when(myResourceState.getPath()).thenReturn("/myResource");
+        when(resourceStateProvider.isLoaded("resource")).thenReturn(true);
+        when(resourceStateProvider.getResourceState("resource")).thenReturn(myResourceState);
+        when(resourceStateProvider.getResourceState(eq("GET"), eq("/myResource"))).thenReturn(myResourceState);
+
+        ResourceStateMachine resourceStateMachine = mock(ResourceStateMachine.class);
+
+        Set<String> allowedMethods = new HashSet<String>();
+        allowedMethods.add("POST");
+        when(resourceStateProvider.getResourceStateId(eq("GET"), anyString())).thenThrow(new MethodNotAllowedException(allowedMethods));
+        
+        Set<String> myResourceMethods = new HashSet<String>();
+        myResourceMethods.add("GET");
+        
+        Map<String, Set<String>> interactionsByPath = mock(HashMap.class);
+        when(interactionsByPath.get(eq("/myResource"))).thenReturn(myResourceMethods);
+        when(resourceStateMachine.getInteractionByPath()).thenReturn(interactionsByPath);
+        
+        LazyResourceDelegate lazyResourceDelegate = new LazyResourceDelegate(resourceStateMachine,
+                resourceStateProvider, mock(CommandController.class), mock(Metadata.class), "test", "/", mock(HashSet.class));  
+        
+        HttpHeaders headers = mock(HttpHeaders.class);
+        String id = "123";
+        UriInfo uriInfo = mock(UriInfo.class);
+        
+        Response status = lazyResourceDelegate.get(headers, id, uriInfo);
+        
+        assertEquals(status.getStatus(), 405);
+    }
+    
 	@Test
 	public void testRegularPost() throws MethodNotAllowedException {				
 		ResourceStateProvider resourceStateProvider = mock(ResourceStateProvider.class);
@@ -157,6 +263,74 @@ public class TestLazyResourceDelegate {
 		verify(resourceStateProvider).getResourceStateId("POST", "/myResource");		
 	    verify(resourceStateProvider).getResourceState("resource");
 	}
+
+    @Test
+    public void testPostWhenResourceNotFound() throws MethodNotAllowedException {
+        ResourceStateProvider resourceStateProvider = mock(ResourceStateProvider.class);
+
+        ResourceState myResourceState = mock(ResourceState.class);
+        when(myResourceState.getName()).thenReturn("resource");
+        when(myResourceState.getPath()).thenReturn("/myResource");
+        when(resourceStateProvider.getResourceStateId(eq("GET"), anyString())).thenReturn(null);
+
+        ResourceStateMachine resourceStateMachine = mock(ResourceStateMachine.class);
+        
+        Set<String> myResourceMethods = new HashSet<String>();
+        myResourceMethods.add("GET");
+        Map<String, Set<String>> interactionsByPath = mock(HashMap.class);
+        when(interactionsByPath.get(eq("/myResource"))).thenReturn(myResourceMethods);
+        when(resourceStateMachine.getInteractionByPath()).thenReturn(interactionsByPath);
+
+        LazyResourceDelegate lazyResourceDelegate = new LazyResourceDelegate(resourceStateMachine,
+                resourceStateProvider, mock(CommandController.class), mock(Metadata.class), "test", "/",
+                mock(HashSet.class));
+
+        HttpHeaders headers = mock(HttpHeaders.class);
+        String id = "123";
+        UriInfo uriInfo = mock(UriInfo.class);
+        EntityResource resource = mock(EntityResource.class);
+
+        Response status = lazyResourceDelegate.post(headers, id, uriInfo, resource);
+
+        assertEquals(status.getStatus(), 404);
+    }
+    
+    @Test
+    public void testPostWithMethodNotAllowed() throws MethodNotAllowedException {
+        ResourceStateProvider resourceStateProvider = mock(ResourceStateProvider.class);
+        
+        ResourceState myResourceState = mock(ResourceState.class);
+        when(myResourceState.getName()).thenReturn("resource");
+        when(myResourceState.getPath()).thenReturn("/myResource");
+        when(resourceStateProvider.isLoaded("resource")).thenReturn(true);
+        when(resourceStateProvider.getResourceState("resource")).thenReturn(myResourceState);
+        when(resourceStateProvider.getResourceState(eq("POST"), eq("/myResource"))).thenReturn(myResourceState);
+
+        ResourceStateMachine resourceStateMachine = mock(ResourceStateMachine.class);
+
+        Set<String> allowedMethods = new HashSet<String>();
+        allowedMethods.add("GET");
+        when(resourceStateProvider.getResourceStateId(eq("POST"), anyString())).thenThrow(new MethodNotAllowedException(allowedMethods));
+        
+        Set<String> myResourceMethods = new HashSet<String>();
+        myResourceMethods.add("GET");
+        
+        Map<String, Set<String>> interactionsByPath = mock(HashMap.class);
+        when(interactionsByPath.get(eq("/myResource"))).thenReturn(myResourceMethods);
+        when(resourceStateMachine.getInteractionByPath()).thenReturn(interactionsByPath);
+        
+        LazyResourceDelegate lazyResourceDelegate = new LazyResourceDelegate(resourceStateMachine,
+                resourceStateProvider, mock(CommandController.class), mock(Metadata.class), "test", "/", mock(HashSet.class));  
+        
+        HttpHeaders headers = mock(HttpHeaders.class);
+        String id = "123";
+        UriInfo uriInfo = mock(UriInfo.class);
+        EntityResource resource = mock(EntityResource.class);
+        
+        Response status = lazyResourceDelegate.post(headers, id, uriInfo, resource);
+        
+        assertEquals(status.getStatus(), 405);
+    }
 
 	@Test
 	public void testMultiPartPost() throws MethodNotAllowedException {				
@@ -361,5 +535,56 @@ public class TestLazyResourceDelegate {
         
         verify(resourceStateProvider).getResourceStateId("PUT", "/myResource");                  
         verify(resourceStateProvider).getResourceState("resource");
+	}
+	
+	@Test
+	public void testAddResource() throws MethodNotAllowedException, IOException {
+        ResourceStateProvider resourceStateProvider = mock(ResourceStateProvider.class);
+        
+        ResourceStateMachine resourceStateMachine = mock(ResourceStateMachine.class);
+        
+        Set<String> myResourceMethods = new HashSet<String>();
+        myResourceMethods.add("GET");
+
+        LazyResourceDelegate lazyResourceDelegate = new LazyResourceDelegate(resourceStateMachine,
+                resourceStateProvider, mock(CommandController.class), mock(Metadata.class), "test", "/", myResourceMethods);  
+        
+        String strMapBefore = lazyResourceDelegate.getBeanName();
+        Map<String, Set<String>> parsedMethodsBefore = parseStringMap(strMapBefore);
+        
+        for(String method : myResourceMethods) {
+            assertTrue(parsedMethodsBefore.get("test").contains(method));
+        }
+
+        Set<String> newMethods = new HashSet<String>();
+        newMethods.add("PUT");
+        newMethods.add("POST");
+        
+        lazyResourceDelegate.addResource("test", newMethods);
+
+        String strMapAfter = lazyResourceDelegate.getBeanName();
+        Map<String, Set<String>> parsedMethodsAfter = parseStringMap(strMapAfter);
+        
+        // add the originally added method
+        newMethods.add("GET");
+        for(String method : newMethods) {
+            assertTrue(parsedMethodsAfter.get("test").contains(method));
+        }
+	}
+
+	private Map<String, Set<String>> parseStringMap(String strMap) {
+	    // remove curly brackets
+        strMap = strMap.substring(1, strMap.length() - 1);
+        
+        Map<String, Set<String>> parsedMethods = new HashMap<String, Set<String>>();
+        String[] keyValues = strMap.split("=");
+        assertEquals(keyValues[0], "test");
+        String methods = keyValues[1].substring(1, keyValues[1].length() - 1);
+        Set<String> parsedSet = new HashSet<String>();
+        for(final String method : methods.split(",")) {
+            parsedSet.add(method.trim());
+        }
+        parsedMethods.put(keyValues[0], parsedSet);
+        return parsedMethods;
 	}
 }
