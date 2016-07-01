@@ -359,7 +359,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             assert (result != null) : "InteractionCommand must return a result";
             status = determineStatus(headers, event, ctx, result);
         } catch (InteractionException ie) {
-            logger.debug("Interaction command on state [" + ctx.getCurrentState().getId() + "] failed with error ["
+            logger.error("Interaction command on state [" + ctx.getCurrentState().getId() + "] failed with error ["
                     + ie.getHttpStatus() + " - " + ie.getHttpStatus().getReasonPhrase() + "]: ", ie);
             status = ie.getHttpStatus();
             ctx.setException(ie);
