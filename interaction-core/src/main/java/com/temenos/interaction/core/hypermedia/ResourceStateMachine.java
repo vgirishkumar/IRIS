@@ -1122,24 +1122,25 @@ public class ResourceStateMachine {
 	private List<Object> getResourceAliases(Map<String, Object> transitionProperties,
 			DynamicResourceState dynamicResourceState, InteractionContext ctx) {
 		List<Object> aliases = new ArrayList<Object>();
-
-		final Pattern pattern = Pattern.compile("\\{*([a-zA-Z0-9]+)\\}*");
+		
+		final Pattern pattern = Pattern.compile("\\{*([a-zA-Z0-9.]+)\\}*");
 
 		for (String resourceLocatorArg : dynamicResourceState.getResourceLocatorArgs()) {
-			Matcher matcher = pattern.matcher(resourceLocatorArg);
-			matcher.find();
-			String key = matcher.group(1);
+            Matcher matcher = pattern.matcher(resourceLocatorArg);
+            matcher.find();
+            String key = matcher.group(1);
 
-			if (transitionProperties.containsKey(key)) {
-				aliases.add(transitionProperties.get(key));
+            if (transitionProperties.containsKey(key)) {
+                aliases.add(transitionProperties.get(key));
             } else if (ctx != null) {
-				Object value = ctx.getAttribute(key);
+                Object value = ctx.getAttribute(key);
 
                 if (value != null) {
-					aliases.add(value);
-				}
-			}
-		}
+                    aliases.add(value);
+                }
+            }
+        }
+		
 		return aliases;
 	}
 
