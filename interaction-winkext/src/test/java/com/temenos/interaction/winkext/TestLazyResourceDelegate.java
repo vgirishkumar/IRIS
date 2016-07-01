@@ -152,6 +152,9 @@ public class TestLazyResourceDelegate {
         HttpHeaders headers = mock(HttpHeaders.class);
         String id = "123";
         UriInfo uriInfo = mock(UriInfo.class);
+        when(uriInfo.getPathParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));
+        when(uriInfo.getQueryParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));        
+        when(uriInfo.getPath(eq(false))).thenReturn("");
         
         lazyResourceDelegate.get(headers, id, uriInfo);
         
