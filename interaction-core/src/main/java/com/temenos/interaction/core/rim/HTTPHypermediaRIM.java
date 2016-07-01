@@ -226,6 +226,10 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         return resourcePath;
     }
 
+    /*
+     * Shouldn't this return the parent's fully qualified resource path
+     * with the current's resource path as a suffix?
+     */
     public String getFQResourcePath() {
 	    
 		String result = getResourcePath();
