@@ -227,7 +227,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     }
 
     /*
-     * Shouldn't this return the parent's fully qualified resource path
+     * TODO: shouldn't this return the parent's fully qualified resource path
      * with the current's resource path as a suffix?
      */
     public String getFQResourcePath() {
