@@ -389,7 +389,7 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 		    List<OLink> rt = new ArrayList<OLink>(links.size());
 		    for (final AtomLink link : links) {
 
-		      if (!StringUtils.isEmpty(link.relation) && !StringUtils.isEmpty(link.type)) {
+		      if (link.relation.startsWith(XmlFormatWriter.related)) {
 		        if (link.type.equals(XmlFormatWriter.atom_feed_content_type)) {
 
 		          if (link.inlineContentExpected) {
@@ -445,6 +445,10 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 		            // no inlined entity
 		          rt.add(OLinks.relatedEntity(link.relation, link.title, link.href));
 		        }
+		      } else {
+		          if (!StringUtils.isEmpty(link.relation) && !StringUtils.isEmpty(link.title) && !StringUtils.isEmpty(link.href)) {
+		              rt.add(OLinks.relatedEntity(link.relation, link.title, link.href));
+		          }
 		      }
 		    }
 		    return rt;
