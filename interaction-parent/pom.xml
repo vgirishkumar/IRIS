@@ -126,13 +126,13 @@
 		<maven.eclipse.plugin>2.5.1</maven.eclipse.plugin>
 
 		<!--WINK-330 Change slf4j api import to a range to make it more user friendly. -->	
-		<slf4j.osgi.import.instruction>org.slf4j.*;version="[1.5,1.7)"</slf4j.osgi.import.instruction>
+		<slf4j.osgi.import.instruction>org.slf4j.*;version="[1.7.0,1.7.5)"</slf4j.osgi.import.instruction>
 
 		<odata4j.version>0.7.0</odata4j.version>
 		<halbuilder.version>4.0.1</halbuilder.version>
 		<powermock.version>1.4.11</powermock.version>
 		<wink.version>1.3.0</wink.version>
-		<slf4j.version>1.6.2</slf4j.version>
+		<slf4j.version>1.7.5</slf4j.version>
 		<spring.version>3.2.13.RELEASE</spring.version>
 		<joda.version>1.6</joda.version>
 		<xtext.version>2.8.3</xtext.version>

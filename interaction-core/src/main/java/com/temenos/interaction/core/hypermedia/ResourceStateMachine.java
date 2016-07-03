@@ -185,8 +185,8 @@ public class ResourceStateMachine {
 																											// view
 																											// actions
 						if (state != null && state.getViewAction() != null) {
-							LOGGER.error("Multiple matching resource states for [" + event + "] event on ["
-									+ resourcePath + "], [" + state + "] and [" + s + "]");
+							LOGGER.error("Multiple matching resource states for [{}] event on [{}], [{}] and [{}]", 
+							        event, resourcePath, state, s );
 						}
 						state = s;
 					}
@@ -236,7 +236,7 @@ public class ResourceStateMachine {
 			ResourceLocatorProvider resourceLocatorProvider, ResourceStateProvider resourceStateProvider) {
 		if (initialState == null)
 			throw new RuntimeException("Initial state must be supplied");
-		LOGGER.info("Constructing ResourceStateMachine with initial state [" + initialState + "]");
+		LOGGER.info("Constructing ResourceStateMachine with initial state [{}]", initialState);
 		assert (exceptionState == null || exceptionState.isException());
 		this.initial = initialState;
 		this.initial.setInitial(true);
@@ -666,12 +666,11 @@ public class ResourceStateMachine {
 				String path = next.getResourcePath();
 				if (result.get(path) != null) {
 					if (!result.get(path).contains(next.getName())) {
-						LOGGER.debug("Adding to existing ResourceState[" + path + "] set (" + result.get(path) + "): "
-								+ next);
+						LOGGER.debug("Adding to existing ResourceState[{}] set ({}): {}", path, result.get(path), next);
 						result.get(path).add(next.getName());
 					}
 				} else {
-					LOGGER.debug("Putting a ResourceState[" + path + "]: " + next);
+					LOGGER.debug("Putting a ResourceState[{}]: {}", path, next);
 					Set<String> set = new HashSet<String>();
 					set.add(next.getName());
 					result.put(path, set);
@@ -738,7 +737,7 @@ public class ResourceStateMachine {
 		for (ResourceState next : currentState.getAllTargets()) {
 			if (next != null && next != currentState) {
 				String name = next.getName();
-				LOGGER.debug("Putting a ResourceState[" + name + "]: " + next);
+				LOGGER.debug("Putting a ResourceState[{}]: {}", name, next);
 				result.put(name, next);
 			}
 			collectResourceStatesByName(result, states, next);
@@ -802,7 +801,8 @@ public class ResourceStateMachine {
 		} else if (resourceEntity instanceof MetaDataResource) {
 			// TODO deprecate all resource types apart from item
 			// (EntityResource) and collection (CollectionResource)
-			LOGGER.debug("Returning from the call to getLinks for a MetaDataResource without doing anything");
+		    LOGGER.debug("Returning from the call to getLinks for a MetaDataResource without doing anything");
+		    
 			return links;
 		} else {
 			throw new RuntimeException("Unable to get links, an error occurred");
@@ -820,7 +820,8 @@ public class ResourceStateMachine {
 		List<Transition> transitions = state.getTransitions();
 		for (Transition transition : transitions) {
             if (transition.getTarget() == null) {
-				LOGGER.warn("Skipping invalid transition: " + transition);
+                LOGGER.warn("Skipping invalid transition: {}", transition);
+                
 				continue;
 			}
 
@@ -876,9 +877,7 @@ public class ResourceStateMachine {
                                     Method method = tmpObj.getClass().getMethod(methodName);
                                     ids.add(method.invoke(tmpObj).toString());
                                 } catch (Exception e) {
-                                    LOGGER.warn(
-                                            "Failed to add record id while trying to embed current collection resource",
-                                            e);
+                                    LOGGER.warn("Failed to add record id while trying to embed current collection resource", e);
                                 }
 				            }
 
@@ -984,15 +983,14 @@ public class ResourceStateMachine {
 				if (Family.SUCCESSFUL.equals(Status.fromStatusCode(result.getStatus()).getFamily())) {
 					resourceResults.put(transition, result.getResource());
 				} else {
-					LOGGER.error("Failed to embed resource for transition [" + transition.getId() + "]");
+					LOGGER.error("Failed to embed resource for transition [{}]", transition.getId());
 				}
 			}
 			resource.setEmbedded(resourceResults);
 			return resourceResults;
 		} catch (InteractionException ie) {
             LOGGER.error(
-                    "Failed to embed resources [" + ctx.getCurrentState().getId() + "] with error ["
-					+ ie.getHttpStatus() + " - " + ie.getHttpStatus().getReasonPhrase() + "]: ", ie);
+                    "Failed to embed resources [{}] with error [{} - {}]: ", ctx.getCurrentState().getId(), ie.getHttpStatus(), ie.getHttpStatus().getReasonPhrase(), ie);
 			throw new RuntimeException(ie);
 		}
 	}
@@ -1078,8 +1076,7 @@ public class ResourceStateMachine {
 
         if (tmpState == null) {
 			// A dead link, target could not be found
-            LOGGER.error("Dead link - Failed to resolve resource using "
-                    + dynamicResourceState.getResourceLocatorName() + " resource locator");
+            LOGGER.error("Dead link - Failed to resolve resource using {} resource locator", dynamicResourceState.getResourceLocatorName());
 		} else {
 			boolean registrationRequired = false;
 
@@ -1104,7 +1101,7 @@ public class ResourceStateMachine {
 					ParameterAndValue[] paramsAndValues = parameterResolver.resolve(aliases);
 					result.setParams(paramsAndValues);
 				} catch (IllegalArgumentException e) {
-				    LOGGER.warn("Failed to find parameter resolver for: " + locatorName, e);
+				    LOGGER.warn("Failed to find parameter resolver for: {}", locatorName, e);
 				}
 			}
 		}
@@ -1179,7 +1176,7 @@ public class ResourceStateMachine {
 		// Obtain entity properties
 		Map<String, Object> entityProperties = null;
 		if (entity != null && transformer != null) {
-			LOGGER.debug("Using transformer [" + transformer + "] to build properties for link [" + transition + "]");
+			LOGGER.debug("Using transformer [{}] to build properties for link [{}]", transformer, transition);
 			entityProperties = transformer.transform(entity);
 			if (entityProperties != null) {
 				transitionProps.putAll(entityProperties);
@@ -1222,7 +1219,7 @@ public class ResourceStateMachine {
 					if (transition.getTarget() != null) {
 						ResourceState tt = resourceStateProvider.getResourceState(transition.getTarget().getName());
 						if (tt == null) {
-							LOGGER.error("Invalid transition [" + transition.getId() + "]");
+							LOGGER.error("Invalid transition [{}]", transition.getId());
 						}
 						transition.setTarget(tt);
 					}
