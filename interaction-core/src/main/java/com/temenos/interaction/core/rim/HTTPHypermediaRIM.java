@@ -97,7 +97,7 @@ import com.temenos.interaction.core.resource.RESTResource;
  *
  */
 public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
-    private final static Logger logger = LoggerFactory.getLogger(HTTPHypermediaRIM.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HTTPHypermediaRIM.class);
 
     private static boolean skipValidation = System.getProperty("iris.skip.validation") != null;
 
@@ -195,7 +195,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                 @Override
                 public void viewActionNotSeen(ResourceStateMachine rsm, ResourceState state) {
                     if (!state.isPseudoState()) {
-                        logger.warn("Invalid configuration of resource state [" + state + "] - no view command");
+                        LOGGER.warn("Invalid configuration of resource state [{}] - no view command", state);
                     }
                 }
 
@@ -207,7 +207,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             });
 
             if (printGraph && hypermediaEngine.getInitial() != null) {
-                logger.info("State graph for [" + this.toString() + "] [" + validator.graph() + "]");
+                LOGGER.info("State graph for [{}] [{}]", this.toString(), validator.graph());
             }
 
             validator.validate();
@@ -311,7 +311,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         if (cache != null && event.isSafe()) {
             cached = cache.get(ctx.getUriInfo().getRequestUri().toString());
         } else {
-            logger.debug("Cannot cache " + uriInfo.getRequestUri());
+            LOGGER.debug("Cannot cache {}", uriInfo.getRequestUri());
         }
         Response response = null;
         if (cached != null) {
@@ -319,12 +319,14 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         } else {
             response = handleRequest(headers, ctx, event, action, resource, null);
         }
+        
         long end = System.nanoTime();
+        long totalTime = end - begin;
 
-        logger.info("iris_request IRIS Service RequestTime(ns)=" + String.valueOf(end - begin) + " startTime(ns)="
-                + String.valueOf(begin) + " endTime(ns)=" + String.valueOf(end) + "EntityName=" + getFQResourcePath()
-                + " MethodType=" + event.getMethod() + " URI=" + uriInfo.getRequestUri()
-                + (cached != null ? " (cached response)" : ""));
+        LOGGER.info(
+                "iris_request IRIS Service RequestTime(ns)={} startTime(ns)={} endTime(ns)={} EntityName={} MethodType={} URI={} {}",
+                totalTime, begin, end, getFQResourcePath(), event.getMethod(), uriInfo.getRequestUri(),
+                cached != null ? " (cached response)" : "");
 
         return response;
     }
@@ -356,15 +358,19 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         try {
             long begin = System.nanoTime();
             result = action.execute(ctx);
+            
             long end = System.nanoTime();
-            logger.info("iris_request_command CommandExecution RequestTime(ns)=" + String.valueOf(end - begin)
-                    + " startTime(ns)=" + String.valueOf(begin) + " endTime(ns)=" + String.valueOf(end)
-                    + " EntityName=" + getFQResourcePath());
+            long totalTime = end - begin;
+
+            LOGGER.info(
+                    "iris_request_command CommandExecution RequestTime(ns)={} startTime(ns)={} endTime(ns)={} EntityName={}",
+                    totalTime, begin, end, getFQResourcePath());
+            
             assert (result != null) : "InteractionCommand must return a result";
             status = determineStatus(headers, event, ctx, result);
         } catch (InteractionException ie) {
-            logger.error("Interaction command on state [" + ctx.getCurrentState().getId() + "] failed with error ["
-                    + ie.getHttpStatus() + " - " + ie.getHttpStatus().getReasonPhrase() + "]: ", ie);
+            LOGGER.error("Interaction command on state [{}] failed with error [{} - {}]: ", 
+                    ctx.getCurrentState().getId(), ie.getHttpStatus(), ie.getHttpStatus().getReasonPhrase(), ie);
             status = ie.getHttpStatus();
             ctx.setException(ie);
         }
@@ -511,7 +517,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                         } else if (ctx.getResource() == null) {
                             status = Status.NO_CONTENT;
                         } else {
-                            logger.warn("This pseudo state creates a new resource (the command implementing POST returns a resource), but no transitions have been configured");
+                            LOGGER.warn("This pseudo state creates a new resource (the command implementing POST returns a resource), but no transitions have been configured");
                             status = Status.OK;
                         }
                     }
@@ -641,12 +647,11 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             Transition autoTransition = autoTransitions.size() > 0 ? autoTransitions.iterator().next() : null;
             if (autoTransition != null) {
                 if (autoTransitions.size() > 1)
-                    logger.warn("Resource state [" + currentState.getName()
-                            + "] has multiple auto-transitions. Using [" + autoTransition.getId() + "].");
+                    LOGGER.warn("Resource state [{}] has multiple auto-transitions. Using [{}].", currentState.getName(), autoTransition.getId());
                 ResponseWrapper autoResponse = getResource(headers, autoTransition, ctx);
                 if (autoResponse.getResponse().getStatus() != Status.OK.getStatusCode()) {
-                    logger.warn("Auto transition target did not return HttpStatus.OK status ["
-                            + autoResponse.getResponse().getStatus() + "]");
+                    LOGGER.warn("Auto transition target did not return HttpStatus.OK status [{}]", autoResponse.getResponse().getStatus());
+                    
                     responseBuilder.status(autoResponse.getResponse().getStatus());
                 }
                 resource = (RESTResource) ((GenericEntity<?>) autoResponse.getResponse().getEntity()).getEntity();
@@ -711,9 +716,8 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             cacheMaxAge = currentState.getMaxAge();
             if (cacheMaxAge > 0 && cacheable) {
                 cacheKey = ctx.getRequestUri();
-                logger.info("Setting maxAge header " + currentState.getMaxAge() + " for " + cacheKey + " in state "
-                        + currentState.getName());
-
+                LOGGER.info("Setting maxAge header {} for {} in state {}", currentState.getMaxAge(), cacheKey, currentState.getName());
+                
                 responseBuilder = HeaderHelper.maxAgeHeader(responseBuilder, cacheMaxAge);
             }
 
@@ -754,11 +758,13 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         // cache the response if it is valid to do so
         Cache cache = hypermediaEngine.getCache();
         if (cache != null && cacheKey != null && cacheMaxAge > 0) {
-            logger.info("Cache " + cacheKey);
+            LOGGER.info("Cache {}", cacheKey);
+            
             cache.put(cacheKey, responseBuilder, cacheMaxAge);
         }
 
-        logger.info("Building response " + status.getStatusCode() + " " + status.getReasonPhrase());
+        LOGGER.info("Building response {} {}", status.getStatusCode(), status.getReasonPhrase());
+        
         Response response = responseBuilder.build();
 
         return response;
@@ -772,8 +778,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         do {
             autoTransition = autoTransitions.get(0);
             if (autoTransitions.size() > 1)
-                logger.warn("Resource state [" + currentState.getName()
-                    + "] has multiple auto-transitions. Using [" + autoTransition.getId() + "].");
+                LOGGER.warn("Resource state [{}] has multiple auto-transitions. Using [{}].", currentState.getName(), autoTransition.getId());
             autoResponse = getResource(headers, autoTransition, ctx);
             autoTransitions = getTransitions(ctx, autoTransition.getTarget(), Transition.AUTO);
         }while(!autoTransitions.isEmpty() 
@@ -781,8 +786,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                 && autoResponse.getResponse().getStatus() == Status.OK.getStatusCode());
         
         if (autoResponse.getResponse().getStatus() != Status.OK.getStatusCode()) {
-            logger.warn("Auto transition target did not return HttpStatus.OK status ["
-                    + autoResponse.getResponse().getStatus() + "]");
+            LOGGER.warn("Auto transition target did not return HttpStatus.OK status [{}]", autoResponse.getResponse().getStatus());
             responseBuilder.status(autoResponse.getResponse().getStatus());
         }
         return autoResponse;
@@ -882,7 +886,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             return wrapper;
 
         } catch (Exception ie) {
-            logger.error("Failed to access resource [" + targetState.getId() + "] with error:", ie);
+            LOGGER.error("Failed to access resource [{}] with error:", targetState.getId(), ie);
             throw new RuntimeException(ie);
         }
     }
@@ -893,7 +897,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             // sometime some resource throw ClassCastException
             return ((EntityResource<?>) currentResource).getEntity();
         } catch (ClassCastException e) {
-            logger.error("Failed to get entity resource", e);
+            LOGGER.error("Failed to get entity resource", e);
         }
 
         EntityResource<?> er = new EntityResource<RESTResource>(currentResource);
@@ -1008,7 +1012,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     @Override
     public Response post(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo,
             EntityResource<?> resource) {
-        logger.info("POST " + getFQResourcePath());
+        LOGGER.info("POST {}", getFQResourcePath());
         assert (getResourcePath() != null);
         Event event = new Event("POST", HttpMethod.POST);
 
@@ -1029,7 +1033,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     @Override
     public Response put(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo,
             EntityResource<?> resource) {
-        logger.info("PUT " + getFQResourcePath());
+        LOGGER.info("PUT {}", getFQResourcePath());
         assert (getResourcePath() != null);
         Event event = new Event("PUT", HttpMethod.PUT);
 
@@ -1049,7 +1053,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
      */
     @Override
     public Response delete(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo) {
-        logger.info("DELETE " + getFQResourcePath());
+        LOGGER.info("DELETE {}", getFQResourcePath());
         assert (getResourcePath() != null);
         Event event = new Event("DELETE", HttpMethod.DELETE);
 
@@ -1067,7 +1071,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
      */
     @Override
     public Response options(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo) {
-        logger.info("OPTIONS " + getFQResourcePath());
+        LOGGER.info("OPTIONS {}", getFQResourcePath());
         assert (getResourcePath() != null);
         Event event = new Event("OPTIONS", HttpMethod.GET);
         // create the interaction context
