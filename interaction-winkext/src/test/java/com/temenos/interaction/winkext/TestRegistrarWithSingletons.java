@@ -23,6 +23,7 @@ package com.temenos.interaction.winkext;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -146,7 +147,7 @@ public class TestRegistrarWithSingletons {
         rs.register(childNote);
         assertNotNull(rs.getDynamicResource("/notes/{id}"));
     }
-    
+
     @Test
     public void testRegisterWithBrackets() {
         HTTPResourceInteractionModel serviceRoot = createMockHTTPRIM("notes", "/notes()");
@@ -193,4 +194,39 @@ public class TestRegistrarWithSingletons {
         // should HTTPHypermediaRIM.getFQResourcePath() be fixed, these two
         // asserts would fail and their paths should be corrected 
     }
+    
+    @Test
+    public void testRegisterExistentResource() {
+        HTTPResourceInteractionModel serviceRoot = createMockHTTPRIM("notes", "/notes");
+        ResourceRegistry resourceRegistry = mock(ResourceRegistry.class);
+        ProvidersRegistry providerRegistry = mock(ProvidersRegistry.class);
+
+        RegistrarWithSingletons rs = new RegistrarWithSingletons();
+        rs.register(resourceRegistry, providerRegistry);
+        rs.register(serviceRoot);
+        assertNotNull(rs.getDynamicResource("/notes"));
+        
+        HTTPResourceInteractionModel childNote = createMockHTTPRIM("note", "/notes");        
+
+        rs.register(childNote);
+        assertNull(rs.getDynamicResource("/notes/notes"));
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void testSetNullServiceRoot() {
+        RegistrarWithSingletons rs = new RegistrarWithSingletons();
+        rs.setServiceRoots(null);
+    }
+    
+    @Test
+    public void testSetServiceRootWithNoChildren() {
+        HTTPResourceInteractionModel serviceRoot = createMockHTTPRIM("notes", "/notes");
+        when(serviceRoot.getChildren()).thenReturn(null);
+
+        RegistrarWithSingletons rs = new RegistrarWithSingletons();
+        rs.setServiceRoot(serviceRoot);
+        assertNotNull(rs.getInstances());
+        assertEquals(1, rs.getInstances().size());
+    }
+
 }
