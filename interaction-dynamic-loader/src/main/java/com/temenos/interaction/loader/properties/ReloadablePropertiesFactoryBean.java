@@ -340,16 +340,12 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 					 * Ensure this property has been loaded.
 					 */
 					propertiesPersister.load(newProperties, location.getInputStream());
-					if (reloadableProperties.updateProperties(newProperties)) {
-						logger.info("Loading new : " + location.getFilename());
-						reloadableProperties.notifyPropertiesLoaded(location, newProperties);
-					} else {
-						logger.info("Refreshing : " + location.getFilename());
-						/*
-						 * Notify subscribers that properties have been modified
-						 */
-						reloadableProperties.notifyPropertiesChanged(location, newProperties);
-					}
+					reloadableProperties.updateProperties(newProperties);
+					logger.info("Refreshing : " + location.getFilename());
+					/*
+					 * Notify subscribers that properties have been modified
+					 */
+					reloadableProperties.notifyPropertiesChanged(location, newProperties);
 				}
 			} catch (Exception e) {
 				logger.error("Unexpected error when dynamicly loading resources ", e);
