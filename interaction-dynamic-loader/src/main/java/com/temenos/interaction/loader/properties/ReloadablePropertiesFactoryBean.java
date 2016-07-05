@@ -56,33 +56,37 @@ import com.temenos.interaction.springdsl.DynamicProperties;
  */
 public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean implements DynamicProperties,
 		DisposableBean, ApplicationContextAware {
-	private ApplicationContext ctx;
+	private ApplicationContext ctx = null;
 
-	private List<ReloadablePropertiesListener<Resource>> preListeners;
+	private List<ReloadablePropertiesListener<Resource>> preListeners = new ArrayList<>();
 	private PropertiesPersister propertiesPersister = new DefaultPropertiesPersister();
-	private ReloadablePropertiesBase reloadableProperties;
-	private Properties properties;
+	private ReloadablePropertiesBase reloadableProperties = null;
+	private Properties properties = null;
 	private long lastFileTimeStamp = 0;
 	private List<Resource> resourcesPath = null;
 	private File lastChangeFile = null;
 	private XmlModificationNotifier xmlNotifier = null;
 
 	public void setListeners(List<ReloadablePropertiesListener<Resource>> listeners) {
-		// early type check, and avoid aliasing
-		this.preListeners = new ArrayList<>();
-		for (ReloadablePropertiesListener<Resource> l : listeners) {
+		for (ReloadablePropertiesListener l : listeners) {
 			preListeners.add(l);
 		}
 	}
+	
+	public List<ReloadablePropertiesListener> getListeners() {
+	    return this.preListeners;
+	}
 
-	/**
-	 * @param properties
-	 *            the properties to set
-	 */
+	@Override
 	public void setProperties(Properties properties) {
 		this.properties = properties;
 	}
+	
+	public Properties getProperties() {
+	    return this.properties;
+	}
 
+	@Override
 	protected Object createInstance() throws IOException {
 		// would like to uninherit from AbstractFactoryBean (but it's final!)
 		if (!isSingleton())
@@ -100,13 +104,21 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 		this.xmlNotifier = xmlNotifier;
 	}
 
+	@Override
 	public void destroy() throws Exception {
 		reloadableProperties = null;
 	}
 
+	/*
+	 * Resolves all files matching the list of given patterns
+	 * under a directory (or just a file) that are more recent than the timestamp
+	 * 
+	 *  @root a file or directory to look for files
+	 *  @patterns a list of file patterns to use as search criteria
+	 */
 	protected void getMoreRecentThan(File root, final long timestamp, final List<Resource> resources,
-			final List<simplePattern> patterns) {
-		File file = root;// new File(root.getURL().getFile());
+			final List<SimplePattern> patterns) {
+		File file = root;
 
 		file.listFiles(new FileFilter() {
 			@Override
@@ -115,24 +127,22 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 					getMoreRecentThan(pathname, timestamp, resources, patterns);
 				} else {
 					if (pathname.lastModified() > timestamp) {
-						for (simplePattern pattern : patterns) {
+						for (SimplePattern pattern : patterns) {
 							if (pattern.matches(pathname.getName())) {
 								resources.add(new FileSystemResource(pathname));
 							}
 						}
-
 					}
 				}
 				return false;
 			}
 		});
-
 	}
 
 	protected void reload(boolean forceReload) throws IOException {
 		long l = System.currentTimeMillis();
 		
-		reload_new(forceReload);
+		reloadNew(forceReload);
 		
 		l = System.currentTimeMillis() - l;
 		if (l > 2000) {
@@ -140,8 +150,17 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 		}
 	}
 
+    /*
+     * Resolves the last changed file for getting later its modified time (at
+     * least this is the intention, the files are retrieved by the application
+     * context and are not sorted by modification time).
+     * 
+     * @return a list of all the files present in the directory
+     * models-gen/src/generated/iris
+     */
 	private List<Resource> initializeResourcesPath() throws IOException {
-		List<Resource> ret = new ArrayList<Resource>();
+	    assert ctx != null;
+		List<Resource> ret = new ArrayList<>();
 		List<Resource> tmp = Arrays.asList(ctx.getResources("classpath*:"));
 		for (Resource oneResource : tmp) {
 			String sPath = oneResource.getURI().getPath().replace('\\', '/');
@@ -168,16 +187,14 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
     		    lastChangeFile = irisCacheIndexFile;
     		    logger.info("The following index file will be used for refreshing resources: " + irisCacheIndexFile.getAbsolutePath());
     		}
-    		
 		}
 
 		return ret;
-
 	}
 
 	private List<Resource> getLastChangeAndClear(File f) {
-		File LastChangeFileLock = new File(f.getParent(), ".lastChangeLock");
-		List<Resource> ret = new ArrayList<Resource>();
+		File lastChangeFileLock = new File(f.getParent(), ".lastChangeLock");
+		List<Resource> ret = new ArrayList<>();
 		FileLock lock = null;
 		BufferedReader bufR = null;
 		FileChannel fc = null;
@@ -186,7 +203,7 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 			/*
 			 * Maintain a specific lock to avoid partial file locking.
 			 */
-			fcLock = new RandomAccessFile(LastChangeFileLock, "rw").getChannel();
+			fcLock = new RandomAccessFile(lastChangeFileLock, "rw").getChannel();
 			lock = fcLock.lock();
 			
 			fc = new RandomAccessFile(f, "rws").getChannel();
@@ -244,7 +261,7 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 		return ret;
 	}
 
-	protected void reload_new(boolean forceReload) throws IOException {
+	protected void reloadNew(boolean forceReload) throws IOException {
 
 		if (resourcesPath == null) {
 			/*
@@ -258,7 +275,7 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 		 */
 		long tmpLastCheck = lastFileTimeStamp;
 
-		List<Resource> changedPaths = new ArrayList<Resource>();
+		List<Resource> changedPaths = new ArrayList<>();
 
 		if (lastChangeFile != null && lastChangeFile.exists()) {
 			long lastChange = lastChangeFile.lastModified();
@@ -307,31 +324,46 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 			}
 		}
 
-		if (changedPaths.size() == 0) { // Only if nothing interesting was in
-										// the lastChange file.
-			List<simplePattern> lstPatterns = new ArrayList<simplePattern>();
-			for (ReloadablePropertiesListener listener : preListeners) {
-				String[] sPatterns = listener.getResourcePatterns();
-				for (String pattern : sPatterns) {
-					String orPatterns[] = pattern.split("\\|");
-					for (String orPattern : orPatterns) {
-						lstPatterns.add(new simplePattern(orPattern));
-					}
-				}
-			}
-			for (Resource res : resourcesPath) {
-				getMoreRecentThan(new File(res.getURL().getFile()), tmpLastCheck, changedPaths, lstPatterns);
-			}
-		}
-		long l = System.currentTimeMillis();
+		if (changedPaths.isEmpty())
+	        // only if nothing interesting was in the lastChange file
+		    reScanForUpdates(changedPaths, tmpLastCheck);
+		
+		long initTimestamp = System.currentTimeMillis();
+		
+		refreshResources(changedPaths);
+		
+	    if (!changedPaths.isEmpty()) {
+	        logger.info(changedPaths.size() + " resources reloaded in " + (System.currentTimeMillis() - initTimestamp) + " ms.");
+	    }
+	}
 
-		for (Resource location : changedPaths) {
+    private void reScanForUpdates(List<Resource> resources, long timestamp) throws IOException {
+        List<SimplePattern> lstPatterns = new ArrayList<>();
+        for (ReloadablePropertiesListener listener : preListeners) {
+            String[] sPatterns = listener.getResourcePatterns();
+            for (String pattern : sPatterns) {
+                String[] orPatterns = pattern.split("\\|");
+                for (String orPattern : orPatterns) {
+                    lstPatterns.add(new SimplePattern(orPattern));
+                }
+            }
+        }
+        for (Resource resource : resourcesPath) {
+            getMoreRecentThan(new File(resource.getURL().getFile()), timestamp, resources, lstPatterns);
+        }
+    }
+	
+	private void refreshResources(List<Resource> resources) {
+	    assert xmlNotifier != null;
+	    assert propertiesPersister != null;
+	    assert reloadableProperties != null;
+		for (Resource location : resources) {
 			try {
-				String sFileName = location.getFilename();
+				String fileName = location.getFilename();
 
-				if (sFileName.endsWith(".xml")) {
-					if (sFileName.startsWith("IRIS-") || sFileName.startsWith("metadata-")) {
-						logger.info("Refreshing : " + sFileName);
+				if (fileName.endsWith(".xml")) {
+					if (fileName.startsWith("IRIS-") || fileName.startsWith("metadata-")) {
+						logger.info("Refreshing : " + fileName);
 						xmlNotifier.execute(new XmlChangedEventImpl(location));
 					}
 				} else {
@@ -351,15 +383,12 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 				logger.error("Unexpected error when dynamicly loading resources ", e);
 			}
 		}
-		if (changedPaths.size() > 0) {
-			logger.info(changedPaths.size() + " resources reloaded in " + (System.currentTimeMillis() - l) + " ms.");
-		}
-
 	}
 
-	class ReloadablePropertiesImpl extends ReloadablePropertiesBase implements ReconfigurableBean {
+    class ReloadablePropertiesImpl extends ReloadablePropertiesBase implements ReconfigurableBean {
 		private static final long serialVersionUID = -3401718333944329073L;
 
+		@Override
 		public void reloadConfiguration() throws Exception {
 			ReloadablePropertiesFactoryBean.this.reload(false);
 		}
@@ -370,13 +399,13 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 		this.ctx = ctx;
 	}
 
-	class simplePattern {
+	class SimplePattern {
 		private final String startsWith;
 		private final String endsWith;
 
-		private simplePattern(String pattern) {
-			pattern = pattern.replace("classpath*:", "");
-			int idx = pattern.indexOf("*");
+		SimplePattern(String ipattern) {
+			String pattern = ipattern.replace("classpath*:", "");
+			int idx = pattern.indexOf('*');
 			startsWith = pattern.substring(0, idx);
 			endsWith = pattern.substring(idx + 1);
 		}
