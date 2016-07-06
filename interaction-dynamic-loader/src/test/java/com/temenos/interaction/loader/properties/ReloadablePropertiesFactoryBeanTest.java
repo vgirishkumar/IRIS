@@ -6,23 +6,28 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
+import com.temenos.interaction.core.loader.FileEvent;
 import com.temenos.interaction.loader.properties.ReloadablePropertiesFactoryBean.SimplePattern;
+import com.temenos.interaction.loader.xml.resource.notification.XmlModificationNotifier;
 
 public class ReloadablePropertiesFactoryBeanTest {
 
@@ -138,30 +143,32 @@ public class ReloadablePropertiesFactoryBeanTest {
 
         final long timestamp = System.currentTimeMillis();
 
-        Path root = Paths.get("src/test/resources/root");
+        String rootPath = "src/test/resources/root";
+        Path root = Paths.get(rootPath);
         Files.createDirectories(root);
         Files.setAttribute(root, "lastModifiedTime", FileTime.fromMillis(timestamp));
         
-        Path tmp1 = Paths.get("src/test/resources/root/tmp1");
+        Path tmp1 = Paths.get(rootPath + "/tmp1");
         if(!Files.exists(tmp1)) Files.createFile(tmp1);
         Files.setAttribute(tmp1, "lastModifiedTime", FileTime.fromMillis(timestamp-1));
         
-        Path tmp2 = Paths.get("src/test/resources/root/tmp2");
+        Path tmp2 = Paths.get(rootPath + "/tmp2");
         if(!Files.exists(tmp2)) Files.createFile(tmp2);
         Files.setAttribute(tmp2, "lastModifiedTime", FileTime.fromMillis(timestamp+1));
 
-        Path dir = Paths.get("src/test/resources/root/dir");
+        String dirPath = rootPath + "/dir";
+        Path dir = Paths.get(dirPath);
         Files.createDirectories(dir);
         Files.setAttribute(dir, "lastModifiedTime", FileTime.fromMillis(timestamp));
 
-        Path dirtmp1 = Paths.get("src/test/resources/root/dir/tmp1");
+        Path dirtmp1 = Paths.get(dirPath + "/tmp1");
         if(!Files.exists(dirtmp1)) Files.createFile(dirtmp1);
         Files.setAttribute(dirtmp1, "lastModifiedTime", FileTime.fromMillis(timestamp+1));
         
-        Path dirtmp2 = Paths.get("src/test/resources/root/dir/tmp2");
+        Path dirtmp2 = Paths.get(dirPath + "/tmp2");
         if(!Files.exists(dirtmp2)) Files.createFile(dirtmp2);
         Files.setAttribute(dirtmp2, "lastModifiedTime", FileTime.fromMillis(timestamp-1));
-        
+
         List<Resource> resources = new ArrayList<Resource>();
         List<SimplePattern> patterns = new ArrayList<SimplePattern>();
         SimplePattern pattern = rp.new SimplePattern("*");
@@ -193,13 +200,23 @@ public class ReloadablePropertiesFactoryBeanTest {
     public void testReload() throws Exception {
         ReloadablePropertiesFactoryBean rp = new ReloadablePropertiesFactoryBean();
 
-        Path path = Paths.get("models-gen/src/generated/iris");
+        final long timestamp = System.currentTimeMillis();
+
+        String rootPath = "models-gen/src/generated/iris";
+        Path root = Paths.get(rootPath);
+        Files.createDirectories(root);
         
+        Path tmp1 = Paths.get(rootPath + "/IRIS-Customer-PRD.xml");
+        if(!Files.exists(tmp1)) Files.createFile(tmp1);
+        
+        Path tmp2 = Paths.get(rootPath + "/IRIS-Customer.properties");
+        if(!Files.exists(tmp2)) Files.createFile(tmp2);
+
         Resource[] resources = new Resource[2];
         Resource resource1 = mock(Resource.class);
-        when(resource1.getURI()).thenReturn(path.getFileName().toUri());
+        when(resource1.getURI()).thenReturn(tmp1.toUri());
         Resource resource2 = mock(Resource.class);
-        when(resource2.getURI()).thenReturn(path.getFileName().toUri());
+        when(resource2.getURI()).thenReturn(tmp2.toUri());
         resources[0] = resource1;
         resources[1] = resource2;
 
@@ -208,7 +225,31 @@ public class ReloadablePropertiesFactoryBeanTest {
 
         rp.setApplicationContext(ctx);
 
+        // set last modified time of the lastChange file to the maximum long
+        // so that the class believes that new changes should be processed
+        Path lastChange = Paths.get("models-gen/lastChange");
+        if(Files.exists(lastChange)) Files.delete(lastChange);
+        Files.createFile(lastChange);
+        // add the files file to the lastChange file index
+        byte[] tmp1FileNameBytes = (tmp1.toString() + System.getProperty("line.separator")).getBytes();
+        Files.write(lastChange, tmp1FileNameBytes, StandardOpenOption.APPEND);
+        byte[] tmp2FileNameBytes = tmp2.toString().getBytes();
+        Files.write(lastChange, tmp2FileNameBytes, StandardOpenOption.APPEND);
+        Files.setAttribute(lastChange, "lastModifiedTime", FileTime.fromMillis(timestamp+10000000));
+        
+        XmlModificationNotifier xmlNotifier = new XmlModificationNotifier();
+        XmlModificationNotifier spy = Mockito.spy(xmlNotifier);
+        Mockito.doNothing().when(spy).execute(any(FileEvent.class));
+        rp.setXmlNotifier(spy);
+        
+        // this is the way to create an instance of the private variable reloadableProperties...
+        rp.createInstance();
+        
         rp.reload(true);
+        
+        verify(spy).execute(any(FileEvent.class));
+        // TODO: we should verify that the properties are reloaded, but currently
+        // there's no way to do this...
     }
 
 }

@@ -151,9 +151,8 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 	}
 
     /*
-     * Resolves the last changed file for getting later its modified time (at
-     * least this is the intention, the files are retrieved by the application
-     * context and are not sorted by modification time).
+     * Collects all resources in the iris directory. It also creates or
+     * gets the lastChange file for getting later its modified time.
      * 
      * @return a list of all the files present in the directory
      * models-gen/src/generated/iris
@@ -175,6 +174,7 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 				if (f.exists()) {
 					lastChangeFile = f;
 				}
+				else f.createNewFile();
 			}
 		}
 		
@@ -232,22 +232,26 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 			logger.error("Failed to get the lastChanges contents.", e);
 		} finally {
 			try {
-				lock.release();
+				if(lock != null)
+				    lock.release();
 			} catch (IOException e) {
 				logger.error("Failed close bufferedReader on lastChange file.", e);
 			}
 			try {
-				fcLock.close();
+			    if(fcLock != null)
+			        fcLock.close();
 			} catch (IOException e) {
 				logger.error("Failed to release lock on .lastChangeLock file.", e);
 			}
 			try {
-				bufR.close();
+			    if(bufR != null)
+			        bufR.close();
 			} catch (IOException e) {
 				logger.error("Failed close bufferedReader on lastChange file.", e);
 			}
 			try {
-				fc.close();
+                if (fc != null)
+                    fc.close();
 			} catch (IOException e) {
 				logger.error("Failed close filechannel on lastChange file.", e);
 			}
@@ -273,7 +277,7 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 		/*
 		 * Let's do it as we could miss a file being modified during the scan.
 		 */
-		long tmpLastCheck = lastFileTimeStamp;
+		boolean reload = false;
 
 		List<Resource> changedPaths = new ArrayList<>();
 
@@ -283,6 +287,7 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 				return;
 			}
 			if (lastChangeFile.length() > 0) {
+			    reload = true;
 				/*
 				 * Mhh, there is something in it ! So we get the lock, read the
 				 * contents, and update only the resources in this file. If the
@@ -315,18 +320,12 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 			lastFileTimeStamp = System.currentTimeMillis() - 2000;
 		}
 
-		if (forceReload) {
-			if (tmpLastCheck == 0) {
-				return; // First time, no need to do anything.
-			} else {
-				tmpLastCheck = 0;
-				changedPaths.clear();
-			}
-		}
-
+		if(!reload)
+		    return;
+		
 		if (changedPaths.isEmpty())
 	        // only if nothing interesting was in the lastChange file
-		    reScanForUpdates(changedPaths, tmpLastCheck);
+		    scanForUpdates(changedPaths, lastFileTimeStamp);
 		
 		long initTimestamp = System.currentTimeMillis();
 		
@@ -337,7 +336,7 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 	    }
 	}
 
-    private void reScanForUpdates(List<Resource> resources, long timestamp) throws IOException {
+    private void scanForUpdates(List<Resource> resources, long timestamp) throws IOException {
         List<SimplePattern> lstPatterns = new ArrayList<>();
         for (ReloadablePropertiesListener listener : preListeners) {
             String[] sPatterns = listener.getResourcePatterns();
