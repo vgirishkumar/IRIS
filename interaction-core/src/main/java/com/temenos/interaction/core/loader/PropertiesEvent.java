@@ -24,7 +24,7 @@ package com.temenos.interaction.core.loader;
 
 import java.util.Properties;
 
-public interface PropertiesEvent extends FileEvent {
-	public void accept(PropertiesEventVisitor visitor);
+public interface PropertiesEvent<T> extends FileEvent<T> {
+	public void accept(PropertiesEventVisitor<T> visitor);
 	public Properties getNewProperties();
 }

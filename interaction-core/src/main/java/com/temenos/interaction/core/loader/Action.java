@@ -25,6 +25,6 @@ package com.temenos.interaction.core.loader;
 
 
 
-public interface Action<FileEvent> {
-	void execute(FileEvent event);
+public interface Action<T> {
+	void execute(T event);
 }

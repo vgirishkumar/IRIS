@@ -26,7 +26,7 @@ import com.temenos.interaction.core.loader.PropertiesEvent;
 /**
  *
  */
-public interface ReloadablePropertiesListener {
+public interface ReloadablePropertiesListener<T> {
 	String[] getResourcePatterns();
-	void propertiesChanged(PropertiesEvent event);
+	void propertiesChanged(PropertiesEvent<T> event);
 }

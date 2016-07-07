@@ -58,7 +58,7 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 		DisposableBean, ApplicationContextAware {
 	private ApplicationContext ctx;
 
-	private List<ReloadablePropertiesListener> preListeners;
+	private List<ReloadablePropertiesListener<Resource>> preListeners;
 	private PropertiesPersister propertiesPersister = new DefaultPropertiesPersister();
 	private ReloadablePropertiesBase reloadableProperties;
 	private Properties properties;
@@ -67,10 +67,10 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 	private File lastChangeFile = null;
 	private XmlModificationNotifier xmlNotifier = null;
 
-	public void setListeners(List<ReloadablePropertiesListener> listeners) {
+	public void setListeners(List<ReloadablePropertiesListener<Resource>> listeners) {
 		// early type check, and avoid aliasing
-		this.preListeners = new ArrayList<ReloadablePropertiesListener>();
-		for (ReloadablePropertiesListener l : listeners) {
+		this.preListeners = new ArrayList<>();
+		for (ReloadablePropertiesListener<Resource> l : listeners) {
 			preListeners.add(l);
 		}
 	}
