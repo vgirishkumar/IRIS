@@ -42,7 +42,7 @@ public class ReloadablePropertiesBase extends DelegatingProperties implements Re
 		this.listeners = listeners;
 	}
 
-	public List<ReloadablePropertiesListener> getListeners() {
+	public List<ReloadablePropertiesListener<Resource>> getListeners() {
         return this.listeners;
     }
 
@@ -75,14 +75,17 @@ public class ReloadablePropertiesBase extends DelegatingProperties implements Re
 	/*
 	 * Adds any inexistent properties and updates the values of the existent ones 
 	 */
-	protected void updateProperties(Properties newProperties){
+	protected boolean updateProperties(Properties newProperties){
 		synchronized (this) {
+		    boolean newAdded = false;
 			Iterator<Object> iter = newProperties.keySet().iterator();
 			while(iter.hasNext()){
 				Object key = iter.next();
 				Object value = newProperties.get(key);
-				internalProperties.put(key,  value);
-			}	
+				if(internalProperties.put(key,  value) == null)
+				    newAdded = true;
+			}
+		    return newAdded;
 		}
 	}
 	

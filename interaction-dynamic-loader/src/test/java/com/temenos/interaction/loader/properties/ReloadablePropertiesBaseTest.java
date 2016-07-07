@@ -20,11 +20,11 @@ public class ReloadablePropertiesBaseTest {
 
     @Test
     public void testSetListeners() throws Exception {
-        ReloadablePropertiesListener listener1 = mock(ReloadablePropertiesListener.class);
-        ReloadablePropertiesListener listener2 = mock(ReloadablePropertiesListener.class);
-        ReloadablePropertiesListener listener3 = mock(ReloadablePropertiesListener.class);
+        ReloadablePropertiesListener<Resource> listener1 = mock(ReloadablePropertiesListener.class);
+        ReloadablePropertiesListener<Resource> listener2 = mock(ReloadablePropertiesListener.class);
+        ReloadablePropertiesListener<Resource> listener3 = mock(ReloadablePropertiesListener.class);
         
-        List<ReloadablePropertiesListener> listeners = new ArrayList<ReloadablePropertiesListener>();
+        List<ReloadablePropertiesListener<Resource>> listeners = new ArrayList<>();
         listeners.add(listener1);
         listeners.add(listener2);
         listeners.add(listener3);
@@ -40,9 +40,9 @@ public class ReloadablePropertiesBaseTest {
 
     @Test
     public void testAddReloadablePropertiesListener() throws Exception {
-        ReloadablePropertiesListener listener1 = mock(ReloadablePropertiesListener.class);
-        ReloadablePropertiesListener listener2 = mock(ReloadablePropertiesListener.class);
-        ReloadablePropertiesListener listener3 = mock(ReloadablePropertiesListener.class);
+        ReloadablePropertiesListener<Resource> listener1 = mock(ReloadablePropertiesListener.class);
+        ReloadablePropertiesListener<Resource> listener2 = mock(ReloadablePropertiesListener.class);
+        ReloadablePropertiesListener<Resource> listener3 = mock(ReloadablePropertiesListener.class);
         
         ReloadablePropertiesBase reloadable = new ReloadablePropertiesBase();
         reloadable.addReloadablePropertiesListener(listener1);
@@ -60,11 +60,11 @@ public class ReloadablePropertiesBaseTest {
 
     @Test
     public void testRemoveReloadablePropertiesListener() throws Exception {
-        ReloadablePropertiesListener listener1 = mock(ReloadablePropertiesListener.class);
-        ReloadablePropertiesListener listener2 = mock(ReloadablePropertiesListener.class);
-        ReloadablePropertiesListener listener3 = mock(ReloadablePropertiesListener.class);
+        ReloadablePropertiesListener<Resource> listener1 = mock(ReloadablePropertiesListener.class);
+        ReloadablePropertiesListener<Resource> listener2 = mock(ReloadablePropertiesListener.class);
+        ReloadablePropertiesListener<Resource> listener3 = mock(ReloadablePropertiesListener.class);
         
-        List<ReloadablePropertiesListener> listeners = new ArrayList<ReloadablePropertiesListener>();
+        List<ReloadablePropertiesListener<Resource>> listeners = new ArrayList<>();
         listeners.add(listener1);
         listeners.add(listener2);
         listeners.add(listener3);
@@ -98,9 +98,9 @@ public class ReloadablePropertiesBaseTest {
 
     @Test
     public void testNotifyPropertiesLoaded() throws Exception {
-        ReloadablePropertiesListener listener1 = mock(ReloadablePropertiesListener.class);
-        ReloadablePropertiesListener listener2 = mock(ReloadablePropertiesListener.class);
-        ReloadablePropertiesListener listener3 = mock(ReloadablePropertiesListener.class);
+        ReloadablePropertiesListener<Resource> listener1 = mock(ReloadablePropertiesListener.class);
+        ReloadablePropertiesListener<Resource> listener2 = mock(ReloadablePropertiesListener.class);
+        ReloadablePropertiesListener<Resource> listener3 = mock(ReloadablePropertiesListener.class);
         
         ReloadablePropertiesBase reloadable = new ReloadablePropertiesBase();
         reloadable.addReloadablePropertiesListener(listener1);
@@ -131,7 +131,8 @@ public class ReloadablePropertiesBaseTest {
         newProperties.put(3, "three");
         newProperties.put(4, "four");
 
-        reloadable.updateProperties(newProperties);
+        boolean newAdded = reloadable.updateProperties(newProperties);
+        assertTrue(newAdded);
         
         assertEquals(4, reloadable.getProperties().size());
         // old properties
@@ -152,9 +153,9 @@ public class ReloadablePropertiesBaseTest {
 
     @Test
     public void testNotifyPropertiesChanged() throws Exception {
-        ReloadablePropertiesListener listener1 = mock(ReloadablePropertiesListener.class);
-        ReloadablePropertiesListener listener2 = mock(ReloadablePropertiesListener.class);
-        ReloadablePropertiesListener listener3 = mock(ReloadablePropertiesListener.class);
+        ReloadablePropertiesListener<Resource> listener1 = mock(ReloadablePropertiesListener.class);
+        ReloadablePropertiesListener<Resource> listener2 = mock(ReloadablePropertiesListener.class);
+        ReloadablePropertiesListener<Resource> listener3 = mock(ReloadablePropertiesListener.class);
         
         ReloadablePropertiesBase reloadable = new ReloadablePropertiesBase();
         reloadable.addReloadablePropertiesListener(listener1);

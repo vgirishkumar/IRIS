@@ -33,9 +33,9 @@ public class ReloadablePropertiesFactoryBeanTest {
 
     @Test
     public void testSetListeners() throws Exception {
-        List<ReloadablePropertiesListener> listeners = new ArrayList<>();
-        ReloadablePropertiesListener listener1 = mock(ReloadablePropertiesListener.class);
-        ReloadablePropertiesListener listener2 = mock(ReloadablePropertiesListener.class);
+        List<ReloadablePropertiesListener<Resource>> listeners = new ArrayList<>();
+        ReloadablePropertiesListener<Resource> listener1 = mock(ReloadablePropertiesListener.class);
+        ReloadablePropertiesListener<Resource> listener2 = mock(ReloadablePropertiesListener.class);
         listeners.add(listener1);
         listeners.add(listener2);
         
@@ -49,9 +49,9 @@ public class ReloadablePropertiesFactoryBeanTest {
 
     @Test
     public void testGetListeners() throws Exception {
-        List<ReloadablePropertiesListener> listeners = new ArrayList<>();
-        ReloadablePropertiesListener listener1 = mock(ReloadablePropertiesListener.class);
-        ReloadablePropertiesListener listener2 = mock(ReloadablePropertiesListener.class);
+        List<ReloadablePropertiesListener<Resource>> listeners = new ArrayList<>();
+        ReloadablePropertiesListener<Resource> listener1 = mock(ReloadablePropertiesListener.class);
+        ReloadablePropertiesListener<Resource> listener2 = mock(ReloadablePropertiesListener.class);
         listeners.add(listener1);
         listeners.add(listener2);
         
@@ -99,9 +99,9 @@ public class ReloadablePropertiesFactoryBeanTest {
         properties.put(2, "two");
         rp.setProperties(properties);
 
-        List<ReloadablePropertiesListener> listeners = new ArrayList<>();
-        ReloadablePropertiesListener listener1 = mock(ReloadablePropertiesListener.class);
-        ReloadablePropertiesListener listener2 = mock(ReloadablePropertiesListener.class);
+        List<ReloadablePropertiesListener<Resource>> listeners = new ArrayList<>();
+        ReloadablePropertiesListener<Resource> listener1 = mock(ReloadablePropertiesListener.class);
+        ReloadablePropertiesListener<Resource> listener2 = mock(ReloadablePropertiesListener.class);
         listeners.add(listener1);
         listeners.add(listener2);
         rp.setListeners(listeners);
@@ -206,10 +206,10 @@ public class ReloadablePropertiesFactoryBeanTest {
         Path root = Paths.get(rootPath);
         Files.createDirectories(root);
         
-        Path tmp1 = Paths.get(rootPath + "/IRIS-Customer-PRD.xml");
+        Path tmp1 = Paths.get(rootPath + "/metadata-customer.xml");
         if(!Files.exists(tmp1)) Files.createFile(tmp1);
         
-        Path tmp2 = Paths.get(rootPath + "/IRIS-Customer.properties");
+        Path tmp2 = Paths.get(rootPath + "/IRIS-customer.properties");
         if(!Files.exists(tmp2)) Files.createFile(tmp2);
 
         Resource[] resources = new Resource[2];
@@ -250,6 +250,14 @@ public class ReloadablePropertiesFactoryBeanTest {
         verify(spy).execute(any(FileEvent.class));
         // TODO: we should verify that the properties are reloaded, but currently
         // there's no way to do this...
+        
+        rp.destroy();
+        
+        // clean-up
+        Files.deleteIfExists(lastChange);
+        Files.deleteIfExists(tmp1);
+        Files.deleteIfExists(tmp2);
+        Files.deleteIfExists(root);
     }
 
 }

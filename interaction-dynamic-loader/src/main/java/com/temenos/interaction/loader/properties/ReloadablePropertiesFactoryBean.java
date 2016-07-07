@@ -68,12 +68,12 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 	private XmlModificationNotifier xmlNotifier = null;
 
 	public void setListeners(List<ReloadablePropertiesListener<Resource>> listeners) {
-		for (ReloadablePropertiesListener l : listeners) {
+		for (ReloadablePropertiesListener<Resource> l : listeners) {
 			preListeners.add(l);
 		}
 	}
 	
-	public List<ReloadablePropertiesListener> getListeners() {
+	public List<ReloadablePropertiesListener<Resource>> getListeners() {
 	    return this.preListeners;
 	}
 
@@ -361,7 +361,7 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 				String fileName = location.getFilename();
 
 				if (fileName.endsWith(".xml")) {
-					if (fileName.startsWith("IRIS-") || fileName.startsWith("metadata-")) {
+					if (fileName.startsWith("metadata-")) {
 						logger.info("Refreshing : " + fileName);
 						xmlNotifier.execute(new XmlChangedEventImpl(location));
 					}
@@ -371,12 +371,16 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 					 * Ensure this property has been loaded.
 					 */
 					propertiesPersister.load(newProperties, location.getInputStream());
-					reloadableProperties.updateProperties(newProperties);
-					logger.info("Refreshing : " + location.getFilename());
-					/*
-					 * Notify subscribers that properties have been modified
-					 */
-					reloadableProperties.notifyPropertiesChanged(location, newProperties);
+					if (reloadableProperties.updateProperties(newProperties)) {
+                        logger.info("Loading new : " + location.getFilename());
+                        reloadableProperties.notifyPropertiesLoaded(location, newProperties);
+                    } else {
+                        logger.info("Refreshing : " + location.getFilename());
+                        /*
+                         * Notify subscribers that properties have been modified
+                         */
+                        reloadableProperties.notifyPropertiesChanged(location, newProperties);
+                    }
 				}
 			} catch (Exception e) {
 				logger.error("Unexpected error when dynamicly loading resources ", e);
