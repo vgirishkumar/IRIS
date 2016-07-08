@@ -105,6 +105,8 @@ public class AtomLinkHandler {
 		} else {
 			Element entryElement = inlineElement.getFirstChild(new QName(
 					NS_ATOM, "entry"));
+			//As we lose the reference to the parent after the conversion to String, we need to explicitly set the baseUri
+			entryElement.setBaseUri(abderaLink.getBaseUri());
 			if (entryElement != null) {
 				content = getContent(entryElement);
 			}
