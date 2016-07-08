@@ -1,5 +1,27 @@
 package com.temenos.interaction.loader.properties;
 
+/*
+ * #%L
+ * interaction-dynamic-loader
+ * %%
+ * Copyright (C) 2012 - 2016 Temenos Holdings N.V.
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * #L%
+ */
+
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -106,6 +128,13 @@ public class ReloadablePropertiesFactoryBeanTest {
         listeners.add(listener2);
         rp.setListeners(listeners);
         
+        String[] patterns = { "*" };
+        when(listener1.getResourcePatterns()).thenReturn(patterns);
+        when(listener2.getResourcePatterns()).thenReturn(patterns);
+        
+        XmlModificationNotifier xmlNotifier = mock(XmlModificationNotifier.class);
+        rp.setXmlNotifier(xmlNotifier);
+
         ReloadablePropertiesBase newInstance = (ReloadablePropertiesBase) rp.createInstance();
         assertEquals(rp.getProperties(), newInstance.getProperties());
         assertEquals(rp.getListeners(), newInstance.getListeners());
@@ -127,6 +156,14 @@ public class ReloadablePropertiesFactoryBeanTest {
         when(ctx.getResources(any(String.class))).thenReturn(resources);
         rp.setApplicationContext(ctx);
 
+        // set last modified time of the lastChange file to the maximum long
+        // so that the class believes that new changes should be processed
+        Path lastChange = Paths.get("models-gen/lastChange");
+        if(Files.exists(lastChange)) Files.delete(lastChange);
+        Files.createFile(lastChange);
+        // set the modified time for one year ahead
+        Files.setAttribute(lastChange, "lastModifiedTime", FileTime.fromMillis(System.currentTimeMillis() + 31536000000L));
+        
         ReloadablePropertiesBase newInstance = (ReloadablePropertiesBase) rp.createInstance();
         assertNotNull(newInstance);
         // reload works
@@ -200,8 +237,6 @@ public class ReloadablePropertiesFactoryBeanTest {
     public void testReload() throws Exception {
         ReloadablePropertiesFactoryBean rp = new ReloadablePropertiesFactoryBean();
 
-        final long timestamp = System.currentTimeMillis();
-
         String rootPath = "models-gen/src/generated/iris";
         Path root = Paths.get(rootPath);
         Files.createDirectories(root);
@@ -215,8 +250,10 @@ public class ReloadablePropertiesFactoryBeanTest {
         Resource[] resources = new Resource[2];
         Resource resource1 = mock(Resource.class);
         when(resource1.getURI()).thenReturn(tmp1.toUri());
+        when(resource1.getURL()).thenReturn(tmp1.toUri().toURL());
         Resource resource2 = mock(Resource.class);
         when(resource2.getURI()).thenReturn(tmp2.toUri());
+        when(resource2.getURL()).thenReturn(tmp2.toUri().toURL());
         resources[0] = resource1;
         resources[1] = resource2;
 
@@ -235,7 +272,8 @@ public class ReloadablePropertiesFactoryBeanTest {
         Files.write(lastChange, tmp1FileNameBytes, StandardOpenOption.APPEND);
         byte[] tmp2FileNameBytes = tmp2.toString().getBytes();
         Files.write(lastChange, tmp2FileNameBytes, StandardOpenOption.APPEND);
-        Files.setAttribute(lastChange, "lastModifiedTime", FileTime.fromMillis(timestamp+10000000));
+        // set the modified time for one year ahead
+        Files.setAttribute(lastChange, "lastModifiedTime", FileTime.fromMillis(System.currentTimeMillis() + 31536000000L));
         
         XmlModificationNotifier xmlNotifier = new XmlModificationNotifier();
         XmlModificationNotifier spy = Mockito.spy(xmlNotifier);
@@ -245,19 +283,66 @@ public class ReloadablePropertiesFactoryBeanTest {
         // this is the way to create an instance of the private variable reloadableProperties...
         rp.createInstance();
         
-        rp.reload(true);
+        rp.reload(false);
         
         verify(spy).execute(any(FileEvent.class));
         // TODO: we should verify that the properties are reloaded, but currently
         // there's no way to do this...
+    }
+
+    @Test
+    public void testReloadForced() throws Exception {
+        ReloadablePropertiesFactoryBean rp = new ReloadablePropertiesFactoryBean();
+
+        String rootPath = "models-gen/src/generated/iris";
+        Path root = Paths.get(rootPath);
+        Files.createDirectories(root);
         
-        rp.destroy();
+        Path tmp1 = Paths.get(rootPath + "/metadata-customer.xml");
+        if(!Files.exists(tmp1)) Files.createFile(tmp1);
         
-        // clean-up
-        Files.deleteIfExists(lastChange);
-        Files.deleteIfExists(tmp1);
-        Files.deleteIfExists(tmp2);
-        Files.deleteIfExists(root);
+        Path tmp2 = Paths.get(rootPath + "/IRIS-customer.properties");
+        if(!Files.exists(tmp2)) Files.createFile(tmp2);
+
+        Resource[] resources = new Resource[2];
+        Resource resource1 = mock(Resource.class);
+        when(resource1.getURI()).thenReturn(tmp1.toUri());
+        when(resource1.getURL()).thenReturn(tmp1.toUri().toURL());
+        Resource resource2 = mock(Resource.class);
+        when(resource2.getURI()).thenReturn(tmp2.toUri());
+        when(resource2.getURL()).thenReturn(tmp2.toUri().toURL());
+        resources[0] = resource1;
+        resources[1] = resource2;
+
+        ApplicationContext ctx = mock(ApplicationContext.class);
+        when(ctx.getResources(any(String.class))).thenReturn(resources);
+
+        rp.setApplicationContext(ctx);
+
+        // set last modified time of the lastChange file to 0
+        // so that the class only reloads if it is forced to
+        Path lastChange = Paths.get("models-gen/lastChange");
+        if(Files.exists(lastChange)) Files.delete(lastChange);
+        Files.createFile(lastChange);
+        // add the files file to the lastChange file index
+        byte[] tmp1FileNameBytes = (tmp1.toString() + System.getProperty("line.separator")).getBytes();
+        Files.write(lastChange, tmp1FileNameBytes, StandardOpenOption.APPEND);
+        byte[] tmp2FileNameBytes = tmp2.toString().getBytes();
+        Files.write(lastChange, tmp2FileNameBytes, StandardOpenOption.APPEND);
+        // set the modified time to 0
+        Files.setAttribute(lastChange, "lastModifiedTime", FileTime.fromMillis(0));
+        
+        XmlModificationNotifier xmlNotifier = new XmlModificationNotifier();
+        XmlModificationNotifier spy = Mockito.spy(xmlNotifier);
+        Mockito.doNothing().when(spy).execute(any(FileEvent.class));
+        rp.setXmlNotifier(spy);
+        
+        // here we force the reload
+        rp.createInstance();
+        
+        verify(spy).execute(any(FileEvent.class));
+        // TODO: we should verify that the properties are reloaded, but currently
+        // there's no way to do this...
     }
 
 }

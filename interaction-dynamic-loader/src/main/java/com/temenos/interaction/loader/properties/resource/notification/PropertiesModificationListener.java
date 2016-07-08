@@ -38,13 +38,15 @@ public class PropertiesModificationListener implements ReloadablePropertiesListe
 	}
 
 	@Override
-	public String[] getResourcePatterns() {				
+	public String[] getResourcePatterns() {
+	    assert notifier != null;
 		return notifier.getPatterns().toArray(new String[0]);
 	}
 
 	@Override
 	public void propertiesChanged(PropertiesEvent<Resource> event) {
 		if(applicationInitialized) {
+		    assert notifier != null;
 			notifier.execute(event);
 		}
 	}

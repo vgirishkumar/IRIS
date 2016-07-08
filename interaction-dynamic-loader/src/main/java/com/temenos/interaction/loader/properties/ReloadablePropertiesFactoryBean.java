@@ -280,12 +280,14 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 		boolean reload = false;
 
 		List<Resource> changedPaths = new ArrayList<>();
-
-		if (lastChangeFile != null && lastChangeFile.exists()) {
-			long lastChange = lastChangeFile.lastModified();
-			if (lastChange <= lastFileTimeStamp) {
-				return;
-			}
+	    
+	    if (lastChangeFile != null && lastChangeFile.exists()) {
+	        if(!forceReload) {
+	            long lastChange = lastChangeFile.lastModified();
+	            if (lastChange <= lastFileTimeStamp) {
+	                return;
+	            }
+	        }
 			if (lastChangeFile.length() > 0) {
 			    reload = true;
 				/*
@@ -320,13 +322,14 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 			lastFileTimeStamp = System.currentTimeMillis() - 2000;
 		}
 
-		if(!reload)
+		if(!forceReload && !reload)
 		    return;
 		
-		if (changedPaths.isEmpty())
-	        // only if nothing interesting was in the lastChange file
-		    scanForUpdates(changedPaths, lastFileTimeStamp);
-		
+        if (changedPaths.isEmpty()) {
+            // only if nothing interesting was in the lastChange file
+            scanForUpdates(changedPaths, lastFileTimeStamp);
+        }
+
 		long initTimestamp = System.currentTimeMillis();
 		
 		refreshResources(changedPaths);
@@ -337,8 +340,10 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 	}
 
     private void scanForUpdates(List<Resource> resources, long timestamp) throws IOException {
+        assert resources != null;
+        assert resourcesPath != null;
         List<SimplePattern> lstPatterns = new ArrayList<>();
-        for (ReloadablePropertiesListener listener : preListeners) {
+        for (ReloadablePropertiesListener<Resource> listener : preListeners) {
             String[] sPatterns = listener.getResourcePatterns();
             for (String pattern : sPatterns) {
                 String[] orPatterns = pattern.split("\\|");
