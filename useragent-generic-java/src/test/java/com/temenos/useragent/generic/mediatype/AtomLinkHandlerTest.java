@@ -125,7 +125,15 @@ public class AtomLinkHandlerTest {
             testEntry.getLink("http://temenostech.temenos.com/rels/errors")
         ).getEmbeddedPayload());
     }
-
+    
+    @Test
+	public void testGetEmbeddedPayloadBaseUriSet() {
+    	AtomLinkHandler errorsLinkHandler = new AtomLinkHandler(
+				testEntry.getLink("http://temenostech.temenos.com/rels/errors"));
+		Payload embeddedErrors = errorsLinkHandler.getEmbeddedPayload();
+		assertNotNull(embeddedErrors.links().get(0).baseUrl());
+	}
+    
 	private Entry loadTestEntry(String resource) {
 		Entry entry = new Abdera()
 				.getParser()
