@@ -23,7 +23,6 @@ package com.temenos.interaction.loader.properties;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -56,24 +55,22 @@ import com.temenos.interaction.springdsl.DynamicProperties;
  */
 public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean implements DynamicProperties,
 		DisposableBean, ApplicationContextAware {
-	private ApplicationContext ctx = null;
+	private ApplicationContext ctx;
 
 	private List<ReloadablePropertiesListener<Resource>> preListeners = new ArrayList<>();
 	private PropertiesPersister propertiesPersister = new DefaultPropertiesPersister();
-	private ReloadablePropertiesBase reloadableProperties = null;
-	private Properties properties = null;
+	private ReloadablePropertiesBase reloadableProperties;
+	private Properties properties;
 	private long lastFileTimeStamp = 0;
-	private List<Resource> resourcesPath = null;
-	private File lastChangeFile = null;
-	private XmlModificationNotifier xmlNotifier = null;
+	private List<Resource> resourcesPath;
+	private File lastChangeFile;
+	private XmlModificationNotifier xmlNotifier;
 
 	public void setListeners(List<ReloadablePropertiesListener<Resource>> listeners) {
-		for (ReloadablePropertiesListener<Resource> l : listeners) {
-			preListeners.add(l);
-		}
+	    preListeners.addAll(listeners);
 	}
 	
-	public List<ReloadablePropertiesListener<Resource>> getListeners() {
+	List<ReloadablePropertiesListener<Resource>> getListeners() {
 	    return this.preListeners;
 	}
 
@@ -82,7 +79,7 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 		this.properties = properties;
 	}
 	
-	public Properties getProperties() {
+	Properties getProperties() {
 	    return this.properties;
 	}
 
@@ -107,36 +104,6 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 	@Override
 	public void destroy() throws Exception {
 		reloadableProperties = null;
-	}
-
-	/*
-	 * Resolves all files matching the list of given patterns
-	 * under a directory (or just a file) that are more recent than the timestamp
-	 * 
-	 *  @root a file or directory to look for files
-	 *  @patterns a list of file patterns to use as search criteria
-	 */
-	protected void getMoreRecentThan(File root, final long timestamp, final List<Resource> resources,
-			final List<SimplePattern> patterns) {
-		File file = root;
-
-		file.listFiles(new FileFilter() {
-			@Override
-			public boolean accept(File pathname) {
-				if (pathname.isDirectory()) {
-					getMoreRecentThan(pathname, timestamp, resources, patterns);
-				} else {
-					if (pathname.lastModified() > timestamp) {
-						for (SimplePattern pattern : patterns) {
-							if (pattern.matches(pathname.getName())) {
-								resources.add(new FileSystemResource(pathname));
-							}
-						}
-					}
-				}
-				return false;
-			}
-		});
 	}
 
 	protected void reload(boolean forceReload) throws IOException {
@@ -195,73 +162,42 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 	private List<Resource> getLastChangeAndClear(File f) {
 		File lastChangeFileLock = new File(f.getParent(), ".lastChangeLock");
 		List<Resource> ret = new ArrayList<>();
-		FileLock lock = null;
-		BufferedReader bufR = null;
-		FileChannel fc = null;
-		FileChannel fcLock = null;
-		try {
-			/*
-			 * Maintain a specific lock to avoid partial file locking.
-			 */
-			fcLock = new RandomAccessFile(lastChangeFileLock, "rw").getChannel();
-			lock = fcLock.lock();
-			
-			fc = new RandomAccessFile(f, "rws").getChannel();
+        /*
+         * Maintain a specific lock to avoid partial file locking.
+         */
+        try (FileChannel fcLock = new RandomAccessFile(lastChangeFileLock, "rw").getChannel()) {
 
-			bufR = new BufferedReader(new FileReader(f));
-			String sLine = null;
-			boolean bFirst = true;
-			while ((sLine = bufR.readLine()) != null) {
-				if (bFirst) {
-					if (sLine.startsWith("RefreshAll")) {
-						ret = null;
-						break;
-					}
-					bFirst = false;
-				}
-				Resource toAdd = new FileSystemResource(new File(sLine));
-				if (!ret.contains(toAdd)) {
-					ret.add(toAdd);
-				}
-			}
-			/*
-			 * Empty the file
-			 */
-			fc.truncate(0);
-		} catch (Exception e) {
-			logger.error("Failed to get the lastChanges contents.", e);
-		} finally {
-			try {
-				if(lock != null)
-				    lock.release();
-			} catch (IOException e) {
-				logger.error("Failed close bufferedReader on lastChange file.", e);
-			}
-			try {
-			    if(fcLock != null)
-			        fcLock.close();
-			} catch (IOException e) {
-				logger.error("Failed to release lock on .lastChangeLock file.", e);
-			}
-			try {
-			    if(bufR != null)
-			        bufR.close();
-			} catch (IOException e) {
-				logger.error("Failed close bufferedReader on lastChange file.", e);
-			}
-			try {
-                if (fc != null)
-                    fc.close();
-			} catch (IOException e) {
-				logger.error("Failed close filechannel on lastChange file.", e);
-			}
+            try (FileLock lock = fcLock.lock()) {
 
-			/*
-			 * No need to release the lock as it is done when closing the
-			 * FileChannel
-			 */
+                try (FileChannel fc = new RandomAccessFile(f, "rws").getChannel()) {
 
-		}
+                    try (BufferedReader bufR = new BufferedReader(new FileReader(f))) {
+                        String sLine = null;
+                        boolean bFirst = true;
+                        while ((sLine = bufR.readLine()) != null) {
+                            if (bFirst) {
+                                if (sLine.startsWith("RefreshAll")) {
+                                    ret = null;
+                                    break;
+                                }
+                                bFirst = false;
+                            }
+                            Resource toAdd = new FileSystemResource(new File(sLine));
+                            if (!ret.contains(toAdd)) {
+                                ret.add(toAdd);
+                            }
+                        }
+                        /*
+                         * Empty the file
+                         */
+                        fc.truncate(0);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Failed to get the lastChanges contents.", e);
+        }
+		
 		return ret;
 	}
 
@@ -322,14 +258,9 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 			lastFileTimeStamp = System.currentTimeMillis() - 2000;
 		}
 
-		if(!forceReload && !reload)
+		if(!reload)
 		    return;
 		
-        if (changedPaths.isEmpty()) {
-            // only if nothing interesting was in the lastChange file
-            scanForUpdates(changedPaths, lastFileTimeStamp);
-        }
-
 		long initTimestamp = System.currentTimeMillis();
 		
 		refreshResources(changedPaths);
@@ -339,24 +270,6 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 	    }
 	}
 
-    private void scanForUpdates(List<Resource> resources, long timestamp) throws IOException {
-        assert resources != null;
-        assert resourcesPath != null;
-        List<SimplePattern> lstPatterns = new ArrayList<>();
-        for (ReloadablePropertiesListener<Resource> listener : preListeners) {
-            String[] sPatterns = listener.getResourcePatterns();
-            for (String pattern : sPatterns) {
-                String[] orPatterns = pattern.split("\\|");
-                for (String orPattern : orPatterns) {
-                    lstPatterns.add(new SimplePattern(orPattern));
-                }
-            }
-        }
-        for (Resource resource : resourcesPath) {
-            getMoreRecentThan(new File(resource.getURL().getFile()), timestamp, resources, lstPatterns);
-        }
-    }
-	
 	private void refreshResources(List<Resource> resources) {
 	    assert xmlNotifier != null;
 	    assert propertiesPersister != null;
@@ -405,21 +318,5 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 	@Override
 	public void setApplicationContext(ApplicationContext ctx) throws BeansException {
 		this.ctx = ctx;
-	}
-
-	class SimplePattern {
-		private final String startsWith;
-		private final String endsWith;
-
-		SimplePattern(String ipattern) {
-			String pattern = ipattern.replace("classpath*:", "");
-			int idx = pattern.indexOf('*');
-			startsWith = pattern.substring(0, idx);
-			endsWith = pattern.substring(idx + 1);
-		}
-
-		private boolean matches(String s) {
-			return s.startsWith(startsWith) && s.endsWith(endsWith);
-		}
 	}
 }
