@@ -94,9 +94,9 @@ import com.temenos.interaction.odataext.ODataHelper;
  *  Entity set: 	Cars
  */
 public class MetadataOData4j {
-	private final static Logger logger = LoggerFactory.getLogger(MetadataOData4j.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MetadataOData4j.class);
 
-	private final static String MULTI_NAV_PROP_TO_ENTITY = "MULTI_NAV_PROP";
+	private static final String MULTI_NAV_PROP_TO_ENTITY = "MULTI_NAV_PROP";
 
 	private ConcurrentMap<String, EdmEntitySet> nonSrvDocEdmEntitySetMap;
 	private ConcurrentMap<String, EdmComplexType> nonSrvDocEdmComplexTypeMap;
@@ -142,7 +142,7 @@ public class MetadataOData4j {
 	 * @param odataVersion the odataVersion to set.
 	 */
 	public void setOdataVersion(ODataVersion odataVersion) {
-		logger.debug("OData Version set to " + odataVersion);
+		LOGGER.debug("OData Version set to {}", odataVersion);
 		this.odataVersion = odataVersion;
 	}
 	
@@ -219,7 +219,7 @@ public class MetadataOData4j {
 					result = edmEntitySet.getType();
 				} catch(IllegalArgumentException e) {
 					// Expected for cases where entity type does not have keys i.e. ServiceDocument, Metadata, etc..
-					logger.debug("Failed to get type for" + typeName, e);
+					LOGGER.debug("Failed to get type for {}", typeName, e);
 				}
 			}
 		}
@@ -233,7 +233,7 @@ public class MetadataOData4j {
 			edmEntitySet = getEdmMetadata().getEdmEntitySet(type);
 		} catch (Exception e) {
 			// Ignore.... as we will be try lazy loading after this
-			logger.debug("EntitySet for [" + type + "] not found in EdmDataServices, try loading it seperately...", e);
+			LOGGER.debug("EntitySet for [{}] not found in EdmDataServices, try loading it seperately...", type, e);
 		}
 		// If its null
 		if (edmEntitySet == null) {
@@ -257,7 +257,7 @@ public class MetadataOData4j {
 			edmEntitySet = ODataHelper.getEntitySet(entityName, getEdmMetadata());
 		} catch (Exception e) {
 			// Ignore.... as we will be try lazy loading after this
-			logger.debug("EntitySet for [" + entityName + "] not found in EdmDataServices, try loading it seperately...", e);
+			LOGGER.debug("EntitySet for [{}] not found in EdmDataServices, try loading it seperately...", entityName, e);
 		}
 		// If its null
 		if (edmEntitySet == null) {
@@ -367,7 +367,7 @@ public class MetadataOData4j {
 		try {
 			ees = getEdmMetadata().findEdmEntitySet(entitySetName);
 		} catch (Exception e) {
-			logger.warn("Failed to find EDM entity set", e);
+			LOGGER.warn("Failed to find EDM entity set", e);
 		}
 		
 		return ees;
@@ -386,7 +386,7 @@ public class MetadataOData4j {
 		Builder mdBuilder = EdmDataServices.newBuilder();
 		
 		mdBuilder.setVersion(odataVersion);
-		logger.info("Using OData version " + odataVersion);
+		LOGGER.info("Using OData version {}", odataVersion);
 		if (odataVersion==ODataVersion.V2)
 			mdBuilder.addNamespaces(Collections.singletonList(new PrefixedNamespace(AbstractOdataAnnotation.NAMESPACE, AbstractOdataAnnotation.PREFIX)));
 		
@@ -407,13 +407,17 @@ public class MetadataOData4j {
 			
 			EntityMetadata entityMetadata = metadata.getEntityMetadata(state.getEntityName());
 			
+			if(entityMetadata == null) {
+			    LOGGER.warn("Failed to get metadata for state name '{}' / entity name '{}'", state.getName(), state.getEntityName());
+			    continue;
+			}
+			
 			// Always strictKeyCheck here because we will be building EdmDataServices from this
 			EdmEntityType.Builder bEntityType = getEdmTypeBuilder(entityMetadata, bComplexTypeMap, true);
 			if (bEntityType != null) {
 				bEntityTypeMap.put(state.getEntityName(), bEntityType);					
 			} else {
-				logger.warn("Entity name '" + state.getEntityName() + "' does not have type. " +
-							"entityMetadata=" + entityMetadata);
+				LOGGER.warn("Entity name '{}' does not have type. entityMetadata={}", state.getEntityName(), entityMetadata);
 			}
 		}
 					
@@ -471,15 +475,18 @@ public class MetadataOData4j {
 				// Index EntitySets by Entity name
 				EdmEntityType.Builder entityType = bEntityTypeMap.get(source.getEntityName());
 				
-				if (entityType == null) 
-					throw new RuntimeException("Entity type not found for " + source.getEntityName());
+				if (entityType == null) { 
+					LOGGER.warn("Entity type not found for {}" + source.getEntityName());
+				    continue;
+				}
+				
 				Transition fromInitialState = serviceDocument.getTransition(source);
 				EdmEntitySet.Builder bEntitySet = EdmEntitySet.newBuilder().setName(source.getName()).setEntityType(entityType);
 				if (fromInitialState != null) {
-					//Add entity set
+					// Add entity set
 					bEntitySetMap.put(source.getEntityName(), bEntitySet);
 				} else {
-					logger.error("Not adding entity set ["+source.getName()+"] to metadata, no transition from initial state ["+serviceDocument.getName()+"]");
+					LOGGER.debug("Not adding entity set [{}] to metadata, no transition from initial state [{}]", source.getName(), serviceDocument.getName());
 				}
 			}			
 		}
@@ -491,14 +498,19 @@ public class MetadataOData4j {
 				Transition fromInitialState = serviceDocument.getTransition(state);
 				if (fromInitialState == null) {
 					EdmEntitySet.Builder bEntitySet = bEntitySetMap.get(state.getEntityName());
-					// Add Function
-					EdmFunctionImport.Builder bFunctionImport = EdmFunctionImport.newBuilder()
-							.setName(state.getName())
-							.setEntitySet(bEntitySet)
-							.setHttpMethod(HttpMethod.GET)
-							.setIsCollection(true)
-							.setReturnType(bEntityTypeMap.get(state.getEntityName()));
-					bFunctionImportMap.put(state.getName(), bFunctionImport);
+					
+					if(bEntitySet == null) {
+					    LOGGER.warn("Failed to find entity set for entity {}", state.getEntityName());
+					} else {
+    					// Add Function
+    					EdmFunctionImport.Builder bFunctionImport = EdmFunctionImport.newBuilder()
+    							.setName(state.getName())
+    							.setEntitySet(bEntitySet)
+    							.setHttpMethod(HttpMethod.GET)
+    							.setIsCollection(true)
+    							.setReturnType(bEntityTypeMap.get(state.getEntityName()));
+    					bFunctionImportMap.put(state.getName(), bFunctionImport);
+					}
 				}
 			}
 		}
@@ -551,7 +563,7 @@ public class MetadataOData4j {
 		
 		String complexTypePrefix = new StringBuilder(entityMetadata.getEntityName()).append("_").toString();
 		for(String propertyName : entityMetadata.getPropertyVocabularyKeySet()) {
-			logger.debug("EdmTypeBuilder["+entityMetadata.getEntityName()+"] - " + propertyName);
+			LOGGER.debug("EdmTypeBuilder[{}] - {}", entityMetadata.getEntityName(), propertyName);
 			//Entity properties, lets gather some information about the property
 			String termComplex = entityMetadata.getTermValue(propertyName, TermComplexType.TERM_NAME);							// Is vocabulary a group (Complex Type)
 			boolean termList = Boolean.parseBoolean(entityMetadata.getTermValue(propertyName, TermListType.TERM_NAME));	// Is vocabulary a List of (Complex Types)
@@ -654,7 +666,7 @@ public class MetadataOData4j {
 		
 			return bEntityType;
 		} else {
-			logger.error("Unable to add EntityType for [" + entityMetadata.getEntityName() + "] - no ID column defined");
+			LOGGER.error("Unable to add EntityType for [{}] - no ID column defined", entityMetadata.getEntityName());
 			return null;
 		}
 	}
