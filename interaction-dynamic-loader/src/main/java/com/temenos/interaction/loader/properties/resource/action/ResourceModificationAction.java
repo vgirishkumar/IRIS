@@ -21,6 +21,8 @@ package com.temenos.interaction.loader.properties.resource.action;
  * #L%
  */
 
+import org.springframework.core.io.Resource;
+
 import com.temenos.interaction.core.loader.Action;
 import com.temenos.interaction.core.loader.PropertiesChangedEvent;
 import com.temenos.interaction.core.loader.PropertiesEvent;
@@ -29,7 +31,7 @@ import com.temenos.interaction.core.loader.PropertiesLoadedEvent;
 import com.temenos.interaction.core.loader.PropertiesResourceModificationAction;
 import com.temenos.interaction.loader.resource.action.AbstractResourceModificationAction;
 
-public class ResourceModificationAction<Resource> extends AbstractResourceModificationAction implements PropertiesResourceModificationAction<Resource> {
+public class ResourceModificationAction extends AbstractResourceModificationAction implements PropertiesResourceModificationAction {
 	private Action<PropertiesChangedEvent<Resource>> changedAction;
 	private Action<PropertiesLoadedEvent<Resource>> loadedAction;
 	
@@ -45,11 +47,11 @@ public class ResourceModificationAction<Resource> extends AbstractResourceModifi
 	 * @see com.temenos.interaction.loader.properties.resource.action.PropertiesResourceModificationAction#notify(com.temenos.interaction.core.loader.PropertiesEvent)
 	 */
 	@Override
-	public void notify(PropertiesEvent event ) {
-		event.accept(new PropertiesEventVisitor() {
+	public void notify(PropertiesEvent<Resource> event ) {
+		event.accept(new PropertiesEventVisitor<Resource>() {
 			
 			@Override
-			public void visit(PropertiesChangedEvent event) {
+			public void visit(PropertiesChangedEvent<Resource> event) {
 				if(changedAction != null) {
 					if(matches(event)) {
 						changedAction.execute(event);
@@ -58,7 +60,7 @@ public class ResourceModificationAction<Resource> extends AbstractResourceModifi
 			}
 						
 			@Override
-			public void visit(PropertiesLoadedEvent event) {
+			public void visit(PropertiesLoadedEvent<Resource> event) {
 				if(loadedAction != null) {
 					if(matches(event)) {
 						loadedAction.execute(event);

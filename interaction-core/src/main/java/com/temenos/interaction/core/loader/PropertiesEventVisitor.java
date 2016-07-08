@@ -22,7 +22,7 @@ package com.temenos.interaction.core.loader;
  */
 
 
-public interface PropertiesEventVisitor {
-	void visit(PropertiesLoadedEvent event);	
-	void visit(PropertiesChangedEvent event);	
+public interface PropertiesEventVisitor<T> {
+	void visit(PropertiesLoadedEvent<T> event);	
+	void visit(PropertiesChangedEvent<T> event);	
 }
