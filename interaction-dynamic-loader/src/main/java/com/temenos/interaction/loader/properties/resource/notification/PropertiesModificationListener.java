@@ -38,7 +38,7 @@ public class PropertiesModificationListener implements ReloadablePropertiesListe
 	}
 
 	@Override
-	public String[] getResourcePatterns() {				
+	public String[] getResourcePatterns() {
 		return notifier.getPatterns().toArray(new String[0]);
 	}
 
