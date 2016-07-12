@@ -22,10 +22,6 @@ package com.temenos.interaction.core.command;
  */
 
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
-
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 
@@ -49,19 +45,7 @@ public final class NoopGETCommand implements InteractionCommand {
 			ctx.setResource(new EntityResource<Object>());
 		}
 		
-	    
-	    for (Entry<String, List<String>> entry : ctx.getQueryParameters().entrySet()) {
-	        StringBuilder valueString = new StringBuilder();
-	        Iterator<String> iter = entry.getValue().iterator();
-	        while (iter.hasNext()) {
-	            valueString.append(iter.next());
-	            if (iter.hasNext()) {
-	                valueString.append(",");
-	            }
-	        }
-	        
-	        ctx.getOutQueryParameters().put(entry.getKey(), valueString.toString());
-	    }
+		ctx.getOutQueryParameters().putAll(ctx.getQueryParameters());
 		
 		return Result.SUCCESS;
 	}

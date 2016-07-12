@@ -106,10 +106,12 @@ public class LinkGeneratorImpl implements LinkGenerator {
 
             // Add any query parameters set by the command to the response
             if (interactionContext != null) {
-                Map<String, String> outQueryParams = interactionContext.getOutQueryParameters();
+                MultivaluedMap<String, String> outQueryParams = interactionContext.getOutQueryParameters();
 
-                for (Map.Entry<String, String> param : outQueryParams.entrySet()) {
-                    linkTemplate.queryParam(param.getKey(), param.getValue());
+                for (Map.Entry<String, List<String>> param : outQueryParams.entrySet()) {
+                    for(String paramValue: param.getValue()) {
+                        linkTemplate.queryParam(param.getKey(), paramValue);
+                    }
                 }
             }
 
