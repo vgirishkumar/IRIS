@@ -22,13 +22,20 @@ package com.temenos.interaction.core.resource;
  */
 
 
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.*;
-import static org.hamcrest.CoreMatchers.sameInstance;
-import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.same;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
@@ -95,11 +102,11 @@ public class TestEntityResource {
 	}
 	
 	@Test
-	public void testCloneWithOEntity() throws CloneNotSupportedException {		
+	public void testCopyWithOEntity() {		
 		//given
 		doReturn(this.oEntityEntityResourceMock).when(this.oEntityEntityResource).createNewEntityResource(anyString(), any(OEntity.class));
 		//when
-		EntityResource<OEntity> result = this.oEntityEntityResource.clone();
+		EntityResource<OEntity> result = this.oEntityEntityResource.shallowCopy();
 		assertThat(result, not(sameInstance(this.oEntityEntityResource)));
 		//then
 		verify(this.oEntityEntityResource).createNewEntityResource(eq("company"), same(this.oEntity));
@@ -109,11 +116,11 @@ public class TestEntityResource {
 	}
 	
 	@Test
-	public void testCloneWithEntity() throws CloneNotSupportedException {		
+	public void testCopyWithEntity() {		
 		//given
 		doReturn(this.entityEntityResourceMock).when(this.entityEntityResource).createNewEntityResource(anyString(), any(Entity.class));
 		//when
-		EntityResource<Entity> result = this.entityEntityResource.clone();
+		EntityResource<Entity> result = this.entityEntityResource.shallowCopy();
 		assertThat(result, not(sameInstance(this.entityEntityResource)));
 		//then
 		verify(this.entityEntityResource).createNewEntityResource(eq("user"), same(this.entity));
