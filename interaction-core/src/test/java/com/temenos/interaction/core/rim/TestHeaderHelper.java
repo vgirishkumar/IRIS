@@ -30,7 +30,11 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -208,5 +212,19 @@ public class TestHeaderHelper {
         values.add("customerName", "Jill");
         values.add("trans&ction", "!0!");
         HeaderHelper.encodeMultivalueQueryParameters(values);
+    }
+    
+    @Test
+    public void testEncodeQueryParametersWithMultivaluedMapContainingEmptyLists(){
+        HashMap<String, List<String>> values = new MultivaluedMapImpl<String>();
+        values.put("customerName", new ArrayList<String>());
+        values.put("transaction", new ArrayList<String>());
+        values.put("item", new ArrayList<String>(Arrays.asList(new String[]{"apple"})));
+        values.put("money", new ArrayList<String>());
+        MultivaluedMap<String, String> reinterpretedMap = new MultivaluedMapImpl<String>();
+        reinterpretedMap.putAll(values);
+        String queryParam = HeaderHelper.encodeMultivalueQueryParameters(reinterpretedMap);
+        assertThat(queryParam, containsString("item=apple"));
+        assertThat(StringUtils.countMatches(queryParam, "&"), equalTo(3));
     }
 }

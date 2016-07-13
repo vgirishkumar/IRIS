@@ -145,9 +145,10 @@ public class HeaderHelper {
         StringBuilder sb = new StringBuilder();
         int outerIndex = 0;
         List<String> filter = new ArrayList<String>();
-        for(Map.Entry<String, List<String>> entry : queryParam.entrySet()){
-            filterDuplicateQueryKeyValuePairings(entry.getValue(), filter);
-            sb.append(constructQueryKeyValuePairing(entry.getKey(), filter, outerIndex < queryParam.size() - 1));
+        for(Map.Entry<String, List<String>> parameterKeyAndValues : queryParam.entrySet()){
+            filterDuplicateQueryKeyValuePairings(parameterKeyAndValues.getValue(), filter);
+            String keyAndValue = constructQueryKeyValuePairing(parameterKeyAndValues.getKey(), filter, outerIndex < queryParam.size() - 1);
+            sb.append(keyAndValue);
             filter.clear();
             outerIndex++;
         }
@@ -163,6 +164,9 @@ public class HeaderHelper {
             if(!dest.contains(value)){
                 dest.add(value);
             }
+        }
+        if(dest.isEmpty()){
+            dest.add(""); //interpret empty list as a key without a value (e.g. ?x=&y=)
         }
     }
     
