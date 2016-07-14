@@ -92,5 +92,5 @@ public interface RESTResource {
      * Set the entity tag for this resource.
      * @param etag
      */
-    public void setEntityTag(String entityTag);    
+    public void setEntityTag(String entityTag);
 }  

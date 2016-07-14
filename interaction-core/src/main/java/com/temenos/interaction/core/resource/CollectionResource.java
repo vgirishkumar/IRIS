@@ -30,7 +30,6 @@ import javax.xml.bind.annotation.XmlTransient;
 
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.Transition;
-import com.temenos.interaction.core.rim.ShallowCopyable;
 
 /**
  * A CollectionResource is the RESTful representation of a collection of
@@ -39,7 +38,7 @@ import com.temenos.interaction.core.rim.ShallowCopyable;
  * of links to find other resources linked to this resource.
  * @author aphethean
  */
-public class CollectionResource<T> implements RESTResource, ShallowCopyable {
+public class CollectionResource<T> implements RESTResource {
 	
 	private Collection<EntityResource<T>> entities;
 
@@ -141,19 +140,5 @@ public class CollectionResource<T> implements RESTResource, ShallowCopyable {
 	public void setEntityTag(String entityTag) {
 		this.entityTag = entityTag;
 	}
-
-    @Override
-    public CollectionResource<T> shallowCopy() {
-        CollectionResource<T> copyOfCollectionResource = createNewCollectionResource(entities);
-        copyOfCollectionResource.setEntityName(entitySetName);
-        copyOfCollectionResource.setEmbedded(embedded);
-        copyOfCollectionResource.setEntityTag(entityTag);
-        copyOfCollectionResource.setLinks(links);
-        return copyOfCollectionResource;
-    }
-    
-    protected <E> CollectionResource<E> createNewCollectionResource(Collection<EntityResource<E>> entity){
-        return new CollectionResource<E>(entity);
-    }
 
 }

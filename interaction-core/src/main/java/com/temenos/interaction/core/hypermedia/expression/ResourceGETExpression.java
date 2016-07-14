@@ -106,6 +106,7 @@ public class ResourceGETExpression implements Expression {
         //Create a new interaction context for this state
         MultivaluedMap<String, String> pathParameters = getPathParametersForTargetState(hypermediaEngine, ctx, ourTransition);
     	InteractionContext newCtx = new InteractionContext(ctx, null, pathParameters, null, target);
+
     	//Get the target resource
 		ResourceRequestConfig config = new ResourceRequestConfig.Builder()
 				.transition(ourTransition)
@@ -114,7 +115,7 @@ public class ResourceGETExpression implements Expression {
 				.build();
 		if (resource == null && ctx.getResource() instanceof EntityResource)
 			resource = (EntityResource<?>) ctx.getResource();
-		Map<Transition, ResourceRequestResult> results = new SequentialResourceRequestHandler().getResources(rimHandler, null, newCtx, resource != null ? resource.shallowCopy() : null, config);
+		Map<Transition, ResourceRequestResult> results = new SequentialResourceRequestHandler().getResources(rimHandler, null, newCtx, resource, config);
 		assert(results.values() != null && results.values().size() == 1);
 		ResourceRequestResult result = results.values().iterator().next();
 		
