@@ -1315,7 +1315,11 @@ public class ResourceStateMachine {
 		// evaluate the conditional expression
 		Expression conditionalExp = transition.getCommand().getEvaluation();
 		if (conditionalExp != null) {
-		    addLink = conditionalExp.evaluate(rimHander, ctx, (er != null) ? er.shallowCopy() : null);
+			try {
+				addLink = conditionalExp.evaluate(rimHander, ctx, (er != null) ? er.clone() : null);
+			} catch(CloneNotSupportedException cnse){ //not thrown, but added to support clone design contract
+				throw new RuntimeException("Failed to clone EntityResource", cnse);
+			}
 		}
 		return addLink;
 	}

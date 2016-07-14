@@ -31,8 +31,6 @@ import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.anyVararg;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -59,9 +57,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -76,7 +71,7 @@ import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
-import com.temenos.interaction.core.command.MapBasedCommandController;
+import com.temenos.interaction.core.command.NewCommandController;
 import com.temenos.interaction.core.command.NoopGETCommand;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
@@ -86,16 +81,11 @@ import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.BeanTransformer;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
-import com.temenos.interaction.core.hypermedia.DynamicResourceState;
 import com.temenos.interaction.core.hypermedia.Link;
-import com.temenos.interaction.core.hypermedia.ResourceLocator;
-import com.temenos.interaction.core.hypermedia.ResourceLocatorProvider;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.hypermedia.expression.Expression;
-import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression;
-import com.temenos.interaction.core.hypermedia.expression.ResourceGETExpression.Function;
 import com.temenos.interaction.core.hypermedia.expression.SimpleLogicalExpressionEvaluator;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
@@ -116,12 +106,8 @@ public class TestResponseHTTPHypermediaRIM {
 		}
 	};
 
-	private @Mock MultivaluedMap<String, String> testInteractionCtxPathParam, 
-	    testInteractionCtxQueryParam, uriInfoPathParam, uriInfoQueryParam;
-	
 	@Before
 	public void setup() {
-	    MockitoAnnotations.initMocks(this);
 		// initialise the thread local request context with requestUri and baseUri
         RequestContext ctx = new RequestContext("/baseuri", "/requesturi", null);
         RequestContext.setRequestContext(ctx);
@@ -186,8 +172,8 @@ public class TestResponseHTTPHypermediaRIM {
 		List<Object> allowHeader = response.getMetadata().get("Allow");
 		assertNotNull(allowHeader);
         assertEquals(1, allowHeader.size());
-        HashSet<String> methodsAllowedDetected = new HashSet<String>(Arrays.asList(allowHeader.get(0).toString().split("\\s*,\\s*")));
-        HashSet<String> methodsAllowed = new HashSet<String>(Arrays.asList("GET, OPTIONS, HEAD".split("\\s*,\\s*")));
+        HashSet methodsAllowedDetected = new HashSet<String>(Arrays.asList(allowHeader.get(0).toString().split("\\s*,\\s*")));
+        HashSet methodsAllowed = new HashSet<String>(Arrays.asList("GET, OPTIONS, HEAD".split("\\s*,\\s*")));
         assertEquals(methodsAllowed, methodsAllowedDetected);
 	}
 
@@ -209,8 +195,8 @@ public class TestResponseHTTPHypermediaRIM {
 		List<Object> allowHeader = response.getMetadata().get("Allow");
 		assertNotNull(allowHeader);
         assertEquals(1, allowHeader.size());
-        HashSet<String> methodsAllowedDetected = new HashSet<String>(Arrays.asList(allowHeader.get(0).toString().split("\\s*,\\s*")));
-        HashSet<String> methodsAllowed = new HashSet<String>(Arrays.asList("GET, OPTIONS, HEAD".split("\\s*,\\s*")));
+        HashSet methodsAllowedDetected = new HashSet<String>(Arrays.asList(allowHeader.get(0).toString().split("\\s*,\\s*")));
+        HashSet methodsAllowed = new HashSet<String>(Arrays.asList("GET, OPTIONS, HEAD".split("\\s*,\\s*")));
         assertEquals(methodsAllowed, methodsAllowedDetected);
 	}
 
@@ -232,8 +218,8 @@ public class TestResponseHTTPHypermediaRIM {
 		List<Object> allowHeader = response.getMetadata().get("Allow");
 		assertNotNull(allowHeader);
         assertEquals(1, allowHeader.size());
-        HashSet<String> methodsAllowedDetected = new HashSet<String>(Arrays.asList(allowHeader.get(0).toString().split("\\s*,\\s*")));
-        HashSet<String> methodsAllowed = new HashSet<String>(Arrays.asList("GET, OPTIONS, HEAD".split("\\s*,\\s*")));
+        HashSet methodsAllowedDetected = new HashSet<String>(Arrays.asList(allowHeader.get(0).toString().split("\\s*,\\s*")));
+        HashSet methodsAllowed = new HashSet<String>(Arrays.asList("GET, OPTIONS, HEAD".split("\\s*,\\s*")));
         assertEquals(methodsAllowed, methodsAllowedDetected);
 	}
 
@@ -284,6 +270,7 @@ public class TestResponseHTTPHypermediaRIM {
 	 * is not found we'll inform the user agent that everything went OK, but there is 
 	 * nothing more to display i.e. No Content.
 	 */
+	@SuppressWarnings({ "unchecked" })
 	@Test
 	public void testBuildResponseWith204NoContentNoTransition() throws Exception {
 		/*
@@ -293,8 +280,7 @@ public class TestResponseHTTPHypermediaRIM {
 		 */
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
 		initialState.addTransition(new Transition.Builder().method(HttpMethod.DELETE).target(initialState).build());
-		InteractionContext testContext = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), 
-		        testInteractionCtxPathParam, testInteractionCtxQueryParam, initialState, mock(Metadata.class));
+		InteractionContext testContext = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
 		testContext.setResource(null);
 		// mock 'new InteractionContext()' in call to delete
 		whenNew(InteractionContext.class).withParameterTypes(UriInfo.class, HttpHeaders.class, MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class)
@@ -317,6 +303,7 @@ public class TestResponseHTTPHypermediaRIM {
 	 * is a psuedo final state (effectively no target) we'll inform the user agent
 	 * that everything went OK, but there is nothing more to display i.e. No Content.
 	 */
+	@SuppressWarnings({ "unchecked" })
 	@Test
 	public void testBuildResponseWith204NoContent() throws Exception {
 		/*
@@ -326,8 +313,7 @@ public class TestResponseHTTPHypermediaRIM {
 		 */
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
 		initialState.addTransition(new Transition.Builder().method("DELETE").target(initialState).build());
-		InteractionContext testContext = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), 
-		        testInteractionCtxPathParam, testInteractionCtxQueryParam, initialState, mock(Metadata.class));
+		InteractionContext testContext = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
 		testContext.setResource(null);
 		// mock 'new InteractionContext()' in call to delete
 		whenNew(InteractionContext.class).withParameterTypes(UriInfo.class, HttpHeaders.class, MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class)
@@ -377,6 +363,7 @@ public class TestResponseHTTPHypermediaRIM {
 	 * A successful DELETE command does not return a new resource and should inform
 	 * the user agent to refresh the current view if the target is the same as the source.
 	 */
+	@SuppressWarnings({ "unchecked" })
 	@Test
 	public void testBuildResponseWith205ContentResetDifferentResource() throws Exception {
 		/*
@@ -393,8 +380,7 @@ public class TestResponseHTTPHypermediaRIM {
 		// the auto transition
 		deletedState.addTransition(new Transition.Builder().flags(Transition.REDIRECT).target(initialState).build());
 		
-		InteractionContext testContext = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), 
-		        testInteractionCtxPathParam, testInteractionCtxQueryParam, initialState, mock(Metadata.class));
+		InteractionContext testContext = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
 		testContext.setResource(null);
 		// mock 'new InteractionContext()' in call to delete
 		whenNew(InteractionContext.class).withParameterTypes(UriInfo.class, HttpHeaders.class, MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class)
@@ -525,6 +511,7 @@ public class TestResponseHTTPHypermediaRIM {
 	/*
 	 * Same as testBuildResponseWith303SeeOtherGET with parameters
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testBuildResponseWith303SeeOtherGETWithParameters() throws Exception {
 		/*
@@ -554,7 +541,7 @@ public class TestResponseHTTPHypermediaRIM {
 		mockPathParameters.add("id", "2");
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getPathParameters(anyBoolean())).thenReturn(mockPathParameters);
-		when(uriInfo.getQueryParameters(false)).thenReturn(testInteractionCtxQueryParam);
+		when(uriInfo.getQueryParameters(false)).thenReturn(mock(MultivaluedMap.class));
 		Response response = existsStateRIM.get(mock(HttpHeaders.class), "id", uriInfo);
 		
 		// null resource
@@ -692,10 +679,12 @@ public class TestResponseHTTPHypermediaRIM {
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
 		Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mockEntityResourceWithId("123"));
 
-		// the response entity must not be null and must be an instance of/subtype RESTResource} 
-        assertNotNull(GenericEntity.class.isAssignableFrom(response.getEntity().getClass()));
-        GenericEntity<?> responseEntity = (GenericEntity<?>)response.getEntity();
-        assertTrue(RESTResource.class.isAssignableFrom(responseEntity.getEntity().getClass()));
+		// null resource
+		@SuppressWarnings("rawtypes")
+		GenericEntity ge = (GenericEntity) response.getEntity();
+		assertNotNull(ge);
+		RESTResource resource = (RESTResource) ge.getEntity();
+		assertNotNull(resource);
 		/*
 		 *  201 "Created" informs the user agent that 'the request has been fulfilled and resulted 
 		 *  in a new resource being created'.  It can be accessed by a GET to the resource specified 
@@ -739,10 +728,12 @@ public class TestResponseHTTPHypermediaRIM {
 
 		assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
 
-		// the response entity must not be null and must be an instance of/subtype RESTResource} 
-        assertNotNull(GenericEntity.class.isAssignableFrom(response.getEntity().getClass()));
-        GenericEntity<?> responseEntity = (GenericEntity<?>)response.getEntity();
-        assertTrue(RESTResource.class.isAssignableFrom(responseEntity.getEntity().getClass()));
+		// null resource
+		@SuppressWarnings("rawtypes")
+		GenericEntity ge = (GenericEntity) response.getEntity();
+		assertNotNull(ge);
+		RESTResource resource = (RESTResource) ge.getEntity();
+		assertNotNull(resource);
 		/*
 		 *  Assert the links in the response match the target resource
 		 */
@@ -765,9 +756,9 @@ public class TestResponseHTTPHypermediaRIM {
 		 * construct an InteractionContext that simply mocks the result of 
 		 * creating a resource
 		 */
-		ResourceState initialState = new ResourceState("home", "initial", mockActions(), "/door");
-		ResourceState createPsuedoState = new ResourceState(initialState, "hallway", mockActions());
-		ResourceState individualMachine = new ResourceState(initialState, "kitchen", mockActions(), "/{id}");
+		ResourceState initialState = new ResourceState("home", "initial", mockActions(), "/machines");
+		ResourceState createPsuedoState = new ResourceState(initialState, "create", mockActions());
+		ResourceState individualMachine = new ResourceState(initialState, "machine", mockActions(), "/{id}");
 		individualMachine.addTransition(new Transition.Builder().method("GET").target(initialState).build());
 		
 		// create new machine
@@ -781,58 +772,18 @@ public class TestResponseHTTPHypermediaRIM {
 		Map<String,InteractionCommand> commands = new HashMap<String,InteractionCommand>();
 		commands.put("DO", mockCommand_SUCCESS());
 		commands.put("GET", mockCommand_FAILURE());
-		CommandController commandController = new MapBasedCommandController(commands);
+		CommandController commandController = new NewCommandController(commands);
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController, new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
 		Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mockEntityResourceWithId("123"));
 
 		assertEquals(Status.NOT_FOUND.getStatusCode(), response.getStatus());
 
-		// the response entity must not be null and must be an instance of/subtype RESTResource} 
-        assertNotNull(GenericEntity.class.isAssignableFrom(response.getEntity().getClass()));
-        GenericEntity<?> responseEntity = (GenericEntity<?>)response.getEntity();
-        assertTrue(RESTResource.class.isAssignableFrom(responseEntity.getEntity().getClass()));
-	}
-	
-	/**
-	 * State test for a conditional autotransition to a dynamic resource that does not exist. 
-	 */
-	@Test
-	public void testPOSTWithConditionalAutoTransitionToNonExistentDynamicResource(){
-        //given {a graph of resource states comprising of an initial state, 
-	    //a middle state and a dynamic final state that doesn't exist}
-	    ResourceState initialState = new ResourceState("home", "initial", mockActions(), "/door");
-        final ResourceState middleState = new ResourceState(initialState, "hallway", mockActions());
-        ResourceState targetState = new DynamicResourceState("garage", "theGarage", "mockLocator", "abcd");
-        ResourceLocatorProvider locatorProvider = mock(ResourceLocatorProvider.class);
-        ResourceLocator locator = mock(ResourceLocator.class);
-        when(locator.resolve(anyVararg())).thenReturn(new ResourceState("missing", "missing", mockActions(), "/missingState"));
-        when(locatorProvider.get(eq("mockLocator"))).thenReturn(locator);
-        //create autotransition
-        middleState.addTransition(new Transition.Builder().flags(Transition.AUTO).target(targetState).evaluation(new ResourceGETExpression(middleState, Function.OK)).build());
-        initialState.addTransition(new Transition.Builder().method("POST").target(middleState).evaluation(new ResourceGETExpression(middleState, Function.OK)).build());
-        // an auto transition to the new resource
-        Map<String, String> uriLinkageMap = new HashMap<String, String>();
-        uriLinkageMap.put("id", "{id}");
-        Expression notEval = mock(Expression.class);
-        when(notEval.evaluate(any(HTTPHypermediaRIM.class), any(InteractionContext.class), Mockito.<EntityResource<?>>any())).thenReturn(false);
-        
-        // RIM with command controller that issues commands that return SUCCESS for 'DO' action and FAILURE for 'GET' action (see mockActions())
-        Map<String,InteractionCommand> commands = new HashMap<String,InteractionCommand>();
-        commands.put("DO", mockCommand_SUCCESS());
-        commands.put("GET", mockCommand_FAILURE());
-        CommandController commandController = new MapBasedCommandController(commands);
-        HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController, new ResourceStateMachine(initialState, new BeanTransformer(), locatorProvider), createMockMetadata(), locatorProvider);
-        
-        //when {the post method is invoked}
-        Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mockEntityResourceWithId("123"));
-        
-        //then {the response must be HTTP 201 Created}
-        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
-        
-        // and {the response entity must not be null and must be an instance of/subtype RESTResource} 
-        assertNotNull(GenericEntity.class.isAssignableFrom(response.getEntity().getClass()));
-        GenericEntity<?> responseEntity = (GenericEntity<?>)response.getEntity();
-        assertTrue(RESTResource.class.isAssignableFrom(responseEntity.getEntity().getClass()));
+		// null resource
+		@SuppressWarnings("rawtypes")
+		GenericEntity ge = (GenericEntity) response.getEntity();
+		assertNotNull(ge);
+		RESTResource resource = (RESTResource) ge.getEntity();
+		assertNotNull(resource);
 	}
 
 	/*
@@ -860,10 +811,12 @@ public class TestResponseHTTPHypermediaRIM {
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
 		Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mockEntityResourceWithId("123"));
 
-		// the response entity must not be null and must be an instance of/subtype RESTResource} 
-        assertNotNull(GenericEntity.class.isAssignableFrom(response.getEntity().getClass()));
-        GenericEntity<?> responseEntity = (GenericEntity<?>)response.getEntity();
-        assertTrue(RESTResource.class.isAssignableFrom(responseEntity.getEntity().getClass()));
+		// null resource
+		@SuppressWarnings("rawtypes")
+		GenericEntity ge = (GenericEntity) response.getEntity();
+		assertNotNull(ge);
+		RESTResource resource = (RESTResource) ge.getEntity();
+		assertNotNull(resource);
 		/*
 		 *  Assert the links in the response match the target resource
 		 */
@@ -906,7 +859,7 @@ public class TestResponseHTTPHypermediaRIM {
 			}
 			
 		});
-		CommandController commandController = new MapBasedCommandController(commands);
+		CommandController commandController = new NewCommandController(commands);
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController, new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
 		Collection<ResourceInteractionModel> children = rim.getChildren();
 		// find the resource interaction model for the 'exists' state
@@ -924,10 +877,12 @@ public class TestResponseHTTPHypermediaRIM {
 		when(uriInfo.getQueryParameters(false)).thenReturn(queryParameters);
 		Response response = conditionStateRIM.get(mock(HttpHeaders.class), "id", uriInfo);
 
-		// the response entity must not be null and must be an instance of/subtype RESTResource} 
-        assertNotNull(GenericEntity.class.isAssignableFrom(response.getEntity().getClass()));
-        GenericEntity<?> responseEntity = (GenericEntity<?>)response.getEntity();
-        assertTrue(RESTResource.class.isAssignableFrom(responseEntity.getEntity().getClass()));		/*
+		@SuppressWarnings("rawtypes")
+		GenericEntity ge = (GenericEntity) response.getEntity();
+		assertNotNull(ge);
+		RESTResource resource = (RESTResource) ge.getEntity();
+		assertNotNull(resource);
+		/*
 		 *  Assert the links in the response match the target resource
 		 */
 		EntityResource<?> createdResource = (EntityResource<?>) ((GenericEntity<?>)response.getEntity()).getEntity();
@@ -940,12 +895,12 @@ public class TestResponseHTTPHypermediaRIM {
 		return new EntityResource<Object>(new MockEntity(id));
 	}
 	
+	@SuppressWarnings({ "unchecked" })
 	@Test
 	public void testBuildResponseWithLinks() throws Exception {
 		// construct an InteractionContext that simply mocks the result of loading a resource
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
-		InteractionContext testContext = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), 
-		        testInteractionCtxPathParam, testInteractionCtxQueryParam, initialState, mock(Metadata.class));
+		InteractionContext testContext = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
 		testContext.setResource(new EntityResource<Object>(null));
 		// mock 'new InteractionContext()' in call to get
 		whenNew(InteractionContext.class).withParameterTypes(UriInfo.class, HttpHeaders.class, MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class)
@@ -965,6 +920,7 @@ public class TestResponseHTTPHypermediaRIM {
 		assertEquals("self", link.getRel());
 	}
 
+	@SuppressWarnings({ "unchecked" })
 	@Test
 	public void testBuildResponseWithDynamicLinkParams() throws Exception {
 		// construct an InteractionContext that simply mocks the result of loading a resource
@@ -974,8 +930,7 @@ public class TestResponseHTTPHypermediaRIM {
         Transition t = new Transition.Builder().source(initialState).method("GET").target(b).build();
         initialState.addTransition(t);
 
-		InteractionContext testContext = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), 
-		        testInteractionCtxPathParam, testInteractionCtxQueryParam, initialState, mock(Metadata.class));
+		InteractionContext testContext = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
 		
 		MultivaluedMap<String, String> outQueryParameters = testContext.getOutQueryParameters();		
 		outQueryParameters.add("penguin", "emperor");
@@ -1003,52 +958,52 @@ public class TestResponseHTTPHypermediaRIM {
 		assertEquals("/baseuri/path?penguin=emperor", link.getHref());
 	}
 	
-    @Test
-    public void testBuildResponseWithMultipleDynamicLinkParams() throws Exception {
-        // construct an InteractionContext that simply mocks the result of loading a resource
-        ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
+	   @SuppressWarnings({ "unchecked" })
+	    @Test
+	    public void testBuildResponseWithMultipleDynamicLinkParams() throws Exception {
+	        // construct an InteractionContext that simply mocks the result of loading a resource
+	        ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
 
-        ResourceState b =  new ResourceState(initialState, "b", new ArrayList<Action>());
-        Transition t = new Transition.Builder().source(initialState).method("GET").target(b).build();
-        initialState.addTransition(t);
+	        ResourceState b =  new ResourceState(initialState, "b", new ArrayList<Action>());
+	        Transition t = new Transition.Builder().source(initialState).method("GET").target(b).build();
+	        initialState.addTransition(t);
 
-        InteractionContext testContext = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), 
-                testInteractionCtxPathParam, testInteractionCtxQueryParam, initialState, mock(Metadata.class));
-        
-        MultivaluedMap<String, String> outQueryParameters = testContext.getOutQueryParameters();        
-        outQueryParameters.add("penguin", "emperor");
-        outQueryParameters.add("crispbread", "coconut");
-        outQueryParameters.add("penguin", "black");
-        
-        testContext.setResource(new EntityResource<Object>(null));
-        // mock 'new InteractionContext()' in call to get
-        whenNew(InteractionContext.class).withParameterTypes(UriInfo.class, HttpHeaders.class, MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class)
-            .withArguments(any(UriInfo.class), any(HttpHeaders.class), any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
-        
-        List<Link> links = new ArrayList<Link>();
-        links.add(new Link("id", "self", "href", null, null));
-        
-        HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
-        Response response = rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
-        
-        RESTResource resourceWithLinks = (RESTResource) ((GenericEntity<?>)response.getEntity()).getEntity();
-        assertNotNull(resourceWithLinks.getLinks());
-        assertFalse(resourceWithLinks.getLinks().isEmpty());
-        assertEquals(2, resourceWithLinks.getLinks().size());
-        Link link = (Link) resourceWithLinks.getLinks().toArray()[0];
-        assertEquals("self", link.getRel());
-        
-        link = (Link)resourceWithLinks.getLinks().toArray()[1];
-        assertEquals("item", link.getRel());
-        assertEquals("/baseuri/path?penguin=emperor&penguin=black&crispbread=coconut", link.getHref());
-    }
+	        InteractionContext testContext = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
+	        
+	        MultivaluedMap<String, String> outQueryParameters = testContext.getOutQueryParameters();        
+	        outQueryParameters.add("penguin", "emperor");
+	        outQueryParameters.add("crispbread", "coconut");
+	        outQueryParameters.add("penguin", "black");
+	        
+	        testContext.setResource(new EntityResource<Object>(null));
+	        // mock 'new InteractionContext()' in call to get
+	        whenNew(InteractionContext.class).withParameterTypes(UriInfo.class, HttpHeaders.class, MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class)
+	            .withArguments(any(UriInfo.class), any(HttpHeaders.class), any(MultivaluedMap.class), any(MultivaluedMap.class), any(ResourceState.class), any(Metadata.class)).thenReturn(testContext);
+	        
+	        List<Link> links = new ArrayList<Link>();
+	        links.add(new Link("id", "self", "href", null, null));
+	        
+	        HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState), createMockMetadata());
+	        Response response = rim.get(mock(HttpHeaders.class), "id", mockEmptyUriInfo());
+	        
+	        RESTResource resourceWithLinks = (RESTResource) ((GenericEntity<?>)response.getEntity()).getEntity();
+	        assertNotNull(resourceWithLinks.getLinks());
+	        assertFalse(resourceWithLinks.getLinks().isEmpty());
+	        assertEquals(2, resourceWithLinks.getLinks().size());
+	        Link link = (Link) resourceWithLinks.getLinks().toArray()[0];
+	        assertEquals("self", link.getRel());
+	        
+	        link = (Link)resourceWithLinks.getLinks().toArray()[1];
+	        assertEquals("item", link.getRel());
+	        assertEquals("/baseuri/path?penguin=emperor&penguin=black&crispbread=coconut", link.getHref());
+	    }
 	
+	@SuppressWarnings({ "unchecked" })
 	@Test
 	public void testBuildResponseEntityName() throws Exception {
 		// construct an InteractionContext that simply mocks the result of loading a resource
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
-		InteractionContext testContext = new InteractionContext(mock(UriInfo.class), null, 
-		        testInteractionCtxPathParam, testInteractionCtxQueryParam, initialState, mock(Metadata.class));
+		InteractionContext testContext = new InteractionContext(mock(UriInfo.class), null, mock(MultivaluedMap.class), mock(MultivaluedMap.class), initialState, mock(Metadata.class));
 		testContext.setResource(new EntityResource<Object>(null));
 		// mock 'new InteractionContext()' in call to get
 		whenNew(InteractionContext.class).withParameterTypes(UriInfo.class, HttpHeaders.class, MultivaluedMap.class, MultivaluedMap.class, ResourceState.class, Metadata.class)
@@ -1062,10 +1017,11 @@ public class TestResponseHTTPHypermediaRIM {
 		assertEquals("entity", resource.getEntityName());
 	}
 
+	@SuppressWarnings({ "unchecked" })
 	private UriInfo mockEmptyUriInfo() {
 		UriInfo uriInfo = mock(UriInfo.class);
-		when(uriInfo.getPathParameters(anyBoolean())).thenReturn(uriInfoPathParam);
-		when(uriInfo.getQueryParameters(false)).thenReturn(uriInfoQueryParam);
+		when(uriInfo.getPathParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+		when(uriInfo.getQueryParameters(false)).thenReturn(mock(MultivaluedMap.class));
 		return uriInfo;
 	}
 	
@@ -1111,7 +1067,7 @@ public class TestResponseHTTPHypermediaRIM {
 		 * Construct an InteractionCommand that simply mocks the result of 
 		 * a successful command.
 		 */
-		final InteractionCommand mockCommand = new InteractionCommand() {
+		InteractionCommand mockCommand = new InteractionCommand() {
 			@Override
 			public Result execute(InteractionContext ctx) {
 				ctx.setResource(new EntityResource<Object>(null));
@@ -1120,14 +1076,9 @@ public class TestResponseHTTPHypermediaRIM {
 		};
 		
 		// create mock command controller
-		MapBasedCommandController mockCommandController = new MapBasedCommandController();
-		mockCommandController.setCommandMap(new HashMap<String, InteractionCommand>(){
-            private static final long serialVersionUID = 1L;
-            {
-		        put("GET", mockCommand);
-		        put("DO", mockCommand);
-		    }
-		});
+		NewCommandController mockCommandController = new NewCommandController();
+		mockCommandController.addCommand("GET", mockCommand);
+		mockCommandController.addCommand("DO", mockCommand);
 
 		// RIM with command controller that issues our mock InteractionCommand
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), createMockMetadata());
@@ -1149,6 +1100,7 @@ public class TestResponseHTTPHypermediaRIM {
 	/*
 	 * This test checks that a 503 error returns a correct response
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testBuildResponseWith503ServiceUnavailable() {
 		Response response = getMockResponse(
@@ -1160,8 +1112,8 @@ public class TestResponseHTTPHypermediaRIM {
 		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
 		assertNotNull("Excepted a response body", ge);
 		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
-			EntityResource<?> er = (EntityResource<?>) ge.getEntity();
-			GenericError error = (GenericError)er.getEntity();
+			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
+			GenericError error = er.getEntity();
 			assertEquals("503", error.getCode());
 			assertEquals("Failed to connect to resource manager.", error.getMessage());
 		}
@@ -1184,6 +1136,7 @@ public class TestResponseHTTPHypermediaRIM {
 	/*
 	 * This test checks that a 504 error returns a correct response
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testBuildResponseWith504GatewayTimeout() {
 		Response response = getMockResponse(
@@ -1195,8 +1148,8 @@ public class TestResponseHTTPHypermediaRIM {
 		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
 		assertNotNull("Excepted a response body", ge);
 		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
-			EntityResource<?> er = (EntityResource<?>) ge.getEntity();
-			GenericError error = (GenericError)er.getEntity();
+			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
+			GenericError error = er.getEntity();
 			assertEquals("504", error.getCode());
 			assertEquals("Request timeout.", error.getMessage());
 		}
@@ -1209,6 +1162,7 @@ public class TestResponseHTTPHypermediaRIM {
 	 * This test checks that a 500 error returns a proper error message inside
 	 * the body of the response.
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testBuildResponseWith500InternalServerError() {
 		ResourceState initialState = new ResourceState("home", "initial", mockActions(), "/machines");
@@ -1219,7 +1173,7 @@ public class TestResponseHTTPHypermediaRIM {
 		Map<String,InteractionCommand> commands = new HashMap<String,InteractionCommand>();
 		commands.put("DO", getGenericErrorMockCommand(Result.FAILURE, "Resource manager: 5 fatal error and 2 warnings."));
 		commands.put("GET", mockCommand_SUCCESS());
-		CommandController commandController = new MapBasedCommandController(commands);
+		CommandController commandController = new NewCommandController(commands);
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController, new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
 		Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mockEntityResourceWithId("123"));
 
@@ -1228,8 +1182,8 @@ public class TestResponseHTTPHypermediaRIM {
 		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
 		assertNotNull("Excepted a response body", ge);
 		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
-			EntityResource<?> er = (EntityResource<?>) ge.getEntity();
-			GenericError error = (GenericError)er.getEntity();
+			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
+			GenericError error = er.getEntity();
 			assertEquals("FAILURE", error.getCode());
 			assertEquals("Resource manager: 5 fatal error and 2 warnings.", error.getMessage());
 		}
@@ -1242,6 +1196,7 @@ public class TestResponseHTTPHypermediaRIM {
 	 * This test checks that a 400 error returns a proper error message inside
 	 * the body of the response.
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testBuildResponseWith400BadRequest() {
 		Response response = getMockResponse(getGenericErrorMockCommand(Result.INVALID_REQUEST, "Resource manager: 4 validation errors."));
@@ -1250,8 +1205,8 @@ public class TestResponseHTTPHypermediaRIM {
 		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
 		assertNotNull("Excepted a response body", ge);
 		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
-			EntityResource<?> er = (EntityResource<?>) ge.getEntity();
-			GenericError error = (GenericError)er.getEntity();
+			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
+			GenericError error = er.getEntity();
 			assertEquals("INVALID_REQUEST", error.getCode());
 			assertEquals("Resource manager: 4 validation errors.", error.getMessage());
 		}
@@ -1263,6 +1218,7 @@ public class TestResponseHTTPHypermediaRIM {
 	/*
 	 * This test checks that a 403 error returns a proper status code
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testBuildResponseWith403AuthorisationFailure() {
 		Response response = getMockResponse(
@@ -1274,8 +1230,8 @@ public class TestResponseHTTPHypermediaRIM {
 		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
 		assertNotNull("Excepted a response body", ge);
 		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
-			EntityResource<?> er = (EntityResource<?>) ge.getEntity();
-			GenericError error = (GenericError)er.getEntity();
+			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
+			GenericError error = er.getEntity();
 			assertEquals("403", error.getCode());
 			assertEquals("User is not allowed to access this resource.", error.getMessage());
 		}
@@ -1322,6 +1278,7 @@ public class TestResponseHTTPHypermediaRIM {
 	/*
 	 * Test to ensure command can cause 404 error if a specific entity is not available.
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testGETBuildResponseWith404NotFoundInteractionException() {
 		Response response = getMockResponse(
@@ -1333,8 +1290,8 @@ public class TestResponseHTTPHypermediaRIM {
 		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
 		assertNotNull("Excepted a response body", ge);
 		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
-			EntityResource<?> er = (EntityResource<?>) ge.getEntity();
-			GenericError error = (GenericError)er.getEntity();
+			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
+			GenericError error = er.getEntity();
 			assertEquals("404", error.getCode());
 			assertEquals("Resource manager: entity Fred not found or currently unavailable.", error.getMessage());
 		}
@@ -1364,7 +1321,7 @@ public class TestResponseHTTPHypermediaRIM {
 		Map<String,InteractionCommand> commands = new HashMap<String,InteractionCommand>();
 		commands.put("DO", mockCommand_FAILURE());
 		commands.put("GET", mockCommand_SUCCESS());
-		CommandController commandController = new MapBasedCommandController(commands);
+		CommandController commandController = new NewCommandController(commands);
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController, new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
 
 		HTTPHypermediaRIM deleteInteraction = (HTTPHypermediaRIM) rim.getChildren().iterator().next();
@@ -1377,6 +1334,7 @@ public class TestResponseHTTPHypermediaRIM {
 	 * This test checks that a 400 error returns a proper error message inside
 	 * the body of the response.
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testBuildResponseWith400BadRequestFromErrorResource() {
 		Response response = getMockResponseWithErrorResource(getGenericErrorMockCommand(Result.INVALID_REQUEST, "Resource manager: 4 validation errors."));
@@ -1385,9 +1343,9 @@ public class TestResponseHTTPHypermediaRIM {
 		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
 		assertNotNull("Excepted a response body", ge);
 		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
-			EntityResource<?> er = (EntityResource<?>) ge.getEntity();
+			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
 			assertEquals("ErrorEntity", er.getEntityName());
-			GenericError error = (GenericError)er.getEntity();
+			GenericError error = er.getEntity();
 			assertEquals("INVALID_REQUEST", error.getCode());
 			assertEquals("Resource manager: 4 validation errors.", error.getMessage());
 			assertNotNull(er.getLinks());
@@ -1465,6 +1423,7 @@ public class TestResponseHTTPHypermediaRIM {
 	 * This test checks that a 412 error returns a proper error message inside
 	 * the body of the response.
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testBuildResponseWith412PreconditionFailed() {
 		Response response = getMockResponse(getGenericErrorMockCommand(Result.CONFLICT, "Resource has been modified by somebody else."));
@@ -1473,8 +1432,8 @@ public class TestResponseHTTPHypermediaRIM {
 		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
 		assertNotNull("Excepted a response body", ge);
 		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, GenericError.class)) {
-			EntityResource<?> er = (EntityResource<?>) ge.getEntity();
-			GenericError error = (GenericError)er.getEntity();
+			EntityResource<GenericError> er = (EntityResource<GenericError>) ge.getEntity();
+			GenericError error = er.getEntity();
 			assertEquals("CONFLICT", error.getCode());
 			assertEquals("Resource has been modified by somebody else.", error.getMessage());
 		}
@@ -1491,16 +1450,14 @@ public class TestResponseHTTPHypermediaRIM {
 	public void testBuildResponseWith304NotModified() {
 		HttpHeaders httpHeaders = mock(HttpHeaders.class);
 		doAnswer(new Answer<List<String>>() {
+			@SuppressWarnings("serial")
 			@Override
 	        public List<String> answer(InvocationOnMock invocation) throws Throwable {
 	        	String headerName = (String) invocation.getArguments()[0];
 	        	if(headerName.equals(HttpHeaders.IF_NONE_MATCH)) {
-	        		return new ArrayList<String>() {
-                        private static final long serialVersionUID = 1L;
-                        {
-    	        		    add("ABCDEFG");
-    	        		}
-                    };
+	        		return new ArrayList<String>() {{
+	        		    add("ABCDEFG");
+	        		}};
 	        	}
 	            return null;
 	        }
@@ -1517,20 +1474,19 @@ public class TestResponseHTTPHypermediaRIM {
 	 * Test to ensure we return a 200 Success if the etag of the response is not the same
 	 * as the etag on the request's If-None-Match header.
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testBuildResponseGETModifiedResource() {
 		HttpHeaders httpHeaders = mock(HttpHeaders.class);
 		doAnswer(new Answer<List<String>>() {
+			@SuppressWarnings("serial")
 			@Override
 	        public List<String> answer(InvocationOnMock invocation) throws Throwable {
 	        	String headerName = (String) invocation.getArguments()[0];
 	        	if(headerName.equals(HttpHeaders.IF_NONE_MATCH)) {
-	        		return new ArrayList<String>() {
-                        private static final long serialVersionUID = 1L;
-                        {
+	        		return new ArrayList<String>() {{
 	        		    add("ABCDEFG");
-	        		    }
-        		    };
+	        		}};
 	        	}
 	            return null;
 	        }
@@ -1542,8 +1498,8 @@ public class TestResponseHTTPHypermediaRIM {
 		GenericEntity<?> ge = (GenericEntity<?>) response.getEntity();
 		assertNotNull("Expected a response body", ge);
 		if(ResourceTypeHelper.isType(ge.getRawType(), ge.getType(), EntityResource.class, Entity.class)) {
-			EntityResource<?> er = (EntityResource<?>) ge.getEntity();
-			assertEquals("TestEntity", ((Entity)er.getEntity()).getName());
+			EntityResource<Entity> er = (EntityResource<Entity>) ge.getEntity();
+			assertEquals("TestEntity", er.getEntity().getName());
 			assertEquals("IJKLMNO", er.getEntityTag());		//Response should have new etag
 		}
 		else {
@@ -1600,10 +1556,12 @@ public class TestResponseHTTPHypermediaRIM {
 		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
 		Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mockEntityResourceWithId("123"));
 
-        // the response entity must not be null and must be an instance of/subtype RESTResource} 
-        assertNotNull(GenericEntity.class.isAssignableFrom(response.getEntity().getClass()));
-        GenericEntity<?> responseEntity = (GenericEntity<?>)response.getEntity();
-        assertTrue(RESTResource.class.isAssignableFrom(responseEntity.getEntity().getClass()));
+		// null resource
+		@SuppressWarnings("rawtypes")
+		GenericEntity ge = (GenericEntity) response.getEntity();
+		assertNotNull(ge);
+		RESTResource resource = (RESTResource) ge.getEntity();
+		assertNotNull(resource);
 		/*
 		 *  Assert the links in the response match the target resource
 		 */
@@ -1622,22 +1580,13 @@ public class TestResponseHTTPHypermediaRIM {
 		return this.getMockResponse(mockCommand, mockExceptionCommand, mock(HttpHeaders.class));
 	}
 	
-	protected Response getMockResponse(final InteractionCommand mockCommand, final InteractionCommand mockExceptionCommand, HttpHeaders httpHeaders) {
-		MapBasedCommandController mockCommandController = mock(MapBasedCommandController.class);
-		mockCommandController.setCommandMap(new HashMap<String, InteractionCommand>(){
-            private static final long serialVersionUID = 1L;
-
-            {
-		        put("GET", mockCommand);
-		        if(mockExceptionCommand != null){
-		            put("GETException", mockExceptionCommand);
-		        }
-		    }
-		});
-
+	protected Response getMockResponse(InteractionCommand mockCommand, InteractionCommand mockExceptionCommand, HttpHeaders httpHeaders) {
+		NewCommandController mockCommandController = mock(NewCommandController.class);
+		mockCommandController.addCommand("GET", mockCommand);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mockCommand);
 		when(mockCommandController.fetchCommand("DO")).thenReturn(mockCommand);
 		if(mockExceptionCommand != null) {
+			mockCommandController.addCommand("GETException", mockExceptionCommand);
 			when(mockCommandController.fetchCommand("GETException")).thenReturn(mockExceptionCommand);
 		}
 
@@ -1652,19 +1601,15 @@ public class TestResponseHTTPHypermediaRIM {
 		return rim.get(httpHeaders, "id", mockEmptyUriInfo());
 	}
 
-	protected Response getMockResponseWithErrorResource(final InteractionCommand mockCommand) {
-		MapBasedCommandController mockCommandController = mock(MapBasedCommandController.class);
-		final InteractionCommand noopCommand = new NoopGETCommand();
-		mockCommandController.setCommandMap(new HashMap<String, InteractionCommand>(){
-            private static final long serialVersionUID = 1L;
-            {
-		        put("GET", mockCommand);
-		        put("noop", noopCommand);
-		    }
-		});
+	protected Response getMockResponseWithErrorResource(InteractionCommand mockCommand) {
+		NewCommandController mockCommandController = mock(NewCommandController.class);
+		mockCommandController.addCommand("GET", mockCommand);
 		when(mockCommandController.fetchCommand("GET")).thenReturn(mockCommand);
 		when(mockCommandController.fetchCommand("DO")).thenReturn(mockCommand);
+		InteractionCommand noopCommand = new NoopGETCommand();
+		mockCommandController.addCommand("noop", noopCommand);
 		when(mockCommandController.fetchCommand("noop")).thenReturn(noopCommand);
+
 		ResourceState errorState = new ResourceState("ErrorEntity", "errorState", mockErrorActions(), "/error");
 		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path", null, null, errorState);
 		initialState.setInitial(true);

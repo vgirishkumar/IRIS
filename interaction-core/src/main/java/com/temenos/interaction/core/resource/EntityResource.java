@@ -34,7 +34,6 @@ import javax.xml.bind.annotation.XmlTransient;
 
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.Transition;
-import com.temenos.interaction.core.rim.ShallowCopyable;
 
 /**
  * An EntityResource is the RESTful representation of a 'thing' within our
@@ -45,7 +44,7 @@ import com.temenos.interaction.core.rim.ShallowCopyable;
  */
 @XmlRootElement(name = "resource")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class EntityResource<T> implements RESTResource, ShallowCopyable {
+public class EntityResource<T> implements RESTResource, Cloneable {
 	@XmlAnyElement(lax=true)
 	private T entity;
 	
@@ -136,7 +135,7 @@ public class EntityResource<T> implements RESTResource, ShallowCopyable {
 	 * @return
 	 */
 	@Override
-	public EntityResource<T> shallowCopy() {
+	public EntityResource<T> clone() throws CloneNotSupportedException {
 		EntityResource<T> entityResourceClone = this.createNewEntityResource(this.entityName, this.entity);
 		entityResourceClone.setEmbedded(this.embedded);
 		entityResourceClone.setLinks(this.links);
