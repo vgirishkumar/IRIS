@@ -35,6 +35,5 @@ public class SolrConstants {
     public static final String SOLR_SHARDS_KEY = "shards";
     public static final String SOLR_SHARDS_TOLERANT_KEY = "shards.tolerant";
     public static final String SOLR_QUERY_KEY = "q";
-    public static final String SOLR_FIELD_NAME_KEY = "fieldname";
     public static final String SOLR_COMPANY_NAME_KEY = "companyid";
 }
