@@ -41,7 +41,7 @@
 	</bean>
 	
 	<bean id="irisResourceModificationAction" class="com.temenos.interaction.loader.properties.resource.action.ResourceModificationAction">
-		<property name="resourcePattern" value="classpath*:IRIS-*.properties|metadata-*.xml"/>
+		<property name="resourcePattern" value="classpath*:IRIS-*.properties"/>
 		<property name="loadedAction" ref="irisResourceLoadedAction"/>
 		<property name="changedAction" ref="irisResourceChangedAction"/>
 	</bean>
