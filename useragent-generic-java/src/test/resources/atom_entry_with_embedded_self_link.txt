@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='utf-8'?>
+<entry xmlns="http://www.w3.org/2005/Atom" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xml:base="http://localhost:9089/t24interactiontests-iris/t24interactiontests.svc/GB0010001/">
+	<id>http://localhost:9089/t24interactiontests-iris/t24interactiontests.svc/GB0010001/verCustomer_Inputs('190409')</id>
+	<title type="text" />
+	<updated>2016-03-09T09:31:28Z</updated>
+	<author>
+		<name />
+	</author>
+	<link rel="self" title="verCustomer_Input_validate" href="verCustomer_Inputs('190409')/validate">
+		<m:inline>
+			<entry>
+				<id>http://localhost:9089/t24interactiontests-iris/t24interactiontests.svc/GB0010001/Errors('190409')</id>
+				<title type="text" />
+				<updated>2016-03-09T09:31:28Z</updated>
+				<author>
+					<name />
+				</author>
+				<link rel="self" title="ProcessErrors" href="http://localhost:9089/t24interactiontests-iris/t24interactiontests.svc/errors" />
+			</entry>
+		</m:inline>	
+	</link>
+	<category term="t24interactiontests-modelsModel.verCustomer_Input" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+	<content type="application/xml">
+		<m:properties>
+			<d:CustomerCode>190409</d:CustomerCode>			
+		</m:properties>
+	</content>
+</entry>
