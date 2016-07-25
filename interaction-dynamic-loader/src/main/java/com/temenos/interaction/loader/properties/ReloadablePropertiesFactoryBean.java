@@ -271,7 +271,6 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 	}
 	
 	private void refreshResources(List<Resource> resources) {
-	    assert xmlNotifier != null;
 	    assert propertiesPersister != null;
 	    assert reloadableProperties != null;
 		for (Resource location : resources) {
@@ -280,17 +279,24 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 
                 if (fileName.startsWith("metadata-") && fileName.endsWith(".xml")) {
                     logger.info("Refreshing : " + location.getFilename());
-                    xmlNotifier.execute(new XmlChangedEventImpl(location));
+                    if(xmlNotifier != null)
+                        xmlNotifier.execute(new XmlChangedEventImpl(location));
                 }
 				
-				if (fileName.startsWith("iris-") && fileName.endsWith(".properties")) {
+				if (fileName.endsWith(".properties")) {
 					Properties newProperties = new Properties();
 					/*
 					 * Ensure this property has been loaded.
 					 */
 					propertiesPersister.load(newProperties, location.getInputStream());
 					
-					if (reloadableProperties.updateProperties(newProperties)) {
+					boolean loadNewProperties = false;
+					// only update IRIS properties -- ignore all others
+					if(fileName.startsWith("iris-")) {
+					    loadNewProperties = reloadableProperties.updateProperties(newProperties);
+					}
+					
+					if(loadNewProperties) {
                         logger.info("Loading new : " + location.getFilename());
                         reloadableProperties.notifyPropertiesLoaded(location, newProperties);
                     } else {
