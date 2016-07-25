@@ -38,10 +38,14 @@ import org.junit.runner.RunWith;
 import com.google.inject.Inject;
 import com.temenos.interaction.rimdsl.rim.DomainModel;
 import com.temenos.interaction.rimdsl.rim.ResourceInteractionModel;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @InjectWith(RIMDslInjectorProvider.class)
 @RunWith(XtextRunner.class)
 public class GeneratorTest {
+    
+    private final static Logger LOGGER = Logger.getLogger(GeneratorTest.class.getName());
 	
 	@Inject 
 	IGenerator underTest;
@@ -929,6 +933,7 @@ public class GeneratorTest {
 		try {
 			underTest.doGenerate(model.eResource(), fsa);
 		} catch (RuntimeException e) {
+                        LOGGER.log(Level.SEVERE, "Error on testGenerateFromIncompleteRIM.", e);
 			exceptionThrown = true;
 		}
 		assertFalse(exceptionThrown);
@@ -941,6 +946,7 @@ public class GeneratorTest {
 			InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 			underTest.doGenerate(null, fsa);
 		} catch (RuntimeException e) {
+                        LOGGER.log(Level.SEVERE, "Error on testGenerateWithNull.", e);
 			exceptionThrown = true;
 		}
 		assertTrue(exceptionThrown);

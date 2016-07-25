@@ -44,10 +44,10 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 
 public class HypermediaTemplateHelper {
-	private final static Logger logger = LoggerFactory.getLogger(HypermediaTemplateHelper.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(HypermediaTemplateHelper.class);
 
 	// regex for uri template pattern
-	public static Pattern TEMPLATE_PATTERN = Pattern.compile("\\{(.*?)\\}");
+	static final Pattern TEMPLATE_PATTERN = Pattern.compile("\\{(.*?)\\}");
 
 	/**
 	 * Provide path parameters for a transition's target state.
@@ -106,12 +106,12 @@ public class HypermediaTemplateHelper {
 					}
 					if (normalizedProperties.containsKey(param)) {
 						// replace template tokens
-						result = template.replaceAll("\\{" + Pattern.quote(param) + "\\}", URLEncoder.encode(normalizedProperties.get(param).toString(), "UTF-8"));
+						result = result.replaceAll("\\{" + Pattern.quote(param) + "\\}", URLEncoder.encode(normalizedProperties.get(param).toString(), "UTF-8"));
 					}
 				}
 			}
 		} catch (Exception e) {
-			logger.error("An error occurred while replacing tokens in ["+template+"]", e);
+			LOGGER.error("An error occurred while replacing tokens in ["+template+"]", e);
 		}
 		return result;
 	}

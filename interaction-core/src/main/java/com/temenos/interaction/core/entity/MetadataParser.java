@@ -24,6 +24,9 @@ package com.temenos.interaction.core.entity;
 
 
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.Stack;
 
 import javax.xml.parsers.SAXParser;
@@ -49,8 +52,8 @@ public class MetadataParser extends DefaultHandler {
 
 	Metadata metadata = null;
 	EntityMetadata entityMetadata = null;									//Meta data for current entity
-	Stack<String> propertyName = new Stack<String>();						//Stack of property names
-	Stack<Vocabulary> propertyVocabulary = new Stack<Vocabulary>();			//Stack of property vocabularies
+	Stack<String> propertyName = new Stack<String>();					    //Stack of property names
+	Deque<Vocabulary> propertyVocabulary = new LinkedList<Vocabulary>();	//Stack of property vocabularies
 	boolean isComplexProperty = false;										//Indicates if this is a complex property
 	String termName = null;													//Name of vocabulary term
 	String termValue = null;												//Value of vocabulary term
@@ -74,7 +77,7 @@ public class MetadataParser extends DefaultHandler {
 			SAXParser saxParser = factory.newSAXParser();
 			saxParser.parse(is, this);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.debug("Failed to parse input stream content", e);
 			return null;
 		}
 		logger.debug("parsed, element count = " + entityMetadata.getPropertyVocabularyKeySet().size() );
@@ -92,7 +95,7 @@ public class MetadataParser extends DefaultHandler {
 		else if (qName.equalsIgnoreCase("Property")) {
 			String name = attributes.getValue("Name");
 			Vocabulary voc = new Vocabulary();
-			if(propertyName.size() > 0) {
+			if(!propertyName.isEmpty()) {
 				//This property belongs to a complex property => set complex group term
 				try {
 					voc.setTerm(termFactory.createTerm(TermComplexGroup.TERM_NAME, propertyName.peek()));
@@ -130,12 +133,12 @@ public class MetadataParser extends DefaultHandler {
 			if ( name == null ) {
 				throw new SAXException("Parse error: Property without name in Entity " + entityMetadata.getEntityName());
 			}
-			entityMetadata.setPropertyVocabulary(name, voc, propertyName.elements());
-			isComplexProperty = (propertyName.size() > 0);
+			entityMetadata.setPropertyVocabulary(name, voc, Collections.enumeration(propertyName));
+			isComplexProperty = !propertyName.isEmpty();
 		}
 		else if (qName.equalsIgnoreCase("Term")) {
 			try {
-				if(propertyName.size() > 0) {
+				if(!propertyName.isEmpty()) {
 					propertyVocabulary.peek().setTerm(termFactory.createTerm(termName, termValue));
 				}
 				else {

@@ -94,7 +94,6 @@ public class Main {
 		final HelpFormatter formatter = new HelpFormatter();
 		formatter.printHelp("java " + Launcher.class.getName() + " [OPTIONS]",
 				options);
-		System.exit(-1);
 	}
 
 }

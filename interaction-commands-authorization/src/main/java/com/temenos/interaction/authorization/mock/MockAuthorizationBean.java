@@ -50,11 +50,11 @@ import com.temenos.interaction.odataext.odataparser.data.RowFilters;
  */
 
 public class MockAuthorizationBean implements IAuthorizationProvider {
-	private final static Logger logger = LoggerFactory.getLogger(MockAuthorizationBean.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(MockAuthorizationBean.class);
 
 	// Keys for test arguments that can be passed in as parameters.
-	public static String TEST_FILTER_KEY = "$testAuthorizationKey";
-	public static String TEST_SELECT_KEY = "$testSelectKey";
+	static final String TEST_FILTER_KEY = "$testAuthorizationKey";
+	static final String TEST_SELECT_KEY = "$testSelectKey";
 
 	// Somewhere to store dummy test arguments.
 	private RowFilters testFilter = null;
@@ -86,6 +86,7 @@ public class MockAuthorizationBean implements IAuthorizationProvider {
 	    catch (Exception e) {
 	        // If there was any problem create the 'no result' filter.
 	        this.testFilter = null;
+	        LOGGER.debug("There was a problem creating a filter", e);	        
 	    }
 	    
 		this.testSelect = testSelect;
@@ -111,7 +112,7 @@ public class MockAuthorizationBean implements IAuthorizationProvider {
 			Set<FieldName> selectList = ODataParser.parseSelect(select);
 			return (selectList);
 		} catch (Exception e) {
-			logger.info("Could not parse test seelct \"" + select + "\" : ", e);
+			LOGGER.info("Could not parse test seelct \"" + select + "\" : ", e);
 
 			// Return the 'no output' case
 			return (new HashSet<FieldName>());

@@ -68,7 +68,9 @@ public class TestLazyServiceRootFactory {
         when(state.getPath()).thenReturn("/test");		
 		when(state.getResourcePath()).thenReturn("/test");		
 		when(state.getEntityName()).thenReturn("Mock");
+	    when(resourceStateProvider.getResourceStateId(eq("GET"), eq("/test"))).thenReturn("resource");
 		when(resourceStateProvider.getResourceState(eq("GET"), eq("/test"))).thenReturn(state);
+	    when(resourceStateProvider.getResourceState("resource")).thenReturn(state);
 		factory.setResourceStateProvider(resourceStateProvider);
 		
         Set<String> methods = new HashSet<String>();
@@ -114,6 +116,9 @@ public class TestLazyServiceRootFactory {
         when(state.getResourcePath()).thenReturn("/test");      
         when(state.getEntityName()).thenReturn("Mock");
         when(resourceStateProvider.getResourceState(eq("GET"), eq("/test"))).thenReturn(state);
+        when(resourceStateProvider.getResourceStateId(eq("GET"), eq("/test"))).thenReturn("resource");
+        when(resourceStateProvider.getResourceState(eq("GET"), eq("/test"))).thenReturn(state);
+        when(resourceStateProvider.getResourceState("resource")).thenReturn(state);
         
         Set<String> methods = new HashSet<String>();
         methods.add("GET");
@@ -128,7 +133,11 @@ public class TestLazyServiceRootFactory {
         when(state2.getPath()).thenReturn("/test");      
         when(state2.getResourcePath()).thenReturn("/test");      
         when(state2.getEntityName()).thenReturn("Mock");
-        when(resourceStateProvider.getResourceState(eq("POST"), eq("/test"))).thenReturn(state);  
+        when(resourceStateProvider.getResourceState(eq("POST"), eq("/test"))).thenReturn(state);
+        when(resourceStateProvider.getResourceStateId(eq("POST"), eq("/test"))).thenReturn("resource");
+        when(resourceStateProvider.getResourceState(eq("POST"), eq("/test"))).thenReturn(state);
+        when(resourceStateProvider.getResourceState("resource")).thenReturn(state);
+
         
         Set<String> methods2 = new HashSet<String>();
         methods2.add("POST");

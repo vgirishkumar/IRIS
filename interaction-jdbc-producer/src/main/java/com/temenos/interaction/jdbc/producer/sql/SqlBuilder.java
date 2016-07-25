@@ -65,13 +65,22 @@ public abstract class SqlBuilder {
     protected boolean serverIsEmulated;
 
     // Name of rownum exported form inner select.
-    protected final static String INNER_RN_NAME = "rn";
+    protected static final String INNER_RN_NAME = "rn";
 
     // Inner table name used when ordering rows.
-    protected final static String INNER_TABLE_NAME = "inner_tab";
+    protected static final String INNER_TABLE_NAME = "inner_tab";
 
-    protected final static Logger logger = LoggerFactory.getLogger(SqlBuilder.class);
+    protected static final Logger LOGGER = LoggerFactory.getLogger(SqlBuilder.class);
 
+    /**
+     * @param tableName
+     * @param keyValue
+     * @param accessProfile
+     * @param colTypesMap
+     * @param top
+     * @param skip
+     * @param orderBy
+     */
     public SqlBuilder(String tableName, String keyValue, AccessProfile accessProfile, ColumnTypesMap colTypesMap,
             String top, String skip, List<OrderBy> orderBy) {
         this.tableName = tableName;
@@ -89,11 +98,12 @@ public abstract class SqlBuilder {
         } catch (SecurityException e) {
             // Not found. This is what we want.
             exists = false;
+            LOGGER.debug("Column name " + INNER_RN_NAME + " does not exist",e);
         }
         if (exists) {
             // Possibly should throw or maybe dynamically work out an unique
             // column name. For now just warn the user.
-            logger.warn("Table contains a column with the reserved name \"" + INNER_RN_NAME
+            LOGGER.warn("Table contains a column with the reserved name \"" + INNER_RN_NAME
                     + "\" pagination may not perform as expected");
         }
 
@@ -107,11 +117,11 @@ public abstract class SqlBuilder {
         try {
             // Java "BigDecimal" appears to be the closest data type to Jdbc
             // "numeric".
-            new BigDecimal(value);
+            BigDecimal x = new BigDecimal(value);
+            return x != null ? true : false;
         } catch (NumberFormatException e) {
             return false;
         }
-        return true;
     }
 
     /**
@@ -124,7 +134,7 @@ public abstract class SqlBuilder {
         // Add columns to select
         Set<FieldName> names = accessProfile.getFieldNames();
         if (null == names) {
-            throw (new SecurityException("Cannot generate Sql command for null field set."));
+            throw new SecurityException("Cannot generate Sql command for null field set.");
         }
         if (names.isEmpty()) {
             // Empty select list means "return all columns".
@@ -156,7 +166,7 @@ public abstract class SqlBuilder {
         if (aliasSepInd > 0) {
             if (aliasSepInd + JDBCProducerConstants.SELECT_FIELD_NAME_ALIAS_SEP_LEN == fieldName.length()) {
                 // Alias provided seems to be empty :(, we should log at-least
-                logger.info("FieldName recieved with empty alias, this should be corrected while constructing select list...");
+                LOGGER.info("FieldName recieved with empty alias, this should be corrected while constructing select list...");
                 // Append the name before :AS: and ignore the rest as its empty
                 // anyway
                 builder.append(" \"" + fieldName.substring(0, aliasSepInd) + "\"");
@@ -197,7 +207,7 @@ public abstract class SqlBuilder {
      */
     protected void addWhereTerms(StringBuilder builder) {
 
-        // If there are no filters or key return;
+        // If there are no filters or key return
         if (accessProfile.getNewRowFilters().isEmpty() && (null == keyValue)) {
             return;
         }
@@ -206,8 +216,8 @@ public abstract class SqlBuilder {
 
         if (null != keyValue) {
             if (null == colTypesMap.getPrimaryKeyName()) {
-                throw (new SecurityException("No primary key column defined for \"" + tableName
-                        + "\". Cannot look up key."));
+                throw new SecurityException("No primary key column defined for \"" + tableName
+                        + "\". Cannot look up key.");
             }
 
             // Add key as a filter
@@ -233,7 +243,7 @@ public abstract class SqlBuilder {
         // Add row filters
         RowFilters filters = accessProfile.getNewRowFilters();
         if ((null == filters) || (filters.isBlockAll())) {
-            throw (new SecurityException("Cannot generate Sql command for 'block all' row filter."));
+            throw new SecurityException("Cannot generate Sql command for 'block all' row filter.");
         }
 
         // Create an OData4j visitor and use it to print out the filters. 
@@ -265,7 +275,7 @@ public abstract class SqlBuilder {
         } else {
             // By default order by the primary key.
             if (null == colTypesMap.getPrimaryKeyName()) {
-                logger.warn("Primary key name not known. Cannot add \"ORDER BY\" clause.");
+                LOGGER.warn("Primary key name not known. Cannot add \"ORDER BY\" clause.");
                 return;
             }
             addOrderBy(builder);
@@ -374,5 +384,8 @@ public abstract class SqlBuilder {
      */
     public abstract String getCommand();
 
+    /**
+     * Sets the compatibility mode
+     */
     public abstract void setCompatibilityMode();
 }

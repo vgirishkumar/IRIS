@@ -25,9 +25,6 @@ package com.temenos.interaction.winkext;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.temenos.interaction.core.cache.Cache;
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.entity.Metadata;
@@ -46,8 +43,6 @@ import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
  */
 public class LazyServiceRootFactory implements ServiceRootFactory {
 
-	private final Logger logger = LoggerFactory.getLogger(LazyServiceRootFactory.class);
-	
 	private ResourceStateProvider resourceStateProvider;
 	private ResourceStateMachine hypermediaEngine;
 	
@@ -60,6 +55,7 @@ public class LazyServiceRootFactory implements ServiceRootFactory {
 	private ResourceState exception;
 	private Transformer transformer;
 
+	@Override
 	public Set<HTTPResourceInteractionModel> getServiceRoots() {		
 		hypermediaEngine = new ResourceStateMachine.Builder()
 				.initial(null)

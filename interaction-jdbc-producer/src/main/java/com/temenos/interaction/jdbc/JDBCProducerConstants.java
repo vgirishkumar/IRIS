@@ -27,8 +27,12 @@ package com.temenos.interaction.jdbc;
  * @author sjunejo
  *
  */
-public class JDBCProducerConstants {
+public final class JDBCProducerConstants {
 
     public static final String SELECT_FIELD_NAME_ALIAS_SEP = "__AS__";
     public static final int SELECT_FIELD_NAME_ALIAS_SEP_LEN = SELECT_FIELD_NAME_ALIAS_SEP.length();
+    
+    private JDBCProducerConstants() {        
+    }
+    
 }

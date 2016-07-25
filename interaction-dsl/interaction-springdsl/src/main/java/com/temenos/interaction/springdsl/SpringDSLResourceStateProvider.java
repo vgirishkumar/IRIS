@@ -443,26 +443,38 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 
     @Override
     public ResourceState getResourceState(String httpMethod, String url) throws MethodNotAllowedException {
-    	Map<String,String> methodToState = null;
-    	
-		initialise();
-    	
-        String resourceStateName = null;
+        String resourceStateId = getResourceStateId(httpMethod, url);
+        if(resourceStateId == null) {
+            if(pathTree.get(url) != null) {
+                Set<String> allowedMethods = pathTree.get(url).keySet();
+                throw new MethodNotAllowedException(allowedMethods);
+            } else {
+                return null;
+            }
+        }
+        return getResourceState(resourceStateId);
+    }
+    
+    public String getResourceStateId(String httpMethod, String url) throws MethodNotAllowedException {
+        Map<String,String> methodToState = null;
         
+        initialise();
         methodToState = pathTree.get(url);
-        
-        ResourceState result = null;
+
+        String resourceStateId = null;
         
         if(methodToState != null) {
-        	resourceStateName = methodToState.get(httpMethod);
-        	
-            if(resourceStateName == null) {
-                throw new MethodNotAllowedException(methodToState.keySet());
-            } else {
-            	result = getResourceState(resourceStateName);
-            }        	
-        }       
-                   
-        return result;
+            resourceStateId = methodToState.get(httpMethod);
+            if(resourceStateId == null) {
+                if(pathTree.get(url) != null) {
+                    Set<String> allowedMethods = pathTree.get(url).keySet();
+                    throw new MethodNotAllowedException(allowedMethods);
+                }
+            }
+        } else {
+            return null;
+        }
+        
+        return resourceStateId;
     }
 }
