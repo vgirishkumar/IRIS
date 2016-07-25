@@ -32,6 +32,9 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import com.temenos.interaction.core.hypermedia.ResourceState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.temenos.interaction.media.odata.xml.atom.AtomXMLProvider;
 
 /**
@@ -39,7 +42,7 @@ import com.temenos.interaction.media.odata.xml.atom.AtomXMLProvider;
  * @author aphethean
  */
 public class ExUriInfo implements UriInfo {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(AtomXMLProvider.class);
 	private ResourceState serviceDocument;
 	private UriInfo uriInfo;
 	
@@ -100,7 +103,7 @@ public class ExUriInfo implements UriInfo {
 		try {
 			return new URI(AtomXMLProvider.getBaseUri(serviceDocument, uriInfo));
 		} catch (URISyntaxException e) {
-			e.printStackTrace();
+		    LOGGER.debug("Failed to get base uri", e);
 		}
 		return null;
 	}

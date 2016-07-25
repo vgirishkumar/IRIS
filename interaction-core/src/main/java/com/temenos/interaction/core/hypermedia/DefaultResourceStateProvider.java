@@ -135,23 +135,39 @@ public class DefaultResourceStateProvider implements ResourceStateProvider {
 
     @Override
     public ResourceState getResourceState(String httpMethod, String url) throws MethodNotAllowedException {
-        
-        String resourceStateName = null;
-        
-        Map<String,String> methodToState = paths.get(url);
 
-        ResourceState result = null;
+        String resourceStateId = getResourceStateId(httpMethod, url);
+        if(resourceStateId == null) {
+            if(paths.get(url) != null) {
+                Set<String> allowedMethods = paths.get(url).keySet();
+                throw new MethodNotAllowedException(allowedMethods);
+            } else {
+                return null;
+            }
+        }
+        return getResourceState(resourceStateId);
+    }
+
+    @Override
+    public String getResourceStateId(String httpMethod, String url) throws MethodNotAllowedException {
+        Map<String,String> methodToState = null;
+        
+        methodToState = paths.get(url);
+
+        String resourceStateId = null;
         
         if(methodToState != null) {
-        	resourceStateName = methodToState.get(httpMethod);
-        	
-            if(resourceStateName == null) {
-                throw new MethodNotAllowedException(methodToState.keySet());
-            } else {
-            	result = getResourceState(resourceStateName);
-            }                	
+            resourceStateId = methodToState.get(httpMethod);
+            if(resourceStateId == null) {
+                if(paths.get(url) != null) {
+                    Set<String> allowedMethods = paths.get(url).keySet();
+                    throw new MethodNotAllowedException(allowedMethods);
+                }
+            }
+        } else {
+            return null;
         }
         
-        return result;
+        return resourceStateId;
     }
 }

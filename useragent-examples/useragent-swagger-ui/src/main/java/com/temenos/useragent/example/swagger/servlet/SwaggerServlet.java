@@ -38,14 +38,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 public class SwaggerServlet extends HttpServlet {
-	
-	public static final String SWAGGER_FILE_NAME = "api-docs.json";
+    private static final long serialVersionUID = 8016912633666133628L;
+	private static final String SWAGGER_FILE_NAME = "api-docs.json";
+	private static String irisUrlMapping;
 	
 	public static final String SWAGGER_SERVLET_INIT_PARAM = "irisUrlMapping";
-	
-	private static final long serialVersionUID = 8016912633666133628L;
-	
-	private String irisUrlMapping;
 	
 	@Override
 	public void init(ServletConfig config) throws ServletException {
@@ -72,7 +69,7 @@ public class SwaggerServlet extends HttpServlet {
 			jsonWriter.writeObject(jsonFinalSwaggerObject);
 			jsonWriter.close();
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new ServletException(e);
 		}
 	}
 

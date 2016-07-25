@@ -22,9 +22,7 @@ package com.temenos.useragent.generic;
  */
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.temenos.useragent.generic.context.ConnectionConfig;
 import com.temenos.useragent.generic.context.ContextFactory;
@@ -41,7 +39,6 @@ import com.temenos.useragent.generic.internal.UrlWrapper;
 public class DefaultInteractionSession implements InteractionSession {
 
 	private HttpHeader header;
-	private Map<String, String> changedProperties;
 	private EntityWrapper entity;
 	private SessionContextImpl sessionContext;
 	private HttpClient httpClient;
@@ -134,7 +131,7 @@ public class DefaultInteractionSession implements InteractionSession {
 	public InteractionSession basicAuth(String username, String password) {
 		ContextFactory factory = ContextFactory.get();
 		factory.setConnectionProperty(ConnectionConfig.USER_NAME, username);
-		factory.setConnectionProperty(ConnectionConfig.PASSWORD, password);
+		factory.setConnectionProperty(ConnectionConfig.PASS_WORD, password);
 		return this;
 	}
 
@@ -165,7 +162,6 @@ public class DefaultInteractionSession implements InteractionSession {
 
 	private void initialiseToDefaults() {
 		header = new HttpHeader();
-		changedProperties = new HashMap<String, String>();
 		entity = new NullEntityWrapper();
 		sessionContext = new SessionContextImpl(this);
 		httpClient = HttpClientFactory.newClient();
@@ -201,12 +197,7 @@ public class DefaultInteractionSession implements InteractionSession {
 
 		@Override
 		public EntityWrapper getRequestEntity() {
-			// TODO build/modify the entity and return
-			EntityWrapper wrapper = parent.entity;
-			for (String key : parent.changedProperties.keySet()) {
-				wrapper.set(key, parent.changedProperties.get(key));
-			}
-			return wrapper;
+			return parent.entity;
 		}
 
 		@Override

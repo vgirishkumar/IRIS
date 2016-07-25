@@ -1,5 +1,7 @@
 package com.temenos.interaction.core.hypermedia;
 
+import java.util.List;
+
 /*
  * #%L
  * interaction-core
@@ -21,41 +23,24 @@ package com.temenos.interaction.core.hypermedia;
  * #L%
  */
 
-import java.util.List;
-import java.util.Map;
 
 /**
- * LinkToFieldAssociation determines 
- * <br> 1. which field is associated with a particular link 
- * <br> 2. how many links to associate with a field
+ * Determine if links can be generated from a particular transition.
+ * If so, return a collection of transition properties used to resolve multivalue fields.
  */
 public interface LinkToFieldAssociation {
     
     /**
-     * Return true if only one link is required per field. 
-     * @param fieldLabel
-     * @param paramName
+     * Return a list of properties that is used to resolve multivalue fields.
+     * The size of the list determines the number of links to generate for each underlying transition.
      * @return
      */
-    boolean generateOneLinkPerField();
+    List<LinkProperties> getProperties();
     
     /**
-     * Extract list of property keys that match the field.
-     * @param fieldLabel
-     * @param properties
+     * Determine whether the transition is supported by the implementation.
      * @return
      */
-    List<String> getFullyQualifiedFieldNames(Map<String, Object> properties);
+    boolean isTransitionSupported();
     
-    /**
-     * Determine which target field name or rel value to use.
-     * @param transitionFieldLabel
-     * @param paramName
-     * @param fullyQualifiedFieldLabel
-     * @param fullyQualifiedParamName
-     * @param properties
-     * @return
-     */
-    String determineTargetFieldName(String fullyQualifiedFieldLabel, String fullyQualifiedParamName, Map<String, Object> properties);
-
 }

@@ -31,6 +31,9 @@ import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * A simple class just to be able to provide the path decoded from utf8 to the providers
  *
@@ -38,7 +41,7 @@ import javax.ws.rs.core.UriInfo;
  *
  */
 public class UriInfoImpl implements UriInfo {
-    
+    private static final Logger LOGGER = LoggerFactory.getLogger(UriInfoImpl.class);
     private UriInfo uriInfo;
     private MultivaluedMap<String,String> pathParameters = new MultivaluedMapImpl<String>();
     
@@ -51,6 +54,10 @@ public class UriInfoImpl implements UriInfo {
         try {
             return URLDecoder.decode(uriInfo.getPath(), "UTF-8");
         } catch (Exception e) {
+            if(LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Failed to decode " + uriInfo.getPath(), e);
+            }
+            
             return uriInfo.getPath();
         }
     }
@@ -111,16 +118,21 @@ public class UriInfoImpl implements UriInfo {
             for (Map.Entry<String, List<String>> entry : pathParameters.entrySet()) {
                 // remove the encoded parameters from the object
                 pathParameters.remove(entry.getKey());
-                for(int i = 0; i<entry.getValue().size(); i++) {
+                
+                for (int i = 0; i < entry.getValue().size(); i++) {
                     // add the parameters decoded again to the object
                     pathParameters.add(entry.getKey(), URLDecoder.decode(entry.getValue().get(i), "UTF-8"));
                 }
             }
+            
             return pathParameters;
         } catch (Exception e) {
+            if(LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Failed to decode parameter", e);
+            }
+            
             return pathParameters;
-        }
-
+        }        
     }
 
     @Override

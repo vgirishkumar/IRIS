@@ -35,12 +35,17 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * A simple self extracting executable jar.
  * @author aphethean
  *
  */
 public class Launcher {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(Launcher.class);
 	
     static String MANIFEST = "META-INF/MANIFEST.MF";
 
@@ -54,7 +59,7 @@ public class Launcher {
 			try {
 				jarUrls = launcher.extract(jarFile);
 			} catch (IOException e) {
-				e.printStackTrace();
+                                LOGGER.error("Error extracting jarFile", e);
 				throw new RuntimeException();
 			}
 		} else {
@@ -67,7 +72,7 @@ public class Launcher {
 				Method mainMethod = main.getMethod("launch", new Class[]{String[].class});
 				mainMethod.invoke(null, new Object[]{args});
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.error("Error invoking the main method.", e);
 			}
 		} else {
 			System.out.println("Launcher could not find any jars to load prior to launch.");
@@ -144,7 +149,7 @@ public class Launcher {
             }
 
         } catch (Exception exc) {
-            exc.printStackTrace();
+            LOGGER.error("Error.", exc);
         } finally {
             if (inStream != null) {
                 inStream.close();

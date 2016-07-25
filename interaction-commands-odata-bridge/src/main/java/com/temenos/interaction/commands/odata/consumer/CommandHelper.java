@@ -36,7 +36,7 @@ import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
 
 public class CommandHelper {
-	private final static Logger logger = LoggerFactory.getLogger(CommandHelper.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CommandHelper.class);
 
 	/**
 	 * Create an OData entity resource (entry)
@@ -120,7 +120,7 @@ public class CommandHelper {
 				key = OEntityKey.parse(id);
 			}
 		} catch (Exception e) {
-			logger.warn("Entity key type " + keyType + " is not supported by CommandHelper, trying OEntityKey.parse");
+		    LOGGER.warn("Entity key type " + keyType + " is not supported by CommandHelper, trying OEntityKey.parse",e);
 		}
 		// could not parse the key, have one last attempt with OEntityKey create
 		if (key == null) {
@@ -133,7 +133,7 @@ public class CommandHelper {
 					key = OEntityKey.create(id);
 				}					
 			} catch (Exception e) {
-				logger.error("OEntityKey.parse failed to parse id [" + id + "]");
+			    LOGGER.error("OEntityKey.parse failed to parse id [" + id + "]",e);
 			}
 		}
 		if (key == null)

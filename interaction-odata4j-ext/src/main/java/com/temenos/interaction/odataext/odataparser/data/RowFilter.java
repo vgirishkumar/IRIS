@@ -3,6 +3,8 @@ package com.temenos.interaction.odataext.odataparser.data;
 import org.odata4j.expression.BinaryCommonExpression;
 import org.odata4j.expression.CommonExpression;
 import org.odata4j.producer.resources.OptionsQueryParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.odataext.odataparser.ODataParser;
 import com.temenos.interaction.odataext.odataparser.ODataParser.UnsupportedQueryOperationException;
@@ -36,6 +38,8 @@ import com.temenos.interaction.odataext.odataparser.ODataParser.UnsupportedQuery
  */
 
 public class RowFilter {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(RowFilter.class);
 
     // Wrapped OData4j object.
     private BinaryCommonExpression oData4jExpression;
@@ -53,12 +57,7 @@ public class RowFilter {
 
         if (!(expr instanceof BinaryCommonExpression)) {
             // Too complex to fit in a RowFIlter
-            new RuntimeException("Expression too complex for row filter. Type=\"" + expr + "\"");
-
-            // For backward comparability cannot throw
-            // UnsupportedQueryOperationException. So throw something that old
-            // callers can handle.
-            throw new NullPointerException("Expression too complex for row filter. Type=\"" + expr + "\"");
+            throw new RuntimeException("Expression too complex for row filter. Type=\"" + expr + "\"");
         }
         oData4jExpression = (BinaryCommonExpression) expr;
     }
@@ -76,7 +75,8 @@ public class RowFilter {
         try {
             name = new FieldName(oData4jExpression.getLHS());
         } catch (UnsupportedQueryOperationException e) {
-            new RuntimeException("LHS incompatible with FieldName.");
+            LOGGER.error("LHS incompatible with FieldName.", e);
+            throw new RuntimeException("LHS incompatible with FieldName.");
         }
         return name;
     }
@@ -92,6 +92,6 @@ public class RowFilter {
     }
 
     public String getValue() {
-        return (ODataParser.OData4jToFilters(oData4jExpression.getRHS()));
+        return ODataParser.OData4jToFilters(oData4jExpression.getRHS());
     }
 }

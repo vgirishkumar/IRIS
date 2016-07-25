@@ -22,81 +22,325 @@ package com.temenos.interaction.core.hypermedia;
  */
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
+
 
 /**
  * Implementation of {@link LinkToFieldAssociation}
  */
 public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
 
-    private final Logger logger = LoggerFactory.getLogger(LinkToFieldAssociationImpl.class);
-    private String fieldLabel;
-    private String paramName;
-    
-    public LinkToFieldAssociationImpl(String fieldLabel, String paramName)
-    {
-        this.fieldLabel = fieldLabel;
-        this.paramName = paramName;
-    }
-    
-    @Override
-    public boolean generateOneLinkPerField() {
-        return paramName!=null && (paramName.equals(fieldLabel) || haveSameParent());
+    private static final Pattern COLLECTION_PARAM_PATTERN = Pattern.compile("\\{{1}([a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)+)\\}{1}");
+    private static final String PARAM_REPLACEMENT_REGEX = "\\((\\d+)\\)";
+    private static final Logger logger = LoggerFactory.getLogger(LinkToFieldAssociationImpl.class);
+    private Transition transition;
+    private String targetFieldName;
+    private List<String> transitionCollectionParams;
+    private Boolean isCollectionDynamicResourceName;
+    private Map<String, Object> transitionProperties;
+    private Map<String, Object> normalisedTransitionProperties;
+
+    public LinkToFieldAssociationImpl(Transition transition, Map<String, Object> properties) {
+        this.transition = transition;
+        targetFieldName = transition.getSourceField();
+        transitionCollectionParams = getCollectionParams(transition.getCommand().getUriParameters());
+        isCollectionDynamicResourceName = isCollectionDynamicResourceName(transition.getTarget());
+        transitionProperties = properties;
+        normalisedTransitionProperties = HypermediaTemplateHelper.normalizeProperties(properties);
     }
 
     @Override
-    public List<String> getFullyQualifiedFieldNames(Map<String, Object> properties) {
-        List<String> fieldLabelList = new ArrayList<String>();
-        for(String key : properties.keySet()) {
-            if(StringUtils.equals(fieldLabel, key.replaceAll(LinkGeneratorImpl.PARAM_REPLACEMENT_REGEX, ""))) {
-                fieldLabelList.add(key);
+    public boolean isTransitionSupported() {
+
+        if (targetFieldName == null && (!transitionCollectionParams.isEmpty() || isCollectionDynamicResourceName)) {
+            logger.error("Cannot generate links for transition " + transition + ". Target field name cannot be null if we have collection parameters or a collection dymamic resource.");
+            return false;
+        }
+
+        if (isCollectionDynamicResourceName && !StringUtils.equals(getParentNameOfCollectionValue(targetFieldName), getParentNameOfDynamicResource())) {
+            logger.error("Cannot generate links for transition " + transition + ". Parent of target field name and dynamic resource must be same.");
+            return false;
+        }
+        
+        if(isCollectionDynamicResourceName && !allParametersHaveSameParent(((DynamicResourceState) transition.getTarget()).getResourceLocatorArgs()))
+        {
+            logger.error("Cannot generate links for transition " + transition + ". All multivalue fields in the parameter list of the dynamic resource must have the same parent.");
+            return false;
+        }
+
+        if (!transitionCollectionParams.isEmpty() && !allParametersHaveSameParent(transitionCollectionParams.toArray(new String[0]))) {
+            logger.error("Cannot generate links for transition " + transition + ". All collection parameters must have the same parent.");
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public List<LinkProperties> getProperties() {
+
+        List<LinkProperties> transitionPropertiesList = new ArrayList<LinkProperties>();
+
+        //Get list of child names, i.e. For AB.CD and AA.ZZ add CD, ZZ to list
+        List<String> childParamNames = new ArrayList<String>();
+        for (String collectionParam : transitionCollectionParams) {
+            childParamNames.add(getChildNameOfCollectionValue(collectionParam));
+        }
+
+        if (targetFieldName != null && targetFieldName.contains(".")) // Multivalue target
+        {
+            createLinkPropertiesForMultivalueTarget(transitionPropertiesList, childParamNames);
+        } else // Non multivalue target
+        {
+            createLinkPropertiesForSingleTarget(transitionPropertiesList, childParamNames);
+        }
+
+        logger.debug("Created " + transitionPropertiesList.size() + " properties map(s) for transition " + transition);
+
+        return transitionPropertiesList;
+    }
+
+    private void createLinkPropertiesForMultivalueTarget(List<LinkProperties> transitionPropertiesList, List<String> childParamNames) {
+        List<String> targetFields = extractMatchingFieldsFromTransitionProperties(targetFieldName);
+        //If properties does not contain the target, add unresolved target
+        if(targetFields.isEmpty()) {            
+            targetFields.add(targetFieldName);
+        }
+        
+        String parentTargetFieldName = getParentNameOfCollectionValue(targetFieldName);
+
+        boolean hasSameParent = false;
+        int numOfChildren = 0;
+        String parentResolvedName = new String();        
+        if (transitionCollectionParams.size() > 0) {
+            String firstCollectionParam = transitionCollectionParams.get(0);
+            //Determine if parent of target field and parent of parameters are same 
+            hasSameParent = StringUtils.equals(getParentNameOfCollectionValue(firstCollectionParam), parentTargetFieldName);
+            if(!hasSameParent)
+            {
+                numOfChildren = getNumberOfMultivalueChildren();
+                parentResolvedName = getParentOfMultivalueChildren();
             }
         }
-        //For self links
-        if(fieldLabelList.isEmpty()) {
-            fieldLabelList.add(fieldLabel);
-        }        
-        return fieldLabelList;
+
+        for (String targetField : targetFields) // Generate one or more map of properties for each target field
+        {
+            List<String> resolvedDynamicResourceFieldNames = getDynamicResourceResolvedFieldName(transition.getTarget(), targetField);
+            if (transitionCollectionParams.isEmpty()) // Create one link properties map per target
+            {
+                LinkProperties linkProps = createLinkProperties(targetField, resolvedDynamicResourceFieldNames, childParamNames, null);
+                transitionPropertiesList.add(linkProps);
+            } else if (hasSameParent) // Create one link properties map per target
+            {
+                String parentResolvedTargetFieldName = getParentNameOfCollectionValue(targetField);
+                LinkProperties linkProps = createLinkProperties(targetField, resolvedDynamicResourceFieldNames, childParamNames, parentResolvedTargetFieldName);
+                transitionPropertiesList.add(linkProps);
+            } else { 
+                // Create multiple properties maps per target. Depends on the number of children in the entity in transition properties
+                for (int i = 0; i <= numOfChildren; i++) {
+                    String childParentResolvedParamNewIndex = parentResolvedName + "(" + i + ")";
+                    LinkProperties linkProps = createLinkProperties(targetField, resolvedDynamicResourceFieldNames, childParamNames, childParentResolvedParamNewIndex);
+                    transitionPropertiesList.add(linkProps);
+                }
+            }
+        }
     }
 
-    @Override
-    public String determineTargetFieldName(String fullyQualifiedFieldLabel,
-            String fullyQualifiedParamName, Map<String, Object> properties) {
-        String resolvedFieldLabel = null;
-        if(haveSameParent()) {
-            resolvedFieldLabel = fullyQualifiedParamName.substring(0, fullyQualifiedParamName.lastIndexOf(".")) + fieldLabel.substring(fieldLabel.lastIndexOf("."));
+    private void createLinkPropertiesForSingleTarget(List<LinkProperties> transitionPropertiesList, List<String> childParamNames) {
+        if (transitionCollectionParams.isEmpty()) // Create one link properties map per target
+        {
+            LinkProperties linkProps = new LinkProperties(targetFieldName, transitionProperties);
+            transitionPropertiesList.add(linkProps);
+        } else {
+            int numOfChildren = getNumberOfMultivalueChildren();
+            String parentResolvedName = getParentOfMultivalueChildren();
+
+            // Create multiple properties maps per target. Depends on the number of children in the entity in transition properties
+            for (int i = 0; i <= numOfChildren; i++) {
+                String childParentResolvedParamNewIndex = parentResolvedName + "(" + i + ")";
+                LinkProperties linkProps = createLinkProperties(targetFieldName, null, childParamNames, childParentResolvedParamNewIndex);
+                transitionPropertiesList.add(linkProps);
+            }
         }
-        else if(paramName.equals(fieldLabel)) {
-            resolvedFieldLabel = fullyQualifiedParamName;
+    }
+
+    private LinkProperties createLinkProperties(String targetField, List<String> resolvedDynamicResourceFieldNames, List<String> childParamNames, String resolvedParentName) {
+        List<String> paramPropertyKeys = new ArrayList<String>();
+        if (StringUtils.isNotBlank(resolvedParentName)) {
+            paramPropertyKeys = getListOfParamPropertyKeys(childParamNames, resolvedParentName);
         }
-        else {
-            resolvedFieldLabel = fullyQualifiedFieldLabel;
+
+        if (!CollectionUtils.isEmpty(resolvedDynamicResourceFieldNames)) {
+            paramPropertyKeys.addAll(resolvedDynamicResourceFieldNames);
         }
-        
-        if(!properties.containsKey(resolvedFieldLabel)) {
-            logger.debug("Field label " + resolvedFieldLabel + " does not have any corresponding value in the properties map.");
-            resolvedFieldLabel = null;
+        LinkProperties linkProps = new LinkProperties(targetField, transitionProperties);
+        addEntriesToLinkProperties(linkProps, paramPropertyKeys);
+        return linkProps;
+    }
+
+    private List<String> getListOfParamPropertyKeys(List<String> childParamNames, String fullyQualifiedParentName) {
+        List<String> propertyKeys = new ArrayList<String>();
+
+        for (String childParam : childParamNames) {
+            propertyKeys.add(fullyQualifiedParentName + "." + childParam);
         }
-        
-        return resolvedFieldLabel;
+
+        return propertyKeys;
+    }
+
+    private List<String> getDynamicResourceResolvedFieldName(ResourceState targetResourceState, String targetField) {
+        List<String> resolvedFieldNames = new ArrayList<String>();
+        if (isCollectionDynamicResourceName) {
+            String targetFieldParentName = getParentNameOfCollectionValue(targetField);
+            DynamicResourceState dynamicResourceState = (DynamicResourceState) targetResourceState;
+            for(String fieldName : dynamicResourceState.getResourceLocatorArgs())
+            {
+                if(fieldName.contains("."))
+                {
+                    resolvedFieldNames.add(targetFieldParentName + "." + getChildNameOfCollectionValue(fieldName).replaceAll("\\}", "")); //Remove enclosed curly brace
+                }
+            }
+        }
+        return resolvedFieldNames;
     }
     
-    private boolean haveSameParent() {
-        boolean isSame = false;
-        if(fieldLabel!=null && fieldLabel.contains("."))
-        {
-           String fieldLabelParent = fieldLabel.substring(0, fieldLabel.lastIndexOf("."));
-           String collectionNameParent = paramName.substring(0, paramName.lastIndexOf("."));
-           if(StringUtils.equals(fieldLabelParent, collectionNameParent)) {
-               isSame = true;
-           }
+    private int getNumberOfMultivalueChildren() {
+        //Find the number of children using the index of the parent in transition properties
+        //i.e. if we have A(0).B and A(1).B in the properties map, return 1
+        int numChildren = 0;
+        for (String collectionParam : transitionCollectionParams) {
+            List<String> entityParamFields = extractMatchingFieldsFromTransitionProperties(collectionParam);
+            for (String entityParam : entityParamFields) {
+                int index = Integer.parseInt(entityParam.substring(entityParam.lastIndexOf("(") + 1, entityParam.lastIndexOf(")")));
+                if (index > numChildren) {
+                    numChildren = index;
+                }
+            }
         }
-        return isSame;
+        return numChildren;
+    }
+    
+    private String getParentOfMultivalueChildren() {
+        String collectionParam = transitionCollectionParams.get(0);
+        List<String> matchingFields = extractMatchingFieldsFromTransitionProperties(collectionParam);
+        String parent = getParentNameOfCollectionValue(matchingFields.get(0));
+        return parent.substring(0, parent.lastIndexOf("("));        
     }
 
+    private List<String> getCollectionParams(Map<String, String> transitionUriMap) {
+        List<String> collectionParams = new ArrayList<String>();
+        if (transitionUriMap == null) {
+            return collectionParams;
+        }
+
+        for (Map.Entry<String, String> entry : transitionUriMap.entrySet()) {
+            String parameter = entry.getValue();
+            Matcher matcher = COLLECTION_PARAM_PATTERN.matcher(parameter);
+            while (matcher.find()) {
+                collectionParams.add(matcher.group(1));
+            }
+        }
+        return collectionParams;
+    }
+
+    private boolean isCollectionDynamicResourceName(ResourceState target) {
+        if (target instanceof DynamicResourceState) {
+            String[] resourceLocatorArgs = ((DynamicResourceState) target).getResourceLocatorArgs();
+            if (resourceLocatorArgs != null && resourceLocatorArgs.length > 0 && resourceLocatorArgs[0].contains(".")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String getParentNameOfDynamicResource() {
+        String[] resourceLocatorArgs = ((DynamicResourceState) transition.getTarget()).getResourceLocatorArgs();
+        String parent = getParentNameOfCollectionValue(resourceLocatorArgs[0]);
+        if (parent != null && parent.length()>1) {
+            parent = parent.substring(1); //Remove starting curly brace {
+        }
+        return parent;
+    }
+
+    private List<String> extractMatchingFieldsFromTransitionProperties(String fieldName) {
+        List<String> matchingFieldList = new ArrayList<String>();
+        for (String key : normalisedTransitionProperties.keySet()) {
+            if (StringUtils.equals(fieldName, key.replaceAll(PARAM_REPLACEMENT_REGEX, ""))) {
+                matchingFieldList.add(key);
+            }
+        }
+
+        return matchingFieldList;
+    }
+
+    private String getParentNameOfCollectionValue(String value) {
+        if (StringUtils.isNotBlank(value) && value.contains(".")) {
+            return value.substring(0, value.lastIndexOf("."));
+        }
+        return null;
+    }
+
+    private String getChildNameOfCollectionValue(String value) {
+        if (StringUtils.isNotBlank(value) && value.contains(".")) {
+            return value.substring(value.lastIndexOf(".") + 1);
+        }
+        return null;
+    }
+
+    private boolean allParametersHaveSameParent(String... parameters) {
+        boolean haveSameParent = true;
+        List<String> parents = new ArrayList<String>();
+        for (String param : parameters) {
+            String parent = getParentNameOfCollectionValue(param);
+            if (parent == null) {
+                //Do nothing. Dealing with non multivalue field
+            } else if (parents.isEmpty()) {
+                parents.add(parent);
+            } else if (!parents.contains(parent)) {
+                haveSameParent = false;
+                break;
+            }
+        }
+
+        return haveSameParent;
+    }
+
+    private void addEntriesToLinkProperties(LinkProperties linkProps, List<String> keys) {
+        Map<String, Object> linkPropertiesMap = linkProps.getTransitionProperties();
+        Set<String> unindexedKeys = new HashSet<String>();
+        for (String key : keys) {
+            Object value = this.normalisedTransitionProperties.get(key);
+            String unindexedKey = key.replaceAll(PARAM_REPLACEMENT_REGEX, "");
+            unindexedKeys.add(unindexedKey);
+            if (value != null && value instanceof String) {
+                linkPropertiesMap.put(unindexedKey, value);
+            } else {
+                linkPropertiesMap.put(unindexedKey, "");
+            }
+        }
+
+        // Replace Id={A.B.C} with Id={VAL} if A.B.C=VAL is in the linkPropertiesMap
+        for (String key : linkPropertiesMap.keySet()) {
+            Object value = linkPropertiesMap.get(key);
+            if (value instanceof String) {
+
+                String replacementKey = ((String) value).replaceAll("\\{", "").replaceAll("\\}", "");
+
+                if (unindexedKeys.contains(replacementKey)) {
+                    String replacementValue = ((String) value).replaceAll("\\{" + Pattern.quote(replacementKey) + "\\}", linkPropertiesMap.get(replacementKey).toString());
+                    linkPropertiesMap.put(key, replacementValue);
+                }
+            }
+        }
+    }
 }

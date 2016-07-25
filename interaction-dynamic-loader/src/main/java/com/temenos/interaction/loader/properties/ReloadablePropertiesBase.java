@@ -22,8 +22,8 @@ package com.temenos.interaction.loader.properties;
  */
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.springframework.core.io.Resource;
@@ -33,15 +33,20 @@ import org.springframework.core.io.Resource;
  * Useful base class for implementing {@link ReloadableProperties}. Credit to:
  * http://www.wuenschenswert.net/wunschdenken/archives/127
  */
-public class ReloadablePropertiesBase extends DelegatingProperties implements ReloadableProperties {
+public class ReloadablePropertiesBase extends DelegatingProperties implements ReloadableProperties<Resource> {
 	private static final long serialVersionUID = 1882584866192427533L;
-	private List<ReloadablePropertiesListener> listeners = new ArrayList<ReloadablePropertiesListener>();
+	private transient List<ReloadablePropertiesListener<Resource>> listeners = new ArrayList<>();
 	private Properties internalProperties;
 
-	public void setListeners(List<ReloadablePropertiesListener> listeners) {
+	public void setListeners(List<ReloadablePropertiesListener<Resource>> listeners) {
 		this.listeners = listeners;
 	}
 
+	List<ReloadablePropertiesListener<Resource>> getListeners() {
+        return this.listeners;
+    }
+
+    @Override
 	protected Properties getDelegate() {
 		synchronized (this) {
 			return internalProperties;
@@ -52,39 +57,38 @@ public class ReloadablePropertiesBase extends DelegatingProperties implements Re
 		return getDelegate();
 	}
 	
-	public void addReloadablePropertiesListener(ReloadablePropertiesListener l) {
+	public void addReloadablePropertiesListener(ReloadablePropertiesListener<Resource> l) {
 		listeners.add(l);
 	}
 
-	public boolean removeReloadablePropertiesListener(ReloadablePropertiesListener l) {
+	public boolean removeReloadablePropertiesListener(ReloadablePropertiesListener<Resource> l) {
 		return listeners.remove(l);
 	}
 
 	protected void notifyPropertiesLoaded(Resource resource, Properties newProperties) {
 		PropertiesLoadedEventImpl event = new PropertiesLoadedEventImpl(this, resource, newProperties);
-		for (ReloadablePropertiesListener listener : listeners) {
+		for (ReloadablePropertiesListener<Resource> listener : listeners) {
 			listener.propertiesChanged(event);
 		}
 	}
 	
+	/*
+	 * Adds any inexistent properties and updates the values of the existent ones 
+	 */
 	protected boolean updateProperties(Properties newProperties){
 		synchronized (this) {
-			boolean bNew = false;
-			Iterator<Object> iter = newProperties.keySet().iterator();
-			while(iter.hasNext()){
-				Object key = iter.next();
-				Object value = newProperties.get(key);
-				bNew = internalProperties.put(key,  value) == null;
-			}	
-			return bNew;
+		    boolean newAdded = false;
+		    for(Map.Entry<Object, Object> entry : newProperties.entrySet()) {
+                if(internalProperties.put(entry.getKey(),  entry.getValue()) == null)
+                    newAdded = true;
+		    }
+		    return newAdded;
 		}
 	}
 	
-	
 	protected void notifyPropertiesChanged(Resource resource, Properties newProperties) {
-	
 		PropertiesChangedEventImpl event = new PropertiesChangedEventImpl(this, resource, newProperties);
-		for (ReloadablePropertiesListener listener : listeners) {
+		for (ReloadablePropertiesListener<Resource> listener : listeners) {
 			listener.propertiesChanged(event);
 		}
 	}

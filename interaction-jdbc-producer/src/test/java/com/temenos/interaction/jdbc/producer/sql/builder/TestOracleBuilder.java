@@ -27,6 +27,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -423,7 +424,7 @@ public class TestOracleBuilder {
         Map<String, Integer> map = new TreeMap<String, Integer>();
         map.put("col1", java.sql.Types.VARCHAR);
         ColumnTypesMap columnTypesMap = new ColumnTypesMap(map, "col1") {
-            public Map<String, Integer> readColumnTypes(DatabaseMetaData dsMetaData, String tableName) throws Exception {
+            public Map<String, Integer> readColumnTypes(DatabaseMetaData dsMetaData, String tableName) throws SQLException {
                 return new TreeMap<String, Integer>(super.readColumnTypes(dsMetaData, tableName));
             }
         };
@@ -525,7 +526,7 @@ public class TestOracleBuilder {
         Map<String, Integer> map = new TreeMap<String, Integer>();
         map.put("col1", java.sql.Types.VARCHAR);
         ColumnTypesMap columnTypesMap = new ColumnTypesMap(map, "col1") {
-            public Map<String, Integer> readColumnTypes(DatabaseMetaData dsMetaData, String tableName) throws Exception {
+            public Map<String, Integer> readColumnTypes(DatabaseMetaData dsMetaData, String tableName) throws SQLException {
                 return new TreeMap<String, Integer>(super.readColumnTypes(dsMetaData, tableName));
             }
         };
@@ -626,7 +627,7 @@ public class TestOracleBuilder {
         map.put("col5", java.sql.Types.TIMESTAMP);
         map.put("col6", java.sql.Types.VARCHAR);
         ColumnTypesMap columnTypesMap = new ColumnTypesMap(map, "col1") {
-            public Map<String, Integer> readColumnTypes(DatabaseMetaData dsMetaData, String tableName) throws Exception {
+            public Map<String, Integer> readColumnTypes(DatabaseMetaData dsMetaData, String tableName) throws SQLException {
                 return new TreeMap<String, Integer>(super.readColumnTypes(dsMetaData, tableName));
             }
         };
@@ -673,7 +674,7 @@ public class TestOracleBuilder {
         map.put("col1", java.sql.Types.TIMESTAMP);
         map.put("col2", java.sql.Types.TIMESTAMP);
         ColumnTypesMap columnTypesMap = new ColumnTypesMap(map, "col1") {
-            public Map<String, Integer> readColumnTypes(DatabaseMetaData dsMetaData, String tableName) throws Exception {
+            public Map<String, Integer> readColumnTypes(DatabaseMetaData dsMetaData, String tableName) throws SQLException {
                 return new TreeMap<String, Integer>(super.readColumnTypes(dsMetaData, tableName));
             }
         };

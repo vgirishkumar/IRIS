@@ -30,6 +30,7 @@ import java.util.Set;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.io.Resource;
 
 import com.temenos.interaction.core.loader.PropertiesEvent;
 import com.temenos.interaction.core.loader.PropertiesResourceModificationAction;
@@ -57,7 +58,7 @@ public class PropertiesModificationNotifier implements ApplicationContextAware {
     	return resourcePatterns;
     }
     
-	public void execute(PropertiesEvent event) {
+	public void execute(PropertiesEvent<Resource> event) {
 		if(rmas == null) {
 			rmas = ctx.getBeansOfType(PropertiesResourceModificationAction.class).values();
 		}

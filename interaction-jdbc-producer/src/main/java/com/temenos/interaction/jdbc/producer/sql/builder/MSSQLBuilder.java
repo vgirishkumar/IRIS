@@ -40,7 +40,7 @@ import com.temenos.interaction.odataext.odataparser.data.OrderBy;
  */
 public class MSSQLBuilder extends SqlBuilder {
 
-    private final static Logger logger = LoggerFactory.getLogger(MSSQLBuilder.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MSSQLBuilder.class);
 
     /**
      * Constructor to build a SQL Server Command Builder
@@ -96,7 +96,7 @@ public class MSSQLBuilder extends SqlBuilder {
             skipAsInt = skip == null ? SKIP_ROWS_DEFAULT : Integer.parseInt(skip);
         } catch (NumberFormatException nfe) {
             skipAsInt = SKIP_ROWS_DEFAULT;
-            logger.warn("Invalid value provided to skip rows", nfe);
+            LOGGER.warn("Invalid value provided to skip rows", nfe);
         }
         builder.append(" OFFSET " + skipAsInt + " ROWS");
     }
@@ -108,7 +108,7 @@ public class MSSQLBuilder extends SqlBuilder {
             maxRow = top == null ? MAX_ROWS_DEFAULT : Integer.parseInt(top);
         } catch (NumberFormatException nfe) {
             maxRow = MAX_ROWS_DEFAULT;
-            logger.warn("Invalid value provided to fetch top rows", nfe);
+            LOGGER.warn("Invalid value provided to fetch top rows", nfe);
         }
         builder.append(" FETCH NEXT " + maxRow + " ROWS ONLY");
     }

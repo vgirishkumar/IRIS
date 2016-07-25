@@ -40,7 +40,10 @@ import com.temenos.interaction.odataext.odataparser.data.OrderBy;
  * @author sjunejo
  *
  */
-public class SqlBuilderFactory {
+public final class SqlBuilderFactory {
+    
+    private SqlBuilderFactory() {
+    }
 
     public static SqlBuilder getSqlBuilder(String tableName, String keyValue, AccessProfile accessProfile, ColumnTypesMap colTypesMap, String top,
             String skip, List<OrderBy> orderBy, ServerMode serverMode) throws JdbcException {

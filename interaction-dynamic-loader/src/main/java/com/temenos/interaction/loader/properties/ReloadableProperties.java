@@ -30,10 +30,10 @@ import java.util.Properties;
  * interface should consider extending {@link DelegatingProperties}. Credit to:
  * http://www.wuenschenswert.net/wunschdenken/archives/127
  */
-public interface ReloadableProperties {
+public interface ReloadableProperties<T> {
 	public Properties getProperties();
 
-	void addReloadablePropertiesListener(ReloadablePropertiesListener l);
+	void addReloadablePropertiesListener(ReloadablePropertiesListener<T> l);
 
-	boolean removeReloadablePropertiesListener(ReloadablePropertiesListener l);
+	boolean removeReloadablePropertiesListener(ReloadablePropertiesListener<T> l);
 }

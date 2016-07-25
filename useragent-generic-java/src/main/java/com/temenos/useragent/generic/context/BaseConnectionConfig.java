@@ -50,7 +50,7 @@ public class BaseConnectionConfig implements ConnectionConfig {
 						"http://localhost:9089/t24interactiontests-iris/t24interactiontests.svc");
 		baseConnprops.setProperty(ConnectionConfig.SERVICE_ROOT, "GB0010001");
 		baseConnprops.setProperty(ConnectionConfig.USER_NAME, "INPUTT");
-		baseConnprops.setProperty(ConnectionConfig.PASSWORD, "123456");
+		baseConnprops.setProperty(ConnectionConfig.PASS_WORD, "123456");
 		return baseConnprops;
 	}
 }

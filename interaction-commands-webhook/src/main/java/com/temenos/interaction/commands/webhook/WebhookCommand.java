@@ -48,7 +48,7 @@ import com.temenos.interaction.core.resource.EntityResource;
  *
  */
 public class WebhookCommand implements InteractionCommand {
-	private final static Logger logger = LoggerFactory.getLogger(WebhookCommand.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebhookCommand.class);
 
 	private String url = null;
 	
@@ -70,25 +70,28 @@ public class WebhookCommand implements InteractionCommand {
 				OEntity oentity = ((EntityResource<OEntity>) ctx.getResource()).getEntity();
 				properties = transform(oentity);
 			} catch (ClassCastException cce) {
+			    if (LOGGER.isWarnEnabled()) {
+			        LOGGER.warn("Failed to cast the OEntity.", cce);
+			    }
 				Entity entity = ((EntityResource<Entity>) ctx.getResource()).getEntity();
 				properties = transform(entity);
 			}
 			String formData = getFormData(properties);
 			try {
-				logger.info("POST " + url + " [" + formData + "]");
+			    LOGGER.info("POST " + url + " [" + formData + "]");
 				HttpClient client = new HttpClient();
 				PostMethod postMethod = new PostMethod(url);
 				postMethod.setRequestEntity(new StringRequestEntity(formData,
 				                                                    "application/x-www-form-urlencoded",
 				                                                    "UTF-8"));
 				client.executeMethod(postMethod);
-				logger.info("Status [" + postMethod.getStatusCode() + "]");
+				LOGGER.info("Status [" + postMethod.getStatusCode() + "]");
 			} catch (Exception e) {
-				e.printStackTrace();
+			    LOGGER.error("Error POST " + url + " [" + formData + "]", e);
 				return Result.FAILURE;
 			}
 		} else {
-			logger.warn("DISABLED - no url supplied");
+		    LOGGER.warn("DISABLED - no url supplied");
 		}
 		return Result.SUCCESS;
 	}
@@ -103,7 +106,7 @@ public class WebhookCommand implements InteractionCommand {
 			}
 			map.put("id", oentity.getEntityKey().toKeyStringWithoutParentheses());
 		} catch (RuntimeException e) {
-			logger.error("Error transforming OEntity to map", e);
+		    LOGGER.error("Error transforming OEntity to map", e);
 			throw e;
 		}
 		return map;

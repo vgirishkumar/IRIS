@@ -24,15 +24,17 @@ package com.temenos.interaction.core.rim;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
-import static org.hamcrest.core.StringStartsWith.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -104,6 +106,22 @@ public class TestHeaderHelper {
 	}
 	
 	@Test
+	public void testLocationWithQueryParam(){
+	    MultivaluedMap<String, String> values = new MultivaluedMapImpl<String>();
+	    values.add("transactionId", "101");
+	    Response r = HeaderHelper.locationHeader(Response.ok(), "/path?customerName=Jack", values).build();
+	    assertThat((String)r.getMetadata().getFirst("Location"), containsString("?customerName=Jack&transactionId=101"));
+	}
+	
+	@Test
+    public void testLocationWithoutQueryParam(){
+        MultivaluedMap<String, String> values = new MultivaluedMapImpl<String>();
+        values.add("transactionId", "101");
+        Response r = HeaderHelper.locationHeader(Response.ok(), "/path", values).build();
+        assertThat((String)r.getMetadata().getFirst("Location"), containsString("?transactionId=101"));
+    }
+	
+	@Test
 	public void testEtag() {
 		Response r = HeaderHelper.etagHeader(Response.ok(), "ABCDEFG").build();
 		assertEquals("ABCDEFG", r.getMetadata().getFirst(HttpHeaders.ETAG));
@@ -135,12 +153,12 @@ public class TestHeaderHelper {
         values.add("transaction", "101");
         String queryParam = HeaderHelper.encodeMultivalueQueryParameters(values);
         assertThat(queryParam, allOf(
-                startsWith("?"),
                 containsString("customerName=Jack"),
                 containsString("customerName=Jill"),
                 containsString("transaction=101")
         ));
         assertThat(StringUtils.countMatches(queryParam, "&"), equalTo(2));
+        assertThat(StringUtils.countMatches(queryParam, "?"), equalTo(0));
     }
     
     @Test
@@ -152,7 +170,6 @@ public class TestHeaderHelper {
         values.add("transaction", "102");
         String queryParam = HeaderHelper.encodeMultivalueQueryParameters(values);
         assertThat(queryParam, allOf(
-                startsWith("?"),
                 containsString("customerName=Jack"),
                 containsString("transaction=101"),
                 containsString("transaction=102")
@@ -168,7 +185,6 @@ public class TestHeaderHelper {
         values.add("trans&ction", "!0!");
         String queryParam = HeaderHelper.encodeMultivalueQueryParameters(values);
         assertThat(queryParam, allOf(
-                startsWith("?"),
                 containsString("customerNam%3D=J%26ck"),
                 containsString("trans%26ction=%210%21")
         ));
@@ -184,28 +200,8 @@ public class TestHeaderHelper {
         );
     }
     
-    @Test
-    public void testEncodeQueryParametersURLEncoderThrowsException() throws Exception{
-        PowerMockito.spy(HeaderHelper.class);
-        PowerMockito.doThrow(new UnsupportedEncodingException()).when(
-                HeaderHelper.class, "encodeQueryParameter", eq("customerName")
-        );
-        MultivaluedMap<String, String> values = new MultivaluedMapImpl<String>();
-        values.add("customerNam=", "J&ck");
-        values.add("customerName", "Jack");
-        values.add("customerName", "Jill");
-        values.add("trans&ction", "!0!");
-        String queryParam = HeaderHelper.encodeMultivalueQueryParameters(values);
-        assertThat(queryParam, allOf(
-                startsWith("?"),
-                containsString("customerNam%3D=J%26ck"),
-                containsString("trans%26ction=%210%21")
-        ));
-        assertThat(StringUtils.countMatches(queryParam, "&"), equalTo(1));
-    }
-    
-    @Test
-    public void testEncodeQueryParametersURLEncoderAlwaysThrowsExceptions() throws Exception {
+    @Test(expected = RuntimeException.class)
+    public void testEncodeQueryParametersURLEncoderThrowsException() throws Exception {
         PowerMockito.spy(HeaderHelper.class);
         PowerMockito.doThrow(new UnsupportedEncodingException()).when(
                 HeaderHelper.class, "encodeQueryParameter", anyString()
@@ -215,7 +211,20 @@ public class TestHeaderHelper {
         values.add("customerName", "Jack");
         values.add("customerName", "Jill");
         values.add("trans&ction", "!0!");
-        String queryParam = HeaderHelper.encodeMultivalueQueryParameters(values);
-        assertThat(queryParam, equalTo(""));
+        HeaderHelper.encodeMultivalueQueryParameters(values);
+    }
+    
+    @Test
+    public void testEncodeQueryParametersWithMultivaluedMapContainingEmptyLists(){
+        HashMap<String, List<String>> values = new MultivaluedMapImpl<String>();
+        values.put("customerName", new ArrayList<String>());
+        values.put("transaction", new ArrayList<String>());
+        values.put("item", new ArrayList<String>(Arrays.asList(new String[]{"apple"})));
+        values.put("money", new ArrayList<String>());
+        MultivaluedMap<String, String> reinterpretedMap = new MultivaluedMapImpl<String>();
+        reinterpretedMap.putAll(values);
+        String queryParam = HeaderHelper.encodeMultivalueQueryParameters(reinterpretedMap);
+        assertThat(queryParam, containsString("item=apple"));
+        assertThat(StringUtils.countMatches(queryParam, "&"), equalTo(3));
     }
 }

@@ -147,7 +147,7 @@ public enum SqlRelation {
 
     // Return equivalent SQL symbol. Null if not supported.
     public String getSqlSymbol() {
-        return (sqlSymbol);
+        return sqlSymbol;
     }
 
     public Class<?> getOData4jClass() {

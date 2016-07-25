@@ -31,6 +31,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.wink.common.internal.MultivaluedMapImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +63,7 @@ public class InteractionContext {
 	private final MultivaluedMap<String, String> pathParameters;
 	private final ResourceState currentState;
 	private final Metadata metadata;
-	private Map<String, String> outQueryParameters = new HashMap<String,String>();	
+	private MultivaluedMap<String, String> outQueryParameters = new MultivaluedMapImpl<String, String>();
 	private ResourceState targetState;
 	private Link linkUsed;
 	private InteractionException exception;
@@ -316,7 +317,7 @@ public class InteractionContext {
 	 * 
 	 * @return the outQueryParameters
 	 */
-	public Map<String, String> getOutQueryParameters() {
+	public MultivaluedMap<String, String> getOutQueryParameters() {
 		return outQueryParameters;
 	}
 }
