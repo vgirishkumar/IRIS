@@ -89,16 +89,6 @@ public class DefaultEntityWrapper implements EntityWrapper {
 	}
 	
 	@Override
-	public void add(String fqPropertyName, String value) {
-		entityHandler.addProperty(fqPropertyName, value);
-	}
-
-	@Override
-	public void remove(String fqPropertyName) {
-		entityHandler.removeProperty(fqPropertyName);
-	}	
-
-	@Override
 	public void setHandler(EntityHandler transformer) {
 		this.entityHandler = transformer;
 	}

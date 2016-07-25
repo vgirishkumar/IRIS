@@ -66,16 +66,6 @@ public class PlainTextEntityHandler implements EntityHandler {
 	}
 	
 	@Override
-	public void addProperty(String fqPropertyName, String value) {
-		// do nothing
-	}
-
-	@Override
-	public void removeProperty(String fqPropertyName) {
-		// do nothing
-	}
-
-	@Override
 	public int getCount(String fqPropertyName) {
 		return 0;
 	}

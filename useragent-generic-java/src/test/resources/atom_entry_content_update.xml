@@ -1,0 +1,47 @@
+<!--
+  #%L
+  useragent-generic-java
+  %%
+  Copyright (C) 2012 - 2016 Temenos Holdings N.V.
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+<content xmlns="http://www.w3.org/2005/Atom"
+	xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices"
+	xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata"
+	type="application/xml">
+	<m:properties>
+		<d:text-1>text1</d:text-1>
+		<d:foo-group a="foo-attr">
+			<d:element>
+				<d:foo-1>foo-1</d:foo-1>
+				<d:foo-2>foo-2</d:foo-2>
+				<d:bar-group a="bar-attr">
+					<d:element>
+						<d:bar-1>bar-1</d:bar-1>
+						<d:blah-group a="blah-attr">
+							<d:element>
+								<d:blah-1>blah-1</d:blah-1>
+								<d:blah-2>blah-2</d:blah-2>
+							</d:element>
+						</d:blah-group>
+						<d:bar-2>bar-2</d:bar-2>
+					</d:element>
+				</d:bar-group>
+				<d:foo-3>foo-3</d:foo-3>
+			</d:element>
+		</d:foo-group>
+	</m:properties>
+</content>

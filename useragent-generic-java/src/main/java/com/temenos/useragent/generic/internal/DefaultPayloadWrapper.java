@@ -23,10 +23,7 @@ package com.temenos.useragent.generic.internal;
 
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.temenos.useragent.generic.Link;
 import com.temenos.useragent.generic.PayloadHandler;
@@ -34,7 +31,7 @@ import com.temenos.useragent.generic.PayloadHandler;
 public class DefaultPayloadWrapper implements PayloadWrapper {
 
 	private PayloadHandler transformer;
-	private Map<String, EntityWrapper> entities;
+	private List<EntityWrapper> entities;
 
 	public DefaultPayloadWrapper() {
 	}
@@ -52,15 +49,14 @@ public class DefaultPayloadWrapper implements PayloadWrapper {
 	@Override
 	public List<EntityWrapper> entities() {
 		checkAndBuildEntities();
-		return Collections.unmodifiableList(new ArrayList<EntityWrapper>(
-				entities.values()));
+		return entities;
 	}
 
 	private void checkAndBuildEntities() {
 		if (entities == null) {
-			entities = new HashMap<String, EntityWrapper>();
+			entities = new ArrayList<EntityWrapper>();
 			for (EntityWrapper entityWrapper : transformer.entities()) {
-				entities.put(entityWrapper.id(), entityWrapper);
+				entities.add(entityWrapper);
 			}
 		}
 	}

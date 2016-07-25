@@ -21,23 +21,30 @@ package com.temenos.useragent.generic.mediatype;
  * #L%
  */
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import com.temenos.useragent.generic.Link;
-import com.temenos.useragent.generic.mediatype.AtomEntryHandler;
 
 public class AtomEntryHandlerTest {
 
 	private AtomEntryHandler handler = new AtomEntryHandler();
 
-	@Test
-	public void testGetLinks() {
+	@Before
+	public void setUp() {
 		handler.setContent(AtomEntryHandler.class
 				.getResourceAsStream("/atom_entry_with_xml_content.txt"));
+	}
+
+	@Test
+	public void testGetLinks() {
 		List<Link> links = handler.getLinks();
 		assertEquals(4, links.size());
 
@@ -78,15 +85,11 @@ public class AtomEntryHandlerTest {
 
 	@Test
 	public void testGetId() {
-		handler.setContent(AtomEntryHandler.class
-				.getResourceAsStream("/atom_entry_with_xml_content.txt"));
 		assertEquals("100974", handler.getId());
 	}
 
 	@Test
 	public void testGetCountForValidProperties() {
-		handler.setContent(AtomEntryHandler.class
-				.getResourceAsStream("/atom_entry_with_xml_content.txt"));
 		assertEquals(1, handler.getCount("GivenNames"));
 		assertEquals(2, handler.getCount("Customer_LegalIdGroup"));
 		assertEquals(1,
@@ -116,8 +119,6 @@ public class AtomEntryHandlerTest {
 
 	@Test
 	public void testGetCountForInvalidProperties() {
-		handler.setContent(AtomEntryHandler.class
-				.getResourceAsStream("/atom_entry_with_xml_content.txt"));
 		assertEquals(0, handler.getCount("foo"));
 		assertEquals(0,
 				handler.getCount("Customer_LegalIdGroup(2)/LegalDocName"));
@@ -149,8 +150,6 @@ public class AtomEntryHandlerTest {
 
 	@Test
 	public void testGetValueForValidProperties() {
-		handler.setContent(AtomEntryHandler.class
-				.getResourceAsStream("/atom_entry_with_xml_content.txt"));
 		assertEquals("Peter", handler.getValue("GivenNames"));
 		assertEquals("PASSPORT",
 				handler.getValue("Customer_LegalIdGroup(0)/LegalDocName"));
@@ -172,13 +171,11 @@ public class AtomEntryHandlerTest {
 
 	@Test
 	public void testGetValueForInvalidProperties() {
-		handler.setContent(AtomEntryHandler.class
-				.getResourceAsStream("/atom_entry_with_xml_content.txt"));
-		assertEquals("", handler.getValue("foo"));
-		assertEquals("",
+		assertEquals(null, handler.getValue("foo"));
+		assertEquals(null,
 				handler.getValue("Customer_LegalIdGroup(2)/LegalDocName"));
 		assertEquals(
-				"",
+				null,
 				handler.getValue("Customer_AddressGroup(0)/Customer_AddressSubGroup(10)/Address"));
 		checkForValueWithException(null);
 		checkForValueWithException("");

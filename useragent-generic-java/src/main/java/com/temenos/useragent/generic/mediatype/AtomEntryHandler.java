@@ -57,9 +57,10 @@ import com.temenos.useragent.generic.internal.LinkImpl;
 public class AtomEntryHandler implements EntityHandler {
 
 	private Entry entry;
+	private AtomXmlContentHandler xmlContentHandler;
 
 	public AtomEntryHandler() {
-		entry = new Abdera().newEntry();
+		initHandler(new Abdera().newEntry());
 	}
 
 	public List<Link> getLinks() {
@@ -76,149 +77,16 @@ public class AtomEntryHandler implements EntityHandler {
 	}
 
 	public int getCount(String fqPropertyName) {
-		String[] pathParts = validateAndParsePropertyName(fqPropertyName);
-		Element parent = getParent(pathParts);
-		String propertyName = pathParts[pathParts.length - 1];
-		if (parent == null) {
-			return 0;
-		}
-		Element propertyElement = parent.getFirstChild(new QName(NS_ODATA,
-				buildElementName(propertyName)));
-		return countSiblings(propertyElement);
-	}
-
-	private int countSiblings(Element propertyElement) {
-		if (propertyElement == null) {
-			return 0;
-		}
-		int count = 0;
-		Element elementChild = propertyElement.getFirstChild(new QName(
-				NS_ODATA, "element"));
-		if (elementChild == null) {
-			return 1;
-		}
-		while (elementChild != null) {
-			count++;
-			elementChild = elementChild.getNextSibling(new QName(NS_ODATA,
-					"element"));
-		}
-		return count;
+		return xmlContentHandler.getCount(fqPropertyName);
 	}
 
 	public String getValue(String fqPropertyName) {
-		Element property = getProperty(fqPropertyName);
-		if (property != null) {
-			if (property.getFirstChild() == null) {
-				return property.getText();
-			} else {
-				return getContent(property);
-			}
-		} else {
-			return "";
-		}
+		return xmlContentHandler.getValue(fqPropertyName);
 	}
 
 	@Override
 	public void setValue(String fqPropertyName, String value) {
-		Element property = getProperty(fqPropertyName);
-		if (property != null) {
-			property.setText(value);
-		} else {
-			throw new RuntimeException("New value addition not supported");
-		}
-	}
-
-	@Override
-	public void addProperty(String fqPropertyName, String value) {
-		throw new UnsupportedOperationException("Not yet implemented");
-	}
-
-	@Override
-	public void removeProperty(String fqPropertyName) {
-		throw new UnsupportedOperationException("Not yet implemented");
-	}	
-	
-	private Element getProperty(String fqPropertyName) {
-		String[] pathParts = validateAndParsePropertyName(fqPropertyName);
-		Element parent = getParent(pathParts);
-		String propertyName = pathParts[pathParts.length - 1];
-		if (parent != null) {
-			return parent.getFirstChild(new QName(NS_ODATA, propertyName));
-		} else {
-			return null;
-		}
-	}
-
-	private Element getParent(String... pathParts) {
-		Element content = entry.getFirstChild(new QName(NS_ATOM, "content"));
-		Element parent = content.getFirstChild(new QName(NS_ODATA_METADATA,
-				"properties"));
-		int pathIndex = 0;
-		while (pathIndex < (pathParts.length - 1)) {
-			String pathPart = pathParts[pathIndex];
-			parent = getSpecificChild(parent, buildElementName(pathPart), 0);
-			parent = getSpecificChild(parent, "element", extractIndex(pathPart));
-			pathIndex++;
-		}
-		return parent;
-	}
-
-	private int extractIndex(String path) {
-		if (path.matches(REGX_VALID_PART_WITH_INDEX)) {
-			String indexStr = path.substring(path.indexOf("(") + 1,
-					path.indexOf(")"));
-			return Integer.parseInt(indexStr);
-		}
-		return 0;
-	}
-
-	private String buildElementName(String path) {
-		if (path.matches(REGX_VALID_PART_WITH_INDEX)) {
-			return path.substring(0, path.indexOf("("));
-		}
-		return path;
-	}
-
-	private String[] validateAndParsePropertyName(String fqName) {
-		if (fqName == null || fqName.isEmpty()) {
-			throw new IllegalArgumentException(
-					"Invalid fully qualified property name '" + fqName);
-		}
-		String[] pathParts = fqName.split("/");
-		int lastPartIndex = pathParts.length - 1;
-		for (int index = 0; index < lastPartIndex; index++) {
-			String pathPart = pathParts[index];
-			if (!pathPart.matches(REGX_VALID_PART_WITH_INDEX)) {
-				throw new IllegalArgumentException("Invalid part '" + pathPart
-						+ "' in fully qualified property name '" + fqName + "'");
-			}
-		}
-		String elementPart = pathParts[lastPartIndex];
-		if (!elementPart.matches(REGX_VALID_ELEMENT)) {
-			throw new IllegalArgumentException("Invalid property name '"
-					+ elementPart + "'");
-		}
-		return pathParts;
-	}
-
-	private Element getSpecificChild(Element parent, String childName,
-			int expectedIndex) {
-		if (parent == null) {
-			return null;
-		}
-		Element child = parent.getFirstChild(new QName(NS_ODATA, childName));
-		if (expectedIndex == 0) {
-			return child;
-		} else {
-			int index = 1;
-			while (child != null) {
-				child = child.getNextSibling(new QName(NS_ODATA, childName));
-				if (expectedIndex == index++) {
-					return child;
-				}
-			}
-		}
-		return null;
+		xmlContentHandler.setValue(fqPropertyName, value);
 	}
 
 	private List<Link> convertLinks(
@@ -254,7 +122,7 @@ public class AtomEntryHandler implements EntityHandler {
 		}
 		QName rootElementQName = entityDoc.getRoot().getQName();
 		if (new QName(AtomUtil.NS_ATOM, "entry").equals(rootElementQName)) {
-			entry = (Entry) entityDoc.getRoot();
+			initHandler((Entry) entityDoc.getRoot());
 		} else {
 			throw new IllegalArgumentException(
 					"Unexpected entity for media type '" + MEDIA_TYPE
@@ -264,7 +132,13 @@ public class AtomEntryHandler implements EntityHandler {
 	}
 
 	public void setEntry(Entry entry) {
+		initHandler(entry);
+	}
+
+	private void initHandler(Entry entry) {
 		this.entry = entry;
+		this.xmlContentHandler = new AtomXmlContentHandler(
+				AtomUtil.buildXmlDocument(getContent(entry)));
 	}
 
 	@Override

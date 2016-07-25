@@ -76,10 +76,6 @@ public interface EntityHandler {
 	 */
 	void setValue(String fqPropertyName, String value);
 	
-	void addProperty(String fqPropertyName, String value);
-	
-	void removeProperty(String fqPropertyName);
-
 	/**
 	 * Returns the count for the fully qualified property name which is part of
 	 * the underlying entity content.

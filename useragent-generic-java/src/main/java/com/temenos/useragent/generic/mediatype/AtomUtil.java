@@ -21,11 +21,23 @@ package com.temenos.useragent.generic.mediatype;
  * #L%
  */
 
-
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.apache.abdera.model.Content;
 import org.apache.abdera.model.Element;
+import org.apache.abdera.model.Entry;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 
 public class AtomUtil {
 
@@ -33,10 +45,11 @@ public class AtomUtil {
 	public final static String NS_ATOM = "http://www.w3.org/2005/Atom";
 	public final static String NS_ODATA = "http://schemas.microsoft.com/ado/2007/08/dataservices";
 	public final static String NS_ODATA_METADATA = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
-	public final static String NS_ODATA_RELATED = "http://schemas.microsoft.com/ado/2007/08/dataservices/related";
 
-	public final static String REGX_VALID_ELEMENT = "[a-zA-Z0-9_]*";
-	public final static String REGX_VALID_PART_WITH_INDEX = "[a-zA-Z0-9_]+(\\(\\d+\\))+";
+	// TODO not complete xml element
+	public final static String REGX_VALID_ELEMENT = "[\\:a-zA-Z0-9_-]*";
+	public final static String REGX_VALID_PART_WITH_INDEX = REGX_VALID_ELEMENT
+			+ "(\\(\\d+\\))+";
 
 	public static String extractRel(String relAttributeValue) {
 		int spaceIndex = relAttributeValue.trim().indexOf(" ");
@@ -46,7 +59,7 @@ public class AtomUtil {
 			return relAttributeValue.trim();
 		}
 	}
-	
+
 	public static String extractDescription(String relAttributeValue) {
 		int spaceIndex = relAttributeValue.trim().indexOf(" ");
 		if (spaceIndex > 0) {
@@ -55,7 +68,7 @@ public class AtomUtil {
 			return "";
 		}
 	}
-	
+
 	public static String getBaseUrl(Element element) {
 		try {
 			return element.getBaseUri().toURL().toString();
@@ -63,6 +76,44 @@ public class AtomUtil {
 			throw new RuntimeException(e);
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	public static Entry updateEntryContent(Entry entry, Document document) {
+		DOMSource domSource = new DOMSource(document);
+		StringWriter writer = new StringWriter();
+		StreamResult result = new StreamResult(writer);
+		TransformerFactory tf = TransformerFactory.newInstance();
+		try {
+			Transformer transformer = tf.newTransformer();
+			transformer.transform(domSource, result);
+		} catch (Exception e) {
+			throw new IllegalStateException(
+					"Failed to update Atom Entry content from XML", e);
+		}
+		entry.setContent(writer.toString(), Content.Type.XML);
+		return entry;
+	}
+
+	public static Document buildXmlDocument(String xmlContent) {
+		if (xmlContent == null || xmlContent.isEmpty()) {
+			throw new IllegalStateException(
+					"Failed to build Atom Entry content into XML. Entry content '"
+							+ xmlContent + "'");
+		}
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		factory.setNamespaceAware(true);
+		factory.setIgnoringElementContentWhitespace(true);
+		factory.setIgnoringComments(true);
+		InputSource is = new InputSource();
+		is.setCharacterStream(new StringReader(xmlContent));
+		try {
+			DocumentBuilder docBuilder = factory.newDocumentBuilder();
+			return docBuilder.parse(is);
+		} catch (Exception e) {
+			throw new IllegalStateException(
+					"Failed to build Atom Entry content into XML. Entry content '"
+							+ xmlContent + "'", e);
 		}
 	}
 }

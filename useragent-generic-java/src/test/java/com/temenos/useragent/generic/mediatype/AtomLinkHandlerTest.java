@@ -105,9 +105,9 @@ public class AtomLinkHandlerTest {
 		assertEquals("verCustomer_Input.Gender:1:1",
 				embeddedErrors.entity().get("Errors_ErrorsMvGroup(4)/Info"));
 		// Invalid indexes
-		assertEquals("",
+		assertEquals(null,
 				embeddedErrors.entity().get("Errors_ErrorsMvGroup(5)/Info"));
-		assertEquals("",
+		assertEquals(null,
 				embeddedErrors.entity().get("Errors_ErrorsMvGroup(200)/Info"));
 	}
 

@@ -42,8 +42,6 @@ public class DefaultInteractionSession implements InteractionSession {
 
 	private HttpHeader header;
 	private Map<String, String> changedProperties;
-	private Map<String, String> addedProperties;
-	private List<String> removedProperties;
 	private EntityWrapper entity;
 	private SessionContextImpl sessionContext;
 	private HttpClient httpClient;
@@ -74,27 +72,19 @@ public class DefaultInteractionSession implements InteractionSession {
 
 	@Override
 	public InteractionSession set(String propertyName, String propertyValue) {
-		changedProperties.put(propertyName, propertyValue);
+		entity.set(propertyName, propertyValue);
 		return this;
 	}
 
+	/**
+	 * @deprecated the user set values are unset by default so calling this is
+	 *             not required and has no effect
+	 */
 	@Override
 	public InteractionSession unset(String propertyName) {
-		changedProperties.remove(propertyName);
 		return this;
 	}
 
-	@Override
-	public InteractionSession add(String propertyName, String propertyValue) {
-		addedProperties.put(propertyName, propertyValue);
-		return this;
-	}
-	
-	public InteractionSession remove(String propertyName) {
-		removedProperties.add(propertyName);
-		return this;
-	}
-	
 	@Override
 	public Entities entities() {
 		Payload response = sessionContext.getResponse().body();
@@ -232,4 +222,5 @@ public class DefaultInteractionSession implements InteractionSession {
 		}
 		this.httpClient = httpClient;
 	}
+
 }
