@@ -41,5 +41,7 @@ public interface EntityWrapper extends Entity {
 
 	void set(String fqPropertyName, String value);
 	
+	void remove(String fqPropertyName);
+	
 	InputStream getContent();
 }

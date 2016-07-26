@@ -46,10 +46,7 @@ public class AtomUtil {
 	public final static String NS_ODATA = "http://schemas.microsoft.com/ado/2007/08/dataservices";
 	public final static String NS_ODATA_METADATA = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
 
-	// TODO not complete xml element
-	public final static String REGX_VALID_ELEMENT = "[\\:a-zA-Z0-9_-]*";
-	public final static String REGX_VALID_PART_WITH_INDEX = REGX_VALID_ELEMENT
-			+ "(\\(\\d+\\))+";
+	public final static String PROPERTY_NAME_WITH_INDEX = ".+(\\(\\d+\\))+";
 
 	public static String extractRel(String relAttributeValue) {
 		int spaceIndex = relAttributeValue.trim().indexOf(" ");
@@ -79,7 +76,7 @@ public class AtomUtil {
 		}
 	}
 
-	public static Entry updateEntryContent(Entry entry, Document document) {
+	public static Entry updateEntryContent(Document document, Entry entry) {
 		DOMSource domSource = new DOMSource(document);
 		StringWriter writer = new StringWriter();
 		StreamResult result = new StreamResult(writer);

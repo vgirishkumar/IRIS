@@ -66,6 +66,11 @@ public class NullEntityWrapper implements EntityWrapper {
 	}
 
 	@Override
+	public void remove(String fqPropertyName) {
+		throw new IllegalStateException("Unexpected method call");
+	}
+
+	@Override
 	public InputStream getContent() {
 		try {
 			return IOUtils.toInputStream("", "UTF-8");

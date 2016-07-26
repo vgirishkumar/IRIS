@@ -21,9 +21,7 @@ package com.temenos.useragent.generic.mediatype;
  * #L%
  */
 
-
-import static com.temenos.useragent.generic.mediatype.AtomUtil.NS_ODATA;
-import static com.temenos.useragent.generic.mediatype.AtomUtil.REGX_VALID_PART_WITH_INDEX;
+import static com.temenos.useragent.generic.mediatype.AtomUtil.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,11 +60,12 @@ public class AtomXmlContentHandler {
 	 *             if the fully qualified property is invalid
 	 */
 	public int getCount(String fqPropertyName) {
-		String[] pathParts = vadliateAndFlattenPropertyName(fqPropertyName);
-		Element parent = identifyParentElement(document, pathParts);
+		String[] pathParts = flattenPropertyName(fqPropertyName);
+		Node parent = identifyParentElement(fqPropertyName, document, pathParts);
 		if (parent == null) {
 			return 0;
 		}
+		validateElementName(pathParts[pathParts.length - 1], fqPropertyName);
 		String elementName = buildElementName(pathParts[pathParts.length - 1]);
 		Element element = identifyChildElement(parent, elementName, 0);
 		return countElementSiblings(element);
@@ -81,11 +80,12 @@ public class AtomXmlContentHandler {
 	 *             if the fully qualified property is invalid
 	 */
 	public String getValue(String fqPropertyName) {
-		String[] pathParts = vadliateAndFlattenPropertyName(fqPropertyName);
-		Element parent = identifyParentElement(document, pathParts);
+		String[] pathParts = flattenPropertyName(fqPropertyName);
+		Node parent = identifyParentElement(fqPropertyName, document, pathParts);
 		if (parent == null) {
 			return null;
 		}
+		validateElementName(pathParts[pathParts.length - 1], fqPropertyName);
 		String elementName = buildElementName(pathParts[pathParts.length - 1]);
 		Element element = getFirstChildElement(parent, elementName);
 		if (element != null) {
@@ -104,8 +104,9 @@ public class AtomXmlContentHandler {
 	 *             if the fully qualified property is invalid
 	 */
 	public void setValue(String fqPropertyName, String value) {
-		String[] pathParts = vadliateAndFlattenPropertyName(fqPropertyName);
-		Element parent = checkAndCreateParent(document, pathParts);
+		String[] pathParts = flattenPropertyName(fqPropertyName);
+		Node parent = checkAndCreateParent(fqPropertyName, document, pathParts);
+		validateElementName(pathParts[pathParts.length - 1], fqPropertyName);
 		String elementName = buildElementName(pathParts[pathParts.length - 1]);
 		Element element = getFirstChildElement(parent, elementName);
 		if (element != null) {
@@ -113,6 +114,23 @@ public class AtomXmlContentHandler {
 		} else {
 			appendNewChildElement(parent, elementName, value);
 		}
+	}
+
+	public void remove(String fqPropertyName) {
+		String[] pathParts = flattenPropertyName(fqPropertyName);
+		Node parent = identifyParentElement(fqPropertyName, document, pathParts);
+		if (parent == null) {
+			return;
+		}
+		int expectedIndex = extractIndex(pathParts[pathParts.length - 1]);
+		String elementName = buildElementName(pathParts[pathParts.length - 1]);
+		if (isElementWithIndex(pathParts[pathParts.length - 1])) {
+			parent = identifyChildElement(parent, elementName, 0);
+			elementName = "d:element";
+		}
+		Element element = identifyChildElement(parent, elementName,
+				expectedIndex);
+		parent.removeChild(element);
 	}
 
 	private int countElementSiblings(Element parent) {
@@ -126,7 +144,7 @@ public class AtomXmlContentHandler {
 		return elementChildren.size();
 	}
 
-	private Element cloneExistingElement(Element parent, String fqElementName) {
+	private Element cloneExistingElement(Node parent, String fqElementName) {
 		Element cloneableElement = getFirstChildElement(parent, fqElementName);
 		if (cloneableElement == null) {
 			throw new IllegalStateException("Invalid element name '"
@@ -148,7 +166,7 @@ public class AtomXmlContentHandler {
 		NodeList children = parent.getChildNodes();
 		for (int idx = 0; idx < children.getLength(); idx++) {
 			Node currentNode = children.item(idx);
-			if (hasElementChild(currentNode)) {
+			if (!getChildElements(currentNode).isEmpty()) {
 				removeNonContainerChildElements(currentNode);
 			} else if (Node.ELEMENT_NODE == currentNode.getNodeType()) {
 				parent.removeChild(currentNode);
@@ -156,7 +174,7 @@ public class AtomXmlContentHandler {
 		}
 	}
 
-	private void appendNewChildElement(Element parent, String fqPropertyName,
+	private void appendNewChildElement(Node parent, String fqPropertyName,
 			String value) {
 		Element newElement = parent.getOwnerDocument().createElementNS(
 				NS_ODATA, fqPropertyName);
@@ -164,12 +182,13 @@ public class AtomXmlContentHandler {
 		parent.appendChild(newElement);
 	}
 
-	private Element identifyParentElement(Document document,
-			String... pathParts) {
-		Element parent = getPropertiesElement(document);
+	private Node identifyParentElement(String fqPropertyName,
+			Document document, String... pathParts) {
+		Node parent = document.getFirstChild();
 		int pathIndex = 0;
 		while (pathIndex < (pathParts.length - 1)) {
 			String pathPart = pathParts[pathIndex];
+			validateElementNameWithIndex(pathPart, fqPropertyName);
 			parent = identifyChildElement(parent, buildElementName(pathPart), 0);
 			parent = identifyChildElement(parent, buildElementName("element"),
 					extractIndex(pathPart));
@@ -178,11 +197,13 @@ public class AtomXmlContentHandler {
 		return parent;
 	}
 
-	private Element checkAndCreateParent(Document document, String... pathParts) {
-		Element parent = getPropertiesElement(document);
+	private Node checkAndCreateParent(String fqPropertyName, Document document,
+			String... pathParts) {
+		Node parent = document.getFirstChild();
 		int pathIndex = 0;
 		while (pathIndex < (pathParts.length - 1)) {
 			String pathPart = pathParts[pathIndex];
+			validateElementNameWithIndex(pathPart, fqPropertyName);
 			parent = checkAndCreateChild(parent, buildElementName(pathPart), 0);
 			parent = checkAndCreateChild(parent, buildElementName("element"),
 					extractIndex(pathPart));
@@ -192,7 +213,7 @@ public class AtomXmlContentHandler {
 	}
 
 	private int extractIndex(String path) {
-		if (path.matches(REGX_VALID_PART_WITH_INDEX)) {
+		if (path.matches(AtomUtil.PROPERTY_NAME_WITH_INDEX)) {
 			String indexStr = path.substring(path.indexOf("(") + 1,
 					path.indexOf(")"));
 			return Integer.parseInt(indexStr);
@@ -202,13 +223,13 @@ public class AtomXmlContentHandler {
 
 	private String buildElementName(String path) {
 		String elementName = path;
-		if (path.matches(REGX_VALID_PART_WITH_INDEX)) {
+		if (path.matches(AtomUtil.PROPERTY_NAME_WITH_INDEX)) {
 			elementName = path.substring(0, path.indexOf("("));
 		}
 		return "d:" + elementName;
 	}
 
-	private Element checkAndCreateChild(Element parent, String childName,
+	private Element checkAndCreateChild(Node parent, String childName,
 			int expectedIndex) {
 		if (parent == null) {
 			return null;
@@ -225,36 +246,41 @@ public class AtomXmlContentHandler {
 		}
 	}
 
-	private String[] vadliateAndFlattenPropertyName(String fqPropertyName) {
+	private String[] flattenPropertyName(String fqPropertyName) {
 		if (fqPropertyName == null || fqPropertyName.isEmpty()) {
 			throw new IllegalArgumentException("Invalid property name '"
 					+ fqPropertyName + "'");
 		}
-		String[] pathParts = fqPropertyName.split("/");
-		int lastPartIndex = pathParts.length - 1;
-		for (int index = 0; index < lastPartIndex; index++) {
-			String pathPart = pathParts[index];
-			if (!pathPart.matches(REGX_VALID_PART_WITH_INDEX)) {
-				throw new IllegalArgumentException("Invalid part '" + pathPart
-						+ "' in fully qualified property name '"
-						+ fqPropertyName + "'");
-			}
-		}
-		String elementPart = pathParts[lastPartIndex];
-		if (!elementPart.matches(AtomUtil.REGX_VALID_ELEMENT)) {
-			throw new IllegalArgumentException("Invalid property name '"
-					+ elementPart + "'");
-		}
-		return pathParts;
+		return fqPropertyName.split("/");
 	}
 
-	private Element getPropertiesElement(Document document) {
-		Node contentNode = document.getElementsByTagName("content").item(0);
-		return getFirstChildElement(contentNode, "m:properties");
+	private void validateElementNameWithIndex(String elementName,
+			String fqPropertyName) {
+		if (!isElementWithIndex(elementName)) {
+			throw new IllegalArgumentException("Invalid part '" + elementName
+					+ "' in fully qualified property name '" + fqPropertyName
+					+ "'");
+		}
 	}
 
-	private Element identifyChildElement(Node node, String childName, int index) {
-		return getSpecificElement(node.getChildNodes(), childName, index);
+	private void validateElementName(String elementName, String fqPropertyName) {
+		if (elementName.contains("(")) {
+			throw new IllegalArgumentException("Invalid part '" + elementName
+					+ "' in fully qualified property name '" + fqPropertyName
+					+ "'");
+		}
+	}
+
+	private boolean isElementWithIndex(String elementName) {
+		return elementName.matches(AtomUtil.PROPERTY_NAME_WITH_INDEX);
+	}
+
+	private Element identifyChildElement(Node parent, String childName,
+			int index) {
+		if (parent == null) {
+			return null;
+		}
+		return getSpecificElement(parent.getChildNodes(), childName, index);
 	}
 
 	private Element getFirstChildElement(Node node, String childName) {
@@ -275,10 +301,6 @@ public class AtomXmlContentHandler {
 			}
 		}
 		return null;
-	}
-
-	private boolean hasElementChild(Node parent) {
-		return !getChildElements(parent).isEmpty();
 	}
 
 	private List<Element> getChildElements(Node parent) {

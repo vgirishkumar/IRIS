@@ -21,7 +21,6 @@ package com.temenos.useragent.generic.internal;
  * #L%
  */
 
-
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,9 +72,9 @@ public class DefaultEntityWrapper implements EntityWrapper {
 		}
 		List<Link> links = entityHandler.getLinks();
 		namedLinks = new ArrayList<Link>();
-        for (Link link : links) {
-            namedLinks.add(link);
-        }
+		for (Link link : links) {
+			namedLinks.add(link);
+		}
 	}
 
 	@Override
@@ -87,7 +86,12 @@ public class DefaultEntityWrapper implements EntityWrapper {
 	public void set(String fqPropertyName, String value) {
 		entityHandler.setValue(fqPropertyName, value);
 	}
-	
+
+	@Override
+	public void remove(String fqPropertyName) {
+		entityHandler.remove(fqPropertyName);
+	}
+
 	@Override
 	public void setHandler(EntityHandler transformer) {
 		this.entityHandler = transformer;

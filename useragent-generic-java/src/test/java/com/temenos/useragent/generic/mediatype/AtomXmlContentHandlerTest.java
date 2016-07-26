@@ -21,13 +21,11 @@ package com.temenos.useragent.generic.mediatype;
  * #L%
  */
 
-
 import static com.temenos.useragent.generic.mediatype.AtomUtil.NS_ODATA;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -103,12 +101,13 @@ public class AtomXmlContentHandlerTest {
 	public void testSetAddingElementUnderWrongGroupAtLevelOne() {
 		xmlContentHandler.setValue("foo-group(1)/whatever(0)/foo-1", "foo1");
 	}
-	
+
 	@Test(expected = IllegalStateException.class)
 	public void testSetAddingElementUnderWrongGroupAtLevelTwo() {
-		xmlContentHandler.setValue("foo-group(1)/bar-group(1)/whatever(0)/foo-1", "foo1");
+		xmlContentHandler.setValue(
+				"foo-group(1)/bar-group(1)/whatever(0)/foo-1", "foo1");
 	}
-	
+
 	@Test(expected = IllegalStateException.class)
 	public void testSetAddingGroupElementWithGapsAtLevelZero() {
 		xmlContentHandler.setValue("foo-group(7)/foo-1", "foo1");
@@ -156,4 +155,110 @@ public class AtomXmlContentHandlerTest {
 		xmlContentHandler.setValue("foo-group(0)/bar-group(0)/blah-group(0)",
 				"blah1");
 	}
+
+	@Test
+	public void testRemoveNewElementAtLevelZero() {
+		xmlContentHandler.setValue("text-2", "text2");
+		xmlContentHandler.remove("text-2");
+		assertNull(xmlContentHandler.getValue("text-2"));
+	}
+
+	@Test
+	public void testRemoveingExistingElementAtLevelZero() {
+		xmlContentHandler.setValue("text-1", "text1");
+		xmlContentHandler.remove("text-1");
+		assertNull(xmlContentHandler.getValue("text-1"));
+	}
+
+	@Test
+	public void testRemoveElementUnderNewGroupAtLevelZero() {
+		xmlContentHandler.setValue("foo-group(1)/foo-1", "foo1");
+		xmlContentHandler.remove("foo-group(1)/foo-1");
+		assertNull(xmlContentHandler.getValue("foo-group(1)/foo-1"));
+	}
+
+	@Test
+	public void testRemoveElementUnderExistingGroupAtLevelZero() {
+		xmlContentHandler.setValue("foo-group(0)/foo-4", "foo4");
+		xmlContentHandler.setValue("foo-group(0)/foo-5", "foo5");
+		xmlContentHandler.remove("foo-group(0)/foo-4");
+		assertNull(xmlContentHandler.getValue("foo-group(0)/foo-4"));
+		assertEquals("foo5", xmlContentHandler.getValue("foo-group(0)/foo-5"));
+	}
+
+	@Test
+	public void testRemoveElementUnderExistingGroupAtLevelOne() {
+		xmlContentHandler.setValue("foo-group(0)/bar-group(0)/bar-1", "bar1");
+		xmlContentHandler.setValue("foo-group(0)/bar-group(1)/bar-1", "bar2");
+		xmlContentHandler.remove("foo-group(0)/bar-group(0)/bar-1");
+		assertNull(xmlContentHandler
+				.getValue("foo-group(0)/bar-group(0)/bar-1"));
+		assertEquals("bar2",
+				xmlContentHandler.getValue("foo-group(0)/bar-group(1)/bar-1"));
+	}
+
+	@Test
+	public void testRemoveElementUnderNewGroungAtLevelOne() {
+		xmlContentHandler.setValue("foo-group(0)/bar-group(1)/bar-1", "bar1");
+		xmlContentHandler.remove("foo-group(0)/bar-group(1)/bar-1");
+		assertNull(xmlContentHandler
+				.getValue("foo-group(0)/bar-group(1)/bar-1"));
+	}
+
+	@Test
+	public void testRemoveLastGroupElementAtLevelTwo() {
+		xmlContentHandler.setValue(
+				"foo-group(0)/bar-group(1)/blah-group(0)/blah-1", "blah-1");
+		xmlContentHandler.remove("foo-group(0)/bar-group(1)/blah-group(0)");
+		assertNull(xmlContentHandler
+				.getValue("foo-group(0)/bar-group(1)/blah-group(0)/blah-1"));
+	}
+
+	@Test
+	public void testRemoveLastGroupElementAtLevelOne() {
+		xmlContentHandler.setValue("foo-group(0)/bar-group(1)/bar-1", "bar1");
+		assertEquals("bar1",
+				xmlContentHandler.getValue("foo-group(0)/bar-group(1)/bar-1"));
+		xmlContentHandler.remove("foo-group(0)/bar-group(1)");
+		assertNull(xmlContentHandler
+				.getValue("foo-group(0)/bar-group(1)/bar-1"));
+	}
+
+	@Test
+	public void testRemoveLastGroupElementAtLevelZero() {
+		xmlContentHandler.setValue("foo-group(0)/foo-1", "foo1");
+		xmlContentHandler.remove("foo-group(0)");
+		assertNull(xmlContentHandler.getValue("foo-group(0)/foo-1"));
+	}
+
+	@Test
+	public void testRemoveMiddleGroupElementAtLevelTwo() {
+		xmlContentHandler.setValue(
+				"foo-group(0)/bar-group(1)/blah-group(1)/blah-1", "blah-1");
+		assertEquals(
+				"blah-1",
+				xmlContentHandler
+						.getValue("foo-group(0)/bar-group(1)/blah-group(1)/blah-1"));
+		xmlContentHandler.remove("foo-group(0)/bar-group(1)/blah-group(0)");
+		assertEquals(
+				"blah-1",
+				xmlContentHandler
+						.getValue("foo-group(0)/bar-group(1)/blah-group(0)/blah-1"));
+	}
+
+	@Test
+	public void testRemoveMiddleGroupElementAtLevelOne() {
+		xmlContentHandler.setValue("foo-group(0)/bar-group(1)/bar-1", "bar1");
+		xmlContentHandler.remove("foo-group(0)/bar-group(0)");
+		assertEquals("bar1",
+				xmlContentHandler.getValue("foo-group(0)/bar-group(0)/bar-1"));
+	}
+
+	@Test
+	public void testRemoveMiddleGroupElementAtLevelZero() {
+		xmlContentHandler.setValue("foo-group(1)/foo-1", "foo1");
+		xmlContentHandler.remove("foo-group(0)");
+		assertEquals("foo1", xmlContentHandler.getValue("foo-group(0)/foo-1"));
+	}
+
 }

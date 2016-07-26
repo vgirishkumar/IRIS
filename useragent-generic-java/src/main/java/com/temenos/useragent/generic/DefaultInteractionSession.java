@@ -73,12 +73,9 @@ public class DefaultInteractionSession implements InteractionSession {
 		return this;
 	}
 
-	/**
-	 * @deprecated the user set values are unset by default so calling this is
-	 *             not required and has no effect
-	 */
 	@Override
-	public InteractionSession unset(String propertyName) {
+	public InteractionSession remove(String propertyName) {
+		entity.remove(propertyName);
 		return this;
 	}
 

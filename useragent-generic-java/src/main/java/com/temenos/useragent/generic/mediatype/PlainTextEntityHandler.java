@@ -66,6 +66,11 @@ public class PlainTextEntityHandler implements EntityHandler {
 	}
 	
 	@Override
+	public void remove(String fqPropertyName) {
+		// do nothing
+	}
+	
+	@Override
 	public int getCount(String fqPropertyName) {
 		return 0;
 	}
@@ -79,4 +84,6 @@ public class PlainTextEntityHandler implements EntityHandler {
 	public InputStream getContent() {
 		return IOUtils.toInputStream(plainText);
 	}
+
+
 }
