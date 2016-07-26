@@ -173,14 +173,9 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 			// methods
 			String[] methods = methodPart.split(",");
 
-			logger.info("Attempting to register state: " + stateName + " methods: " + methods + " path: " + path
-					+ " using: " + stateRegisteration);
+			logger.info("Attempting to register state: " + stateName + " methods: " + methods + " path: " + path);
 
-			/*
-			 * Thierry : Let's load it here. There is a lot of chance that if someone is
-			 * adding a new state, he will then browse it.
-			 * This will speed up the first call to this resource.
-			 */
+			// preemptive loading
 			ResourceState state = getResourceState(stateName);
 			
 			if (state != null){
@@ -191,9 +186,6 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 		        for(String methodStr: methods) {
 		            methodSet.add(methodStr);
 		        }
-				
-				
-				this.stateRegisteration.register(stateName, path, methodSet);
 			}
 		}
 	}
