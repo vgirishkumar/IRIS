@@ -269,27 +269,34 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 	        logger.info(changedPaths.size() + " resources reloaded in " + (System.currentTimeMillis() - initTimestamp) + " ms.");
 	    }
 	}
-
+	
 	private void refreshResources(List<Resource> resources) {
-	    assert xmlNotifier != null;
 	    assert propertiesPersister != null;
 	    assert reloadableProperties != null;
 		for (Resource location : resources) {
 			try {
-				String fileName = location.getFilename();
+				String fileName = location.getFilename().toLowerCase();
 
-				if (fileName.endsWith(".xml")) {
-					if (fileName.startsWith("metadata-")) {
-						logger.info("Refreshing : " + fileName);
-						xmlNotifier.execute(new XmlChangedEventImpl(location));
-					}
-				} else {
+                if (fileName.startsWith("metadata-") && fileName.endsWith(".xml")) {
+                    logger.info("Refreshing : " + location.getFilename());
+                    if(xmlNotifier != null)
+                        xmlNotifier.execute(new XmlChangedEventImpl(location));
+                }
+				
+				if (fileName.endsWith(".properties")) {
 					Properties newProperties = new Properties();
 					/*
 					 * Ensure this property has been loaded.
 					 */
 					propertiesPersister.load(newProperties, location.getInputStream());
-					if (reloadableProperties.updateProperties(newProperties)) {
+					
+					boolean loadNewProperties = false;
+					// only update IRIS properties -- ignore all others
+					if(fileName.startsWith("iris-")) {
+					    loadNewProperties = reloadableProperties.updateProperties(newProperties);
+					}
+					
+					if(loadNewProperties) {
                         logger.info("Loading new : " + location.getFilename());
                         reloadableProperties.notifyPropertiesLoaded(location, newProperties);
                     } else {
@@ -301,7 +308,7 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
                     }
 				}
 			} catch (Exception e) {
-				logger.error("Unexpected error when dynamicly loading resources ", e);
+				logger.error("Unexpected error when dynamically loading resources ", e);
 			}
 		}
 	}
