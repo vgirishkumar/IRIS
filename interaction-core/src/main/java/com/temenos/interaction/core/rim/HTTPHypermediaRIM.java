@@ -414,7 +414,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         }
 
         // build response
-        return buildResponse(headers, ctx.getPathParameters(), status, ctx.getResource(), null, ctx, event.isSafe(), ignoreAutoTransitions);
+        return buildResponse(headers, ctx.getPathParameters(), status, ctx.getResource(), null, ctx, event.isSafe(), ignoreAutoTransitions); 
     }
 
     private ResourceState initialiseInteractionContext(HttpHeaders headers, Event event, InteractionContext ctx,
@@ -773,18 +773,10 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     private ResponseWrapper resolveAutomaticTransitions(HttpHeaders headers,
             InteractionContext ctx, ResponseBuilder responseBuilder, ResourceState currentState,
             List<Transition> autoTransitions) {
-        Transition autoTransition;
-        ResponseWrapper autoResponse;
-        do {
-            autoTransition = autoTransitions.get(0);
-            if (autoTransitions.size() > 1)
-                LOGGER.warn("Resource state [{}] has multiple auto-transitions. Using [{}].", currentState.getName(), autoTransition.getId());
-            autoResponse = getResource(headers, autoTransition, ctx);
-            autoTransitions = getTransitions(ctx, autoTransition.getTarget(), Transition.AUTO);
-        }while(!autoTransitions.isEmpty() 
-                && autoTransition.isType(Transition.AUTO) 
-                && autoResponse.getResponse().getStatus() == Status.OK.getStatusCode());
-        
+        Transition autoTransition = autoTransitions.get(0); 
+        if (autoTransitions.size() > 1)
+            LOGGER.warn("Resource state [{}] has multiple auto-transitions. Using [{}].", currentState.getName(), autoTransition.getId());
+        ResponseWrapper autoResponse = getResource(headers, autoTransition, ctx);
         if (autoResponse.getResponse().getStatus() != Status.OK.getStatusCode()) {
             LOGGER.warn("Auto transition target did not return HttpStatus.OK status [{}]", autoResponse.getResponse().getStatus());
             responseBuilder.status(autoResponse.getResponse().getStatus());
@@ -876,7 +868,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             InteractionContext newCtx = new InteractionContext(ctx, headers, newPathParameters, newQueryParameters,
                     targetState);
             Response response = handleRequest(headers, newCtx, event, action, (EntityResource<?>) currentResource,
-                    config, true);
+                    config, false);
             ResponseWrapper wrapper = new ResponseWrapper(response, new ArrayList<Link>(
                     new LinkGeneratorImpl(hypermediaEngine, targetState.getSelfTransition(), newCtx
                     ).createLink(newPathParameters, newQueryParameters, response.getEntity())

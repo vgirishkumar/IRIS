@@ -57,7 +57,7 @@ public class SequentialResourceRequestHandler implements ResourceRequestHandler 
 		assert(config != null);
 		assert(config.getTransitions() != null);
 		ResourceStateMachine hypermediaEngine = rimHandler.getHypermediaEngine();
-		Map<Transition, ResourceRequestResult> resources = new HashMap<Transition, ResourceRequestResult>();
+		Map<Transition, ResourceRequestResult> resources = new HashMap<Transition, ResourceRequestResult>(); 
 		for (Transition t : config.getTransitions()) {
 			String method = t.getCommand().getMethod();
 			if ((t.getCommand().getFlags() & Transition.AUTO) == Transition.AUTO) {
@@ -110,7 +110,8 @@ public class SequentialResourceRequestHandler implements ResourceRequestHandler 
 					event, 
 					action, 
 					resource, 
-					config);
+					config,
+					true); 
 			RESTResource targetResource = null;
 			if (response.getEntity() != null) {
 				targetResource = (RESTResource) ((GenericEntity<?>) response.getEntity()).getEntity();
