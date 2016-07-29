@@ -168,7 +168,11 @@ public class MetadataOData4j {
 		
 		synchronized(this) {
 			if(edmDataServices == null) {
-				edmDataServices = createOData4jMetadata(metadata, hypermediaEngine, serviceDocument);
+			    try {
+			        edmDataServices = createOData4jMetadata(metadata, hypermediaEngine, serviceDocument);
+			    } catch (Exception e) {
+			        LOGGER.error("Error creating odata4j metadata for resources in service document", e);
+			    }
 			}
 			
 			result = edmDataServices;
@@ -178,7 +182,13 @@ public class MetadataOData4j {
 	}
 	
 	public EdmComplexType findEdmComplexType(String typeName) {
-		EdmComplexType result = getEdmMetadata().findEdmComplexType(typeName);
+		EdmComplexType result = null;
+	        try {
+	            result = getEdmMetadata().findEdmComplexType(typeName);
+	        } catch(Exception e) {
+	            LOGGER.error("Error getting EDM entity complex type" + typeName, e);
+	        }
+
 		
 		if(result == null && nonSrvDocEdmComplexTypeMap.containsKey(typeName)) {
 			// Check if the type is a complex type in non service document meta data
@@ -201,9 +211,14 @@ public class MetadataOData4j {
 	
 	
 	public EdmType getEdmEntityTypeByTypeName(String typeName) {
-		// Check if type is in the service document / EDM meta data
-		EdmType result = (EdmEntityType)getEdmMetadata().findEdmEntityType(typeName);
-
+	    EdmType result = null;
+	    try {
+	        // Check if type is in the service document / EDM meta data
+	        result = (EdmEntityType)getEdmMetadata().findEdmEntityType(typeName);
+	    } catch(Exception e) {
+	        LOGGER.error("Error getting EDM entity type" + typeName, e);
+	    }
+	    
         if(result == null && nonSrvDocEdmComplexTypeMap.containsKey(typeName)) {
         	// Check if the type is a complex type in non service document meta data
             result = nonSrvDocEdmComplexTypeMap.get(typeName);
@@ -405,7 +420,13 @@ public class MetadataOData4j {
 			if (serviceDocument.equals(state))
 				continue;
 			
-			EntityMetadata entityMetadata = metadata.getEntityMetadata(state.getEntityName());
+			EntityMetadata entityMetadata = null;
+			try {
+			    entityMetadata = metadata.getEntityMetadata(state.getEntityName());
+			} catch (Exception e) {
+	             LOGGER.warn("Failed to get metadata for state name '{}' / entity name '{}'", state.getName(), state.getEntityName(), e);
+	             continue;
+			}
 			
 			if(entityMetadata == null) {
 			    LOGGER.warn("Failed to get metadata for state name '{}' / entity name '{}'", state.getName(), state.getEntityName());
