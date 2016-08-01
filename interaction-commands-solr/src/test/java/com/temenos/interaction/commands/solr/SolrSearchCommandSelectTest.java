@@ -29,6 +29,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -38,6 +40,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import com.temenos.interaction.authorization.command.AuthorizationAttributes;
@@ -53,8 +56,38 @@ import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
 
 public class SolrSearchCommandSelectTest extends AbstractSolrTest {
+
+	private @Mock ResourceState currentState;
+
+	private SolrSearchCommand command;
+	private InteractionContext ctx;
+	private MultivaluedMap<String, String> queryParams;
+	private MultivaluedMap<String, String> pathParams;
+
+
+	@Before
+	public void setup() {
+		MockitoAnnotations.initMocks(this);
+
+		command = new SolrSearchCommand();
+		queryParams = new MultivaluedMapImpl<String>();
+		pathParams = new MultivaluedMapImpl<String>();
+		ctx = spy(new InteractionContext(
+				mock(UriInfo.class),
+				mock(HttpHeaders.class),
+				pathParams,
+				queryParams,
+				mock(ResourceState.class),
+				mock(Metadata.class)));
+
+		when(currentState.getEntityName()).thenReturn(ENTITY1_TYPE);
+		when(ctx.getCurrentState()).thenReturn(currentState);
+	}
 
 	/**
 	 * Test for selection on a single field
@@ -62,19 +95,10 @@ public class SolrSearchCommandSelectTest extends AbstractSolrTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testSelectSingleField() {
-		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("companyid", COMPANY_NAME);
-
-		// Add OData filter
 		queryParams.add("$select", "name");
-
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
 		try {
-    		InteractionCommand.Result result = command.execute(ctx);
+    		InteractionCommand.Result result = command.execute(ctx, entity1SolrServer);
     		assertEquals(Result.SUCCESS, result);
         } catch (InteractionException e) {
             fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
@@ -112,19 +136,10 @@ public class SolrSearchCommandSelectTest extends AbstractSolrTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testSelectMultipleField() {
-		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("companyid", COMPANY_NAME);
-
-		// Add OData filter
 		queryParams.add("$select", "name, mnemonic");
-
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
 		try {
-    		InteractionCommand.Result result = command.execute(ctx);
+    		InteractionCommand.Result result = command.execute(ctx, entity1SolrServer);
     		assertEquals(Result.SUCCESS, result);
         } catch (InteractionException e) {
             fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
@@ -162,22 +177,12 @@ public class SolrSearchCommandSelectTest extends AbstractSolrTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testSelectDoneFlag() {
-		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("companyid", COMPANY_NAME);
-
-		// Add OData filter
 		queryParams.add("$select", "name, mnemonic");
-
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-	
 		// Set the flag to the not done state.
 		ctx.setAttribute(AuthorizationAttributes.SELECT_DONE_ATTRIBUTE, Boolean.FALSE);
 		try {
-    		command.execute(ctx);
+    		command.execute(ctx, entity1SolrServer);
         } catch (InteractionException e) {
             fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
         }
