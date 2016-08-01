@@ -24,12 +24,17 @@ package com.temenos.interaction.example.hateoas.dynamic;
 
 import com.temenos.interaction.core.hypermedia.ParameterAndValue;
 import com.temenos.interaction.core.hypermedia.ResourceParameterResolver;
+import com.temenos.interaction.core.hypermedia.ResourceParameterResolverContext;
 
-public class AuthorResourceParameterResolver implements
-		ResourceParameterResolver {
+public class AuthorResourceParameterResolver implements ResourceParameterResolver {
 
 	@Override
-	public ParameterAndValue[] resolve(Object... aliases) {
-		return new ParameterAndValue[]{ new ParameterAndValue("id", "AU002") };
+	public ParameterAndValue[] resolve(Object[] aliases) {
+		return resolve(aliases, null);
+	}
+
+	@Override
+	public ParameterAndValue[] resolve(Object[] aliases, ResourceParameterResolverContext context) {
+		return new ParameterAndValue[]{new ParameterAndValue("id", "AU002") };
 	}
 }
