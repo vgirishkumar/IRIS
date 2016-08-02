@@ -2668,7 +2668,7 @@ public class TestResourceStateMachine {
         ResourceParameterResolver parameterResolver = new ResourceParameterResolver() {
 
             @Override
-            public ParameterAndValue[] resolve(Object[] aliases) {
+            public ParameterAndValue[] resolve(Object[] aliases, ResourceParameterResolverContext context) {
                 ParameterAndValue[] params = new ParameterAndValue[aliases.length];
                 for (int i = 0; i < aliases.length; i++) {
                     String value = aliases[i].toString();
@@ -2676,11 +2676,6 @@ public class TestResourceStateMachine {
                 }
 
                 return params;
-            }
-
-            @Override
-            public ParameterAndValue[] resolve(Object[] aliases, ResourceParameterResolverContext context) {
-                return resolve(aliases);
             }
         };
 

@@ -24,14 +24,11 @@ package com.temenos.interaction.core.hypermedia;
 
 
 /**
- * Implementations of this interface provide a way of resolving an aliases to resource parameters and values. There are
- * two main methods, first passing any objects to resolve and second where we also pass context with additional data.
- * Both method must be implemented, when context is not needed or null, then it just should call the first method
+ * Implementations of this interface provide a way of resolving an aliases to resource parameters and values
  *
  * @author mlambert
  *
  */
 public interface ResourceParameterResolver {
-	ParameterAndValue[] resolve(Object[] aliases);
 	ParameterAndValue[] resolve(Object[] aliases, ResourceParameterResolverContext context);
 }

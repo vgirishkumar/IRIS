@@ -29,11 +29,6 @@ import com.temenos.interaction.core.hypermedia.ResourceParameterResolverContext;
 public class AuthorResourceParameterResolver implements ResourceParameterResolver {
 
 	@Override
-	public ParameterAndValue[] resolve(Object[] aliases) {
-		return resolve(aliases, null);
-	}
-
-	@Override
 	public ParameterAndValue[] resolve(Object[] aliases, ResourceParameterResolverContext context) {
 		return new ParameterAndValue[]{new ParameterAndValue("id", "AU002") };
 	}
