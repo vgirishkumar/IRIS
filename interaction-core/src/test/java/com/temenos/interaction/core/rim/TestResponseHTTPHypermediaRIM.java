@@ -22,6 +22,8 @@ package com.temenos.interaction.core.rim;
  */
 
 
+import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -36,6 +38,8 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
@@ -885,11 +889,10 @@ public class TestResponseHTTPHypermediaRIM {
         commands.put("NEXT", next);
         commands.put("SEE", see);
         CommandController commandController = new MapBasedCommandController(commands);
-
+        
         //when {the post method is invoked}
         HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController, new ResourceStateMachine(entrance, new BeanTransformer(), locatorProvider), createMockMetadata(), locatorProvider);
         Response response = rim.post(mock(HttpHeaders.class), "id", mockUriInfoWithParams(), mockEntityResourceWithId("123"));
-
         //then {the response must be HTTP 201 Created}
         assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
         //and {the response entity must not be null and must be an instance of/subtype RESTResource}
@@ -900,6 +903,12 @@ public class TestResponseHTTPHypermediaRIM {
         List<Link> links = new ArrayList<Link>(((RESTResource)responseEntity.getEntity()).getLinks());
         assertThat(links.size(), equalTo(3));
         assertThat(links.get(1).getHref(), equalTo("/baseuri/lighting?mode=run"));
+        //and {the location header must be set to the final resource resolved 
+        //in the sequence of autotransitions}
+        assertThat((String)response.getMetadata().get("Location").get(0), allOf(containsString("/baseuri/kitchen"), containsString("mode=run")));
+        verify(doSomething, times(1)).execute(any(InteractionContext.class));
+        verify(increment, times(1)).execute(any(InteractionContext.class));
+        verify(done, times(1)).execute(any(InteractionContext.class));
     }
     
     /*
@@ -1805,8 +1814,7 @@ public class TestResponseHTTPHypermediaRIM {
 		return mockCommand;
 	}
 	
-	public static EntityResource<GenericError> createGenericErrorResource(GenericError error) 
-	{
+	public static EntityResource<GenericError> createGenericErrorResource(GenericError error){
 		return CommandHelper.createEntityResource(error, GenericError.class);
-	}	
+	}
 }
