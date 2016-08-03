@@ -25,6 +25,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.ResourceState;
 
 /**
  * Wraps an internal IRIS Response object with a link to the resolved location
@@ -37,11 +38,14 @@ public final class ResponseWrapper {
     private final Response response;
     private final Link selfLink;
     private final MultivaluedMap<String, String> requestParameters;
+    private final ResourceState resolvedState;
     
-    public ResponseWrapper(Response response, Link selfLink, MultivaluedMap<String, String> requestParameters) {
+    public ResponseWrapper(Response response, Link selfLink, 
+            MultivaluedMap<String, String> requestParameters, ResourceState resolvedState) {
         this.response = response;
         this.selfLink = selfLink;
         this.requestParameters = requestParameters;
+        this.resolvedState = resolvedState;
     }
     
     /**
@@ -67,5 +71,13 @@ public final class ResponseWrapper {
      */
     public MultivaluedMap<String, String> getRequestParameters(){
         return requestParameters;
+    }
+    
+    /**
+     * Obtain the ResourceState that was resolved during the request.
+     * @return The ResourceState object associated with this wrapper.
+     */
+    public ResourceState getResolvedState(){
+        return resolvedState;
     }
 }
