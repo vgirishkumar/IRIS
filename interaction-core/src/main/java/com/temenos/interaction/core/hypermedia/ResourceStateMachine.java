@@ -1098,8 +1098,7 @@ public class ResourceStateMachine {
 				try {
 					// Add query parameters
 					ResourceParameterResolver parameterResolver = parameterResolverProvider.get(locatorName);
-					ResourceParameterResolverContext context = new ResourceParameterResolverContext();
-					context.entityName = dynamicResourceState.getEntityName();
+					ResourceParameterResolverContext context = new ResourceParameterResolverContext(dynamicResourceState.getEntityName());
 					ParameterAndValue[] paramsAndValues = resolveParameterValues(parameterResolver.resolve(aliases, context), transitionProperties);
 					result.setParams(paramsAndValues);
 				} catch (IllegalArgumentException e) {
