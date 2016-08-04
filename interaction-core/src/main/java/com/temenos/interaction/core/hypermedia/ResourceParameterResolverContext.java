@@ -4,7 +4,7 @@ package com.temenos.interaction.core.hypermedia;
  * #%L
  * interaction-core
  * %%
- * Copyright (C) 2012 - 2014 Temenos Holdings N.V.
+ * Copyright (C) 2012 - 2016 Temenos Holdings N.V.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,13 +22,19 @@ package com.temenos.interaction.core.hypermedia;
  */
 
 
-
 /**
- * Implementations of this interface provide a way of resolving an aliases to resource parameters and values
- *
- * @author mlambert
- *
+ * This class is a basic container for all necessary (and future) data, required for processing @see ResourceParameterResolver
+ * @author kwieconkowski
  */
-public interface ResourceParameterResolver {
-	ParameterAndValue[] resolve(Object[] aliases, ResourceParameterResolverContext context);
+public class ResourceParameterResolverContext {
+    private String entityName;
+
+    public ResourceParameterResolverContext(String entityName) {
+        this.entityName = entityName;
+    }
+
+    public String getEntityName() {
+        return entityName;
+    }
 }
+

@@ -1098,7 +1098,8 @@ public class ResourceStateMachine {
 				try {
 					// Add query parameters
 					ResourceParameterResolver parameterResolver = parameterResolverProvider.get(locatorName);
-					ParameterAndValue[] paramsAndValues = parameterResolver.resolve(aliases);
+					ResourceParameterResolverContext context = new ResourceParameterResolverContext(dynamicResourceState.getEntityName());
+					ParameterAndValue[] paramsAndValues = resolveParameterValues(parameterResolver.resolve(aliases, context), transitionProperties);
 					result.setParams(paramsAndValues);
 				} catch (IllegalArgumentException e) {
 				    LOGGER.warn("Failed to find parameter resolver for: {}", locatorName, e);
@@ -1108,6 +1109,18 @@ public class ResourceStateMachine {
 
 		return result;
 
+	}
+
+	private ParameterAndValue[] resolveParameterValues(ParameterAndValue[] parameterAndValues, Map<String, Object> transitionProperties) {
+		if (parameterAndValues == null || parameterAndValues.length == 0) {
+			return parameterAndValues;
+		}
+		ParameterAndValue[] result = new ParameterAndValue[parameterAndValues.length];
+		for (int i = 0; i < parameterAndValues.length; i++) {
+			String value = HypermediaTemplateHelper.templateReplace(parameterAndValues[i].getValue(), transitionProperties);
+			result[i] = new ParameterAndValue(parameterAndValues[i].getParameter(), value);
+		}
+		return result;
 	}
 
 	/**
