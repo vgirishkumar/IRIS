@@ -27,5 +27,14 @@ package com.temenos.interaction.core.hypermedia;
  * @author kwieconkowski
  */
 public class ResourceParameterResolverContext {
-    public String entityName;
+    private String entityName;
+
+    public ResourceParameterResolverContext(String entityName) {
+        this.entityName = entityName;
+    }
+
+    public String getEntityName() {
+        return entityName;
+    }
 }
+
