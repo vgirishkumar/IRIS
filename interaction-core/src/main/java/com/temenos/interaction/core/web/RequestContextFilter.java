@@ -70,9 +70,9 @@ public class RequestContextFilter implements Filter {
         RequestContext ctx;
         Principal userPrincipal = servletRequest.getUserPrincipal();
         if (userPrincipal != null) {
-        	ctx = new RequestContext(baseURL, servletRequest.getRequestURI(), servletRequest.getHeader(RequestContext.HATEOAS_OPTIONS_HEADER), userPrincipal);
+        	ctx = new RequestContext(baseURL, servletRequest.getRequestURI(), servletRequest.getHeader(RequestContext.VERBOSITY_HEADER), userPrincipal);
         } else {
-        	ctx = new RequestContext(baseURL, servletRequest.getRequestURI(), servletRequest.getHeader(RequestContext.HATEOAS_OPTIONS_HEADER));
+        	ctx = new RequestContext(baseURL, servletRequest.getRequestURI(), servletRequest.getHeader(RequestContext.VERBOSITY_HEADER));
         }
         	
         RequestContext.setRequestContext(ctx);
