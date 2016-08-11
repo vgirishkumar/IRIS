@@ -81,6 +81,7 @@ import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
 import com.temenos.interaction.core.hypermedia.validation.LogicalConfigurationListener;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.core.web.RequestContext;
 
 /**
  * <P>
@@ -599,10 +600,16 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         // work around an issue in wink, wink does not decode query parameters
         // in 1.1.3
         decodeQueryParams(queryParameters);
-
+        
         // create the interaction context
         InteractionContext ctx = new InteractionContext(uriInfo, headers, pathParameters, queryParameters,
                 currentState, metadata);
+        
+        // set the verbosity of the request as an attribute
+        if(RequestContext.getRequestContext() != null)
+            if(RequestContext.getRequestContext().getVerbosityHeader() != null)
+                ctx.setAttribute(RequestContext.VERBOSITY_HEADER, RequestContext.getRequestContext().getVerbosityHeader());
+
         return ctx;
     }
     
