@@ -2641,32 +2641,47 @@ public class TestResourceStateMachine {
     @Test
     public void testResolveDynamicResourceSingleParam() {
         ResourceStateMachine rsm = createResourceStateMachineForResolveDynamicResource();
-        String[] resourceArgs = new String[] { "{ABCD}" };
+        String[] resourceArgs = new String[] { "{Field}" };
         DynamicResourceState resourceState = new DynamicResourceState("", "", "", resourceArgs);
 
         Map<String, Object> transitionProperties = new HashMap<String, Object>();
-        transitionProperties.put("ABCD", "value1");
+        transitionProperties.put("Field", "AVersion");
 
         ResourceStateAndParameters result = rsm.resolveDynamicState(resourceState, transitionProperties, null);
-        assertEquals("value1", result.getParams()[0].getValue());
+        assertEquals("AVersion", result.getParams()[0].getValue());
     }
 
     @Test
     public void testResolvedDynamicResourceCollectionParam() {
         ResourceStateMachine rsm = createResourceStateMachineForResolveDynamicResource();
-        String[] resourceArgs = new String[] { "{AB.CD}" };
+        String[] resourceArgs = new String[] { "{Parent.Field}" };
         DynamicResourceState resourceState = new DynamicResourceState("", "", "", resourceArgs);
 
         Map<String, Object> transitionProperties = new HashMap<String, Object>();
-        transitionProperties.put("AB.CD", "value1");
+        transitionProperties.put("Parent.Field", "value1");
 
         ResourceStateAndParameters result = rsm.resolveDynamicState(resourceState, transitionProperties, null);
         assertEquals("value1", result.getParams()[0].getValue());
     }
+    
+    @Test
+    public void testResolvedDynamicResourceMultipleParam() {
+        ResourceStateMachine rsm = createResourceStateMachineForResolveDynamicResource();
+        String[] resourceArgs = new String[] { "{Field}", "I", "{Product}" };        
+        DynamicResourceState resourceState = new DynamicResourceState("", "", "", resourceArgs);
+
+        Map<String, Object> transitionProperties = new HashMap<String, Object>();
+        transitionProperties.put("Field", "AVersion");
+        transitionProperties.put("Product", "Account");
+
+        ResourceStateAndParameters result = rsm.resolveDynamicState(resourceState, transitionProperties, null);
+        assertEquals("AVersion", result.getParams()[0].getValue());
+        assertEquals("I", result.getParams()[1].getValue());
+        assertEquals("Account", result.getParams()[2].getValue());
+    }
 
     private ResourceStateMachine createResourceStateMachineForResolveDynamicResource() {
         ResourceParameterResolver parameterResolver = new ResourceParameterResolver() {
-
             @Override
             public ParameterAndValue[] resolve(Object[] aliases, ResourceParameterResolverContext context) {
                 ParameterAndValue[] params = new ParameterAndValue[aliases.length];
@@ -2674,21 +2689,23 @@ public class TestResourceStateMachine {
                     String value = aliases[i].toString();
                     params[i] = new ParameterAndValue(value, value);
                 }
-
                 return params;
             }
         };
-
-        ResourceState resState = new ResourceState("entityName", "name", new ArrayList<Action>(), "path");
-        ResourceLocator resourceLocatorMock = mock(ResourceLocator.class);
-        when(resourceLocatorMock.resolve(anyObject())).thenReturn(resState);
+        
+        ResourceLocator resourceLocator = new ResourceLocator() {
+        	@Override
+        	public ResourceState resolve(Object... alias) {
+        		return new ResourceState("entityName", "name", new ArrayList<Action>(), "path");
+        }};
 
         ResourceLocatorProvider resourceLocatorProviderMock = mock(ResourceLocatorProvider.class);
-        when(resourceLocatorProviderMock.get(anyString())).thenReturn(resourceLocatorMock);
+        when(resourceLocatorProviderMock.get(anyString())).thenReturn(resourceLocator);
 
         ResourceParameterResolverProvider parameterResolverMock = mock(ResourceParameterResolverProvider.class);
         when(parameterResolverMock.get(anyString())).thenReturn(parameterResolver);
 
+        ResourceState resState = new ResourceState("entityName", "name", new ArrayList<Action>(), "path");
         ResourceStateMachine rsm = new ResourceStateMachine(resState, resourceLocatorProviderMock);
         rsm.setParameterResolverProvider(parameterResolverMock);
 

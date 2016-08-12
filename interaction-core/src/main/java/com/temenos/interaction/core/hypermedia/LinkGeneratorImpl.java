@@ -48,6 +48,8 @@ import com.temenos.interaction.core.web.RequestContext;
 public class LinkGeneratorImpl implements LinkGenerator {
 
     private static final Logger logger = LoggerFactory.getLogger(LinkGeneratorImpl.class);
+    private static final String NEW_REL_SUFFIX = "/new";
+    private static final String POPULATE_REL_SUFFIX = "/populate";
     private ResourceStateMachine resourceStateMachine;
     private Transition transition;
     private InteractionContext interactionContext;
@@ -221,28 +223,33 @@ public class LinkGeneratorImpl implements LinkGenerator {
             targetState = stateAndParams.getState();
         }
 
-        String method = transition.getCommand().getMethod();
-        if (targetState.getRel().contains("http://temenostech.temenos.com/rels/new")) {
-            method = "POST";
-        }
-
         String targetPath = targetState.getPath();
         configureLink(linkTemplate, linkPropertiesMap, targetPath);
         linkTemplate.path(targetPath);
         String rel = getTargetRelValue(targetState);
 
+        String method = transition.getCommand().getMethod();        
+        if (rel.contains(NEW_REL_SUFFIX) || rel.contains(POPULATE_REL_SUFFIX)) {
+            method = "POST";
+        }
+        
         if ("item".equals(rel) || "collection".equals(rel)) {
             rel = createLinkForState(targetState);
         }
+        
+        Map<String, String> uriParameters = transition.getCommand().getUriParameters();
         if (stateAndParams.getParams() != null) {
             // Add query parameters
             for (ParameterAndValue paramAndValue : stateAndParams.getParams()) {
                 String param = paramAndValue.getParameter();
                 String value = paramAndValue.getValue();
-
+                
                 if ("id".equalsIgnoreCase(param)) {
-                    linkPropertiesMap.put(param, value);
-                } else {
+                    linkPropertiesMap.put(param, value);                    
+                    if(rel.contains(POPULATE_REL_SUFFIX) && (uriParameters == null || !uriParameters.containsKey(param))) {
+                    	linkTemplate.queryParam(param, value);
+                    }
+                } else if(uriParameters == null || !uriParameters.containsKey(param)) { //Add query param only if it's not already present in the path
                     linkTemplate.queryParam(param, value);
                 }
             }
