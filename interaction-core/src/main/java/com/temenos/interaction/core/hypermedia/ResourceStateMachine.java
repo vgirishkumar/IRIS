@@ -1098,7 +1098,7 @@ public class ResourceStateMachine {
 				try {
 					// Add query parameters
 					ResourceParameterResolver parameterResolver = parameterResolverProvider.get(locatorName);
-					ResourceParameterResolverContext context = new ResourceParameterResolverContext(dynamicResourceState.getEntityName());
+					ResourceParameterResolverContext context = new ResourceParameterResolverContext(dynamicResourceState.getEntityName());					
 					ParameterAndValue[] paramsAndValues = resolveParameterValues(parameterResolver.resolve(aliases, context), transitionProperties);
 					result.setParams(paramsAndValues);
 				} catch (IllegalArgumentException e) {
@@ -1142,12 +1142,10 @@ public class ResourceStateMachine {
 
             if (transitionProperties.containsKey(key)) {
                 aliases.add(transitionProperties.get(key));
-            } else if (ctx != null) {
-                Object value = ctx.getAttribute(key);
-
-                if (value != null) {
-                    aliases.add(value);
-                }
+            } else if (ctx != null && ctx.getAttribute(key)!=null) {
+                aliases.add(ctx.getAttribute(key));                
+            } else { //Keep all params
+            	aliases.add(key);
             }
         }
 		

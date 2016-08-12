@@ -147,7 +147,7 @@ public class TestLinkGeneratorImpl {
     public void testCreateLinkFromDynamicResource() {
         ResourceStateMachine engineMock = Mockito.mock(ResourceStateMachine.class);
         ResourceStateAndParameters resourceStateAndParameters = new ResourceStateAndParameters();
-        resourceStateAndParameters.setState(mockTarget("/testDynamic", "resolvedTargetEntityName", "resolvedTargetName"));
+        resourceStateAndParameters.setState(mockTarget("/testDynamic", "resolvedTargetEntityName", "resolvedTargetName", ""));
         resourceStateAndParameters.setParams(new ParameterAndValue[] { new ParameterAndValue("filter2", "564") });
         DynamicResourceState dynamicResourceStateMock = mockDynamicTarget(null);
         Map<String, String> uriParameters = new HashMap<String, String>();
@@ -168,6 +168,34 @@ public class TestLinkGeneratorImpl {
         assertEquals("/baseuri/testDynamic?filter=123&filter2=564", result.getHref());
         assertEquals("resolvedTargetEntityName", result.getTransition().getTarget().getEntityName());
         assertEquals("resolvedTargetName", result.getTransition().getTarget().getName());
+    }
+    
+    @Test
+    public void testCreateLinkFromDynamicResourceEditVersion() {
+    	ResourceStateMachine engineMock = Mockito.mock(ResourceStateMachine.class);
+        ResourceStateAndParameters resourceStateAndParameters = new ResourceStateAndParameters();
+        resourceStateAndParameters.setState(mockTarget("/testDynamic", "resolvedTargetEntityName", "resolvedTargetName", "http.../populate"));
+        resourceStateAndParameters.setParams(new ParameterAndValue[] { new ParameterAndValue("filter2", "564"), new ParameterAndValue("id", "ABCD") });
+        DynamicResourceState dynamicResourceStateMock = mockDynamicTarget(null);
+        Map<String, String> uriParameters = new HashMap<String, String>();
+        uriParameters.put("filter", "{nodeId}");
+        Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(dynamicResourceStateMock).uriParameters(uriParameters).build();
+        MultivaluedMap<String, String> queryParameters = new MultivaluedMapImpl<String>();
+        queryParameters.add("nodeId", "123");
+        Map<String, Object> transitionProperties = new HashMap<String, Object>();
+        transitionProperties.put("filter", "{nodeId}");
+        transitionProperties.put("nodeId", "123");
+        Mockito.when(engineMock.resolveDynamicState(dynamicResourceStateMock, transitionProperties, null)).thenReturn(resourceStateAndParameters);
+        Mockito.when(engineMock.getTransitionProperties(t, null, new MultivaluedMapImpl<String>(), queryParameters)).thenReturn(transitionProperties);
+
+        LinkGenerator linkGenerator = new LinkGeneratorImpl(engineMock, t, null).setAllQueryParameters(true);
+        Collection<Link> links = linkGenerator.createLink(new MultivaluedMapImpl<String>(), queryParameters, null);
+        assertFalse(links.isEmpty());
+        Link result = links.iterator().next();        
+        assertEquals("/baseuri/testDynamic?filter=123&filter2=564&id=ABCD", result.getHref());
+        assertEquals("resolvedTargetEntityName", result.getTransition().getTarget().getEntityName());
+        assertEquals("resolvedTargetName", result.getTransition().getTarget().getName());
+        assertEquals("POST", result.getMethod());
     }
 
     @Test
@@ -507,10 +535,11 @@ public class TestLinkGeneratorImpl {
         }
     }
 
-    private ResourceState mockTarget(String path, String entityName, String name) {
+    private ResourceState mockTarget(String path, String entityName, String name, String rel) {
         ResourceState target = mockTarget(path);
         when(target.getEntityName()).thenReturn(entityName);
         when(target.getName()).thenReturn(name);
+        when(target.getRel()).thenReturn(rel);
         return target;
     }
 
