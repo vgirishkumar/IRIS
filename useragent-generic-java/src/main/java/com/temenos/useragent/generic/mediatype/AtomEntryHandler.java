@@ -56,219 +56,109 @@ import com.temenos.useragent.generic.internal.LinkImpl;
  */
 public class AtomEntryHandler implements EntityHandler {
 
-	private Entry entry;
+    private Entry entry;
+    private AtomXmlContentHandler xmlContentHandler;
+    private boolean entryNotSet = true;
 
-	public AtomEntryHandler() {
-		entry = new Abdera().newEntry();
-	}
+    public List<Link> getLinks() {
+        validateHandler();
+        return convertLinks(entry.getLinks());
+    }
 
-	public List<Link> getLinks() {
-		return convertLinks(entry.getLinks());
-	}
+    public String getId() {
+        validateHandler();
+        String fullPath = entry.getIdElement().getText();
+        if (fullPath.contains("('") && fullPath.endsWith("')")) {
+            return fullPath.substring(fullPath.indexOf("'") + 1, fullPath.lastIndexOf("'"));
+        }
+        return "";
+    }
 
-	public String getId() {
-		String fullPath = entry.getId().getPath();
-		if (fullPath.contains("('") && fullPath.endsWith("')")) {
-			return fullPath.substring(fullPath.indexOf("'") + 1,
-					fullPath.lastIndexOf("'"));
-		}
-		return "";
-	}
+    public int getCount(String fqPropertyName) {
+        validateHandler();
+        return xmlContentHandler.getCount(fqPropertyName);
+    }
 
-	public int getCount(String fqPropertyName) {
-		String[] pathParts = validateAndParsePropertyName(fqPropertyName);
-		Element parent = getParent(pathParts);
-		String propertyName = pathParts[pathParts.length - 1];
-		if (parent == null) {
-			return 0;
-		}
-		Element propertyElement = parent.getFirstChild(new QName(NS_ODATA,
-				buildElementName(propertyName)));
-		return countSiblings(propertyElement);
-	}
+    public String getValue(String fqPropertyName) {
+        validateHandler();
+        return xmlContentHandler.getValue(fqPropertyName);
+    }
 
-	private int countSiblings(Element propertyElement) {
-		if (propertyElement == null) {
-			return 0;
-		}
-		int count = 0;
-		Element elementChild = propertyElement.getFirstChild(new QName(
-				NS_ODATA, "element"));
-		if (elementChild == null) {
-			return 1;
-		}
-		while (elementChild != null) {
-			count++;
-			elementChild = elementChild.getNextSibling(new QName(NS_ODATA,
-					"element"));
-		}
-		return count;
-	}
+    @Override
+    public void setValue(String fqPropertyName, String value) {
+        validateHandler();
+        xmlContentHandler.setValue(fqPropertyName, value);
+    }
+    
+    @Override
+    public void remove(String fqPropertyName) {
+    	validateHandler();
+    	xmlContentHandler.remove(fqPropertyName);
+    }
 
-	public String getValue(String fqPropertyName) {
-		Element property = getProperty(fqPropertyName);
-		if (property != null) {
-			if (property.getFirstChild() == null) {
-				return property.getText();
-			} else {
-				return getContent(property);
-			}
-		} else {
-			return "";
-		}
-	}
+    private List<Link> convertLinks(List<org.apache.abdera.model.Link> abderaLinks) {
+        List<Link> links = new ArrayList<Link>();
+        for (org.apache.abdera.model.Link abderaLink : abderaLinks) {
+            AtomLinkHandler linkHandler = new AtomLinkHandler(abderaLink);
+            links.add(new LinkImpl.Builder(abderaLink.getAttributeValue("href")).baseUrl(linkHandler.getBaseUri())
+                    .rel(linkHandler.getRel()).id(getId()).title(abderaLink.getAttributeValue("title"))
+                    .description(AtomUtil.extractDescription(abderaLink.getAttributeValue("rel")))
+                    .payload(linkHandler.getEmbeddedPayload()).build());
+        }
+        return links;
+    }
 
-	@Override
-	public void setValue(String fqPropertyName, String value) {
-		Element property = getProperty(fqPropertyName);
-		if (property != null) {
-			property.setText(value);
-		} else {
-			throw new RuntimeException("New value addition not supported");
-		}
-	}
+    @Override
+    public void setContent(InputStream stream) {
+        if (stream == null) {
+            throw new IllegalArgumentException("Entity input stream is null");
+        }
+        Document<Element> entityDoc = null;
+        try {
+            entityDoc = new Abdera().getParser().parse(stream);
+        } catch (ParseException e) {
+            throw new IllegalArgumentException("Unexpected entity for media type '" + AtomUtil.MEDIA_TYPE + "'.", e);
+        }
+        QName rootElementQName = entityDoc.getRoot().getQName();
+        if (new QName(AtomUtil.NS_ATOM, "entry").equals(rootElementQName)) {
+            initHandler((Entry) entityDoc.getRoot());
+        } else {
+            throw new IllegalArgumentException("Unexpected entity for media type '" + MEDIA_TYPE + "'. Payload ["
+                    + entityDoc.getRoot().toString() + "]");
+        }
+    }
 
-	private Element getProperty(String fqPropertyName) {
-		String[] pathParts = validateAndParsePropertyName(fqPropertyName);
-		Element parent = getParent(pathParts);
-		String propertyName = pathParts[pathParts.length - 1];
-		if (parent != null) {
-			return parent.getFirstChild(new QName(NS_ODATA, propertyName));
-		} else {
-			return null;
-		}
-	}
+    public void setEntry(Entry entry) {
+        initHandler(entry);
+    }
 
-	private Element getParent(String... pathParts) {
-		Element content = entry.getFirstChild(new QName(NS_ATOM, "content"));
-		Element parent = content.getFirstChild(new QName(NS_ODATA_METADATA,
-				"properties"));
-		int pathIndex = 0;
-		while (pathIndex < (pathParts.length - 1)) {
-			String pathPart = pathParts[pathIndex];
-			parent = getSpecificChild(parent, buildElementName(pathPart), 0);
-			parent = getSpecificChild(parent, "element", extractIndex(pathPart));
-			pathIndex++;
-		}
-		return parent;
-	}
+    private void initHandler(Entry entry) {
+        this.entry = entry;
+        this.xmlContentHandler = new AtomXmlContentHandler(AtomUtil.buildXmlDocument(entry.getContent()));
+        entryNotSet = false;
+    }
+    
+    private void validateHandler() {
+        if (entryNotSet) {
+            throw new IllegalStateException("Entity handler '" + this.getClass().getName()
+                    + "' is not set with any content");
+        }
+    }
 
-	private int extractIndex(String path) {
-		if (path.matches(REGX_VALID_PART_WITH_INDEX)) {
-			String indexStr = path.substring(path.indexOf("(") + 1,
-					path.indexOf(")"));
-			return Integer.parseInt(indexStr);
-		}
-		return 0;
-	}
+    @Override
+    public InputStream getContent() {
+        validateHandler();
+        AtomUtil.updateEntryContent(xmlContentHandler.getDocument(), entry);
+        return IOUtils.toInputStream(getContent(entry));
+    }
 
-	private String buildElementName(String path) {
-		if (path.matches(REGX_VALID_PART_WITH_INDEX)) {
-			return path.substring(0, path.indexOf("("));
-		}
-		return path;
-	}
-
-	private String[] validateAndParsePropertyName(String fqName) {
-		if (fqName == null || fqName.isEmpty()) {
-			throw new IllegalArgumentException(
-					"Invalid fully qualified property name '" + fqName);
-		}
-		String[] pathParts = fqName.split("/");
-		int lastPartIndex = pathParts.length - 1;
-		for (int index = 0; index < lastPartIndex; index++) {
-			String pathPart = pathParts[index];
-			if (!pathPart.matches(REGX_VALID_PART_WITH_INDEX)) {
-				throw new IllegalArgumentException("Invalid part '" + pathPart
-						+ "' in fully qualified property name '" + fqName + "'");
-			}
-		}
-		String elementPart = pathParts[lastPartIndex];
-		if (!elementPart.matches(REGX_VALID_ELEMENT)) {
-			throw new IllegalArgumentException("Invalid property name '"
-					+ elementPart + "'");
-		}
-		return pathParts;
-	}
-
-	private Element getSpecificChild(Element parent, String childName,
-			int expectedIndex) {
-		if (parent == null) {
-			return null;
-		}
-		Element child = parent.getFirstChild(new QName(NS_ODATA, childName));
-		if (expectedIndex == 0) {
-			return child;
-		} else {
-			int index = 1;
-			while (child != null) {
-				child = child.getNextSibling(new QName(NS_ODATA, childName));
-				if (expectedIndex == index++) {
-					return child;
-				}
-			}
-		}
-		return null;
-	}
-
-	private List<Link> convertLinks(
-			List<org.apache.abdera.model.Link> abderaLinks) {
-		List<Link> links = new ArrayList<Link>();
-		for (org.apache.abdera.model.Link abderaLink : abderaLinks) {
-			AtomLinkHandler linkHandler = new AtomLinkHandler(abderaLink);
-			links.add(new LinkImpl.Builder(abderaLink.getAttributeValue("href"))
-					.baseUrl(linkHandler.getBaseUri())
-					.rel(linkHandler.getRel())
-					.id(getId())
-					.title(abderaLink.getAttributeValue("title"))
-					.description(
-							AtomUtil.extractDescription(abderaLink
-									.getAttributeValue("rel")))
-					.payload(linkHandler.getEmbeddedPayload()).build());
-		}
-		return links;
-	}
-
-	@Override
-	public void setContent(InputStream stream) {
-		if (stream == null) {
-			throw new IllegalArgumentException("Entity input stream is null");
-		}
-		Document<Element> entityDoc = null;
-		try {
-			entityDoc = new Abdera().getParser().parse(stream);
-		} catch (ParseException e) {
-			throw new IllegalArgumentException(
-					"Unexpected entity for media type '" + AtomUtil.MEDIA_TYPE
-							+ "'.", e);
-		}
-		QName rootElementQName = entityDoc.getRoot().getQName();
-		if (new QName(AtomUtil.NS_ATOM, "entry").equals(rootElementQName)) {
-			entry = (Entry) entityDoc.getRoot();
-		} else {
-			throw new IllegalArgumentException(
-					"Unexpected entity for media type '" + MEDIA_TYPE
-							+ "'. Payload [" + entityDoc.getRoot().toString()
-							+ "]");
-		}
-	}
-
-	public void setEntry(Entry entry) {
-		this.entry = entry;
-	}
-
-	@Override
-	public InputStream getContent() {
-		return IOUtils.toInputStream(getContent(entry));
-	}
-
-	private String getContent(Element element) {
-		try {
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			element.writeTo(baos);
-			return baos.toString("UTF-8");
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    private String getContent(Element element) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            element.writeTo(baos);
+            return baos.toString("UTF-8");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

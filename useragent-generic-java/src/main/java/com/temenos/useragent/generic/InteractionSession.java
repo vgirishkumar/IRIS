@@ -106,8 +106,8 @@ public interface InteractionSession {
 	 * @param propertyName
 	 * @return this session
 	 */
-	InteractionSession unset(String propertyName);
-
+	InteractionSession remove(String propertyName);
+	
 	/**
 	 * Returns a {@link Url url} instance associated to this session with any
 	 * pre-configuration applied.

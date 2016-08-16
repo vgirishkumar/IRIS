@@ -21,7 +21,6 @@ package com.temenos.useragent.generic.mediatype;
  * #L%
  */
 
-
 import static org.junit.Assert.*;
 
 import java.net.MalformedURLException;
@@ -49,7 +48,7 @@ public class AtomUtilTest {
 		assertEquals("foo", AtomUtil.extractDescription(" foo bar "));
 		assertEquals("foo", AtomUtil.extractDescription(" foo bar whatever"));
 	}
-	
+
 	@Test
 	public void testGetBaseUrl() {
 		Entry newEntry = new Abdera().newEntry();
@@ -69,7 +68,7 @@ public class AtomUtilTest {
 		} catch (Exception e) {
 			assertTrue(e instanceof IllegalArgumentException);
 		}
-		
+
 		// malformed url exception
 		newEntry.setBaseUri(new IRI("foo://test:8080/bar"));
 		try {
@@ -78,5 +77,20 @@ public class AtomUtilTest {
 		} catch (Exception e) {
 			assertTrue(e.getCause() instanceof MalformedURLException);
 		}
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void testBuildXmlDocumentForNullContent() {
+		AtomUtil.buildXmlDocument(null);
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void testBuildXmlDocumentForEmptyContent() {
+		AtomUtil.buildXmlDocument("");
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void testBuildXmlDocumentForInvalidContent() {
+		AtomUtil.buildXmlDocument("foo");
 	}
 }

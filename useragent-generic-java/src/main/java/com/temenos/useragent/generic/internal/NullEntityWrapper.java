@@ -21,7 +21,6 @@ package com.temenos.useragent.generic.internal;
  * #L%
  */
 
-
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -53,17 +52,22 @@ public class NullEntityWrapper implements EntityWrapper {
 
 	@Override
 	public void setHandler(EntityHandler handler) {
-		// TODO?
+		throw new IllegalStateException("Unexpected method call");
 	}
 
 	@Override
 	public void setSessionContext(SessionContext sessionCallback) {
-		// TODO
+		throw new IllegalStateException("Unexpected method call");
 	}
 
 	@Override
-	public void setValue(String fqPropertyName, String value) {
-		// TODO?
+	public void set(String fqPropertyName, String value) {
+		throw new IllegalStateException("Unexpected method call");
+	}
+
+	@Override
+	public void remove(String fqPropertyName) {
+		throw new IllegalStateException("Unexpected method call");
 	}
 
 	@Override
@@ -74,5 +78,4 @@ public class NullEntityWrapper implements EntityWrapper {
 			throw new RuntimeException(e);
 		}
 	}
-
 }

@@ -21,7 +21,6 @@ package com.temenos.useragent.generic.internal;
  * #L%
  */
 
-
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +31,7 @@ import com.temenos.useragent.generic.Links;
 public class DefaultEntityWrapper implements EntityWrapper {
 
 	private List<Link> namedLinks;
-	private EntityHandler transformer;
+	private EntityHandler entityHandler;
 	private SessionContext sessionCallback;
 
 	public DefaultEntityWrapper() {
@@ -40,17 +39,17 @@ public class DefaultEntityWrapper implements EntityWrapper {
 
 	@Override
 	public String id() {
-		return transformer.getId();
+		return entityHandler.getId();
 	}
 
 	@Override
 	public String get(String fqName) {
-		return transformer.getValue(fqName);
+		return entityHandler.getValue(fqName);
 	}
 
 	@Override
 	public int count(String fqName) {
-		return transformer.getCount(fqName);
+		return entityHandler.getCount(fqName);
 	}
 
 	@Override
@@ -71,26 +70,31 @@ public class DefaultEntityWrapper implements EntityWrapper {
 		if (namedLinks != null) {
 			return;
 		}
-		List<Link> links = transformer.getLinks();
+		List<Link> links = entityHandler.getLinks();
 		namedLinks = new ArrayList<Link>();
-        for (Link link : links) {
-            namedLinks.add(link);
-        }
+		for (Link link : links) {
+			namedLinks.add(link);
+		}
 	}
 
 	@Override
 	public InputStream getContent() {
-		return transformer.getContent();
+		return entityHandler.getContent();
 	}
 
 	@Override
-	public void setValue(String fqPropertyName, String value) {
-		transformer.setValue(fqPropertyName, value);
+	public void set(String fqPropertyName, String value) {
+		entityHandler.setValue(fqPropertyName, value);
+	}
+
+	@Override
+	public void remove(String fqPropertyName) {
+		entityHandler.remove(fqPropertyName);
 	}
 
 	@Override
 	public void setHandler(EntityHandler transformer) {
-		this.transformer = transformer;
+		this.entityHandler = transformer;
 	}
 
 	@Override

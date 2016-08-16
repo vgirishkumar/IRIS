@@ -91,6 +91,14 @@ public interface EntityHandler {
 	int getCount(String fqPropertyName);
 
 	/**
+	 * Removes the property for the given fully qualified property name from the
+	 * underlying entity content.
+	 * 
+	 * @param fqPropertyName
+	 */
+	void remove(String fqPropertyName);
+
+	/**
 	 * Sets the content for the underlying entity type.
 	 * 
 	 * @param stream

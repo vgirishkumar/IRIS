@@ -39,7 +39,9 @@ public interface EntityWrapper extends Entity {
 
 	void setSessionContext(SessionContext sessionContext);
 
-	void setValue(String fqPropertyName, String value);
-
+	void set(String fqPropertyName, String value);
+	
+	void remove(String fqPropertyName);
+	
 	InputStream getContent();
 }
