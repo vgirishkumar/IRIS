@@ -38,6 +38,9 @@ package com.temenos.interaction.core.web;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -67,14 +70,23 @@ public class RequestContextFilter implements Filter {
         requestURI = StringUtils.removeStart(requestURI, servletRequest.getContextPath() + servletRequest.getServletPath());
         String baseURL = StringUtils.removeEnd(servletRequest.getRequestURL().toString(), requestURI);
 
+        Map<String, String> headersMap = new HashMap<>();
+        Enumeration<String> headers = servletRequest.getHeaderNames();
+        if(headers != null) {
+            while(headers.hasMoreElements()) {
+                String header = headers.nextElement();
+                headersMap.put(header, servletRequest.getHeader(header));
+            }
+        }
+
         RequestContext ctx;
         Principal userPrincipal = servletRequest.getUserPrincipal();
         if (userPrincipal != null) {
-        	ctx = new RequestContext(baseURL, servletRequest.getRequestURI(), servletRequest.getHeader(RequestContext.VERBOSITY_HEADER), userPrincipal);
+        	ctx = new RequestContext(baseURL, servletRequest.getRequestURI(), servletRequest.getHeader(RequestContext.HATEOAS_OPTIONS_HEADER), userPrincipal, headersMap);
         } else {
-        	ctx = new RequestContext(baseURL, servletRequest.getRequestURI(), servletRequest.getHeader(RequestContext.VERBOSITY_HEADER));
+        	ctx = new RequestContext(baseURL, servletRequest.getRequestURI(), servletRequest.getHeader(RequestContext.HATEOAS_OPTIONS_HEADER), headersMap);
         }
-        	
+
         RequestContext.setRequestContext(ctx);
         try {
             chain.doFilter(request, response);

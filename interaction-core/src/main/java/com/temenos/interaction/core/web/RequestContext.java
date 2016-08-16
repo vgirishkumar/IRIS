@@ -37,6 +37,8 @@ package com.temenos.interaction.core.web;
 
 
 import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Mattias Hellborg Arthursson
@@ -44,8 +46,8 @@ import java.security.Principal;
  */
 public final class RequestContext {
 
-    public static final String VERBOSITY_HEADER = "x-jax-rs-hateoas-options";
-
+    public static final String HATEOAS_OPTIONS_HEADER = "x-jax-rs-hateoas-options";
+    
     private final static ThreadLocal<RequestContext> currentContext = new ThreadLocal<RequestContext>();
 
     public static void setRequestContext(RequestContext context) {
@@ -65,6 +67,7 @@ public final class RequestContext {
     private final String requestUri;
     private final String verbosityHeader;
     private final Principal userPrincipal;
+    private final Map<String, String> headers = new HashMap<String, String>();
 
     public RequestContext(String basePath, String requestUri, String verbosityHeader) {
         this.basePath = basePath;
@@ -79,7 +82,23 @@ public final class RequestContext {
         this.verbosityHeader = verbosityHeader;
         this.userPrincipal = userPrincipal;
     }
+
+    public RequestContext(String basePath, String requestUri, String verbosityHeader, Map<String, String> headers) {
+        this.basePath = basePath;
+        this.requestUri = requestUri;
+        this.verbosityHeader = verbosityHeader;
+        this.userPrincipal = null;
+        this.headers.putAll(headers);
+    }
     
+    public RequestContext(String basePath, String requestUri, String verbosityHeader, Principal userPrincipal, Map<String, String> headers) {
+        this.basePath = basePath;
+        this.requestUri = requestUri;
+        this.verbosityHeader = verbosityHeader;
+        this.userPrincipal = userPrincipal;
+        this.headers.putAll(headers);
+    }
+
     public String getBasePath() {
         return basePath;
     }
@@ -95,5 +114,9 @@ public final class RequestContext {
     public Principal getUserPrincipal(){
     	return this.userPrincipal;
     }
-    
+
+    public String get(String name) {
+        return headers.get(name);
+    }
+
 }
