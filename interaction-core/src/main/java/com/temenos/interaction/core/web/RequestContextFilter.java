@@ -38,6 +38,11 @@ package com.temenos.interaction.core.web;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -59,23 +64,32 @@ public class RequestContextFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response,
                          FilterChain chain) throws IOException, ServletException {
 
-
         final HttpServletRequest servletRequest = (HttpServletRequest) request;
-
 
         String requestURI = servletRequest.getRequestURI();
         requestURI = StringUtils.removeStart(requestURI, servletRequest.getContextPath() + servletRequest.getServletPath());
         String baseURL = StringUtils.removeEnd(servletRequest.getRequestURL().toString(), requestURI);
 
+        Map<String, List<String>> headersMap = new HashMap<>();
+        Enumeration<String> headerNames = servletRequest.getHeaderNames();
+        if(headerNames != null) {
+            while(headerNames.hasMoreElements()) {
+                String headerName = headerNames.nextElement();
+                List<String> valuesList = Collections.list(servletRequest.getHeaders(headerName));
+                headersMap.put(headerName, valuesList);
+            }
+        }
+
         RequestContext ctx;
         Principal userPrincipal = servletRequest.getUserPrincipal();
         if (userPrincipal != null) {
-        	ctx = new RequestContext(baseURL, servletRequest.getRequestURI(), servletRequest.getHeader(RequestContext.HATEOAS_OPTIONS_HEADER), userPrincipal);
+        	ctx = new RequestContext(baseURL, servletRequest.getRequestURI(), servletRequest.getHeader(RequestContext.HATEOAS_OPTIONS_HEADER), userPrincipal, headersMap);
         } else {
-        	ctx = new RequestContext(baseURL, servletRequest.getRequestURI(), servletRequest.getHeader(RequestContext.HATEOAS_OPTIONS_HEADER));
+        	ctx = new RequestContext(baseURL, servletRequest.getRequestURI(), servletRequest.getHeader(RequestContext.HATEOAS_OPTIONS_HEADER), headersMap);
         }
-        	
+
         RequestContext.setRequestContext(ctx);
+        
         try {
             chain.doFilter(request, response);
         } finally {

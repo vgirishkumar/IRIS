@@ -37,15 +37,19 @@ package com.temenos.interaction.core.web;
 
 
 import java.security.Principal;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Mattias Hellborg Arthursson
  * @author Kalle Stenflo
  */
-public class RequestContext {
+public final class RequestContext {
 
     public static final String HATEOAS_OPTIONS_HEADER = "x-jax-rs-hateoas-options";
-
+    
     private final static ThreadLocal<RequestContext> currentContext = new ThreadLocal<RequestContext>();
 
     public static void setRequestContext(RequestContext context) {
@@ -64,12 +68,14 @@ public class RequestContext {
     private final String basePath;
     private final String requestUri;
     private final String verbosityHeader;
-    private Principal userPrincipal;
+    private final Principal userPrincipal;
+    private final Map<String, List<String>> headers = new HashMap<>();
 
     public RequestContext(String basePath, String requestUri, String verbosityHeader) {
         this.basePath = basePath;
         this.requestUri = requestUri;
         this.verbosityHeader = verbosityHeader;
+        this.userPrincipal = null;
     }
 
     public RequestContext(String basePath, String requestUri, String verbosityHeader, Principal userPrincipal) {
@@ -78,7 +84,23 @@ public class RequestContext {
         this.verbosityHeader = verbosityHeader;
         this.userPrincipal = userPrincipal;
     }
+
+    public RequestContext(String basePath, String requestUri, String verbosityHeader, Map<String, List<String>> headers) {
+        this.basePath = basePath;
+        this.requestUri = requestUri;
+        this.verbosityHeader = verbosityHeader;
+        this.userPrincipal = null;
+        this.headers.putAll(headers);
+    }
     
+    public RequestContext(String basePath, String requestUri, String verbosityHeader, Principal userPrincipal, Map<String, List<String>> headers) {
+        this.basePath = basePath;
+        this.requestUri = requestUri;
+        this.verbosityHeader = verbosityHeader;
+        this.userPrincipal = userPrincipal;
+        this.headers.putAll(headers);
+    }
+
     public String getBasePath() {
         return basePath;
     }
@@ -94,5 +116,17 @@ public class RequestContext {
     public Principal getUserPrincipal(){
     	return this.userPrincipal;
     }
-    
+
+    public List<String> getHeaders(String headerName) {
+        if (headers.containsKey(headerName)) {
+            return Collections.unmodifiableList(headers.get(headerName));
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    public String getFirstHeader(String headerName) {
+        List<String> headerValues = getHeaders(headerName);
+        return headerValues.isEmpty() ? null : headerValues.get(0);
+    }
 }
