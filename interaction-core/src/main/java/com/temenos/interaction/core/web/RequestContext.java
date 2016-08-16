@@ -37,7 +37,9 @@ package com.temenos.interaction.core.web;
 
 
 import java.security.Principal;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -67,7 +69,7 @@ public final class RequestContext {
     private final String requestUri;
     private final String verbosityHeader;
     private final Principal userPrincipal;
-    private final Map<String, String> headers = new HashMap<String, String>();
+    private final Map<String, List<String>> headers = new HashMap<>();
 
     public RequestContext(String basePath, String requestUri, String verbosityHeader) {
         this.basePath = basePath;
@@ -83,7 +85,7 @@ public final class RequestContext {
         this.userPrincipal = userPrincipal;
     }
 
-    public RequestContext(String basePath, String requestUri, String verbosityHeader, Map<String, String> headers) {
+    public RequestContext(String basePath, String requestUri, String verbosityHeader, Map<String, List<String>> headers) {
         this.basePath = basePath;
         this.requestUri = requestUri;
         this.verbosityHeader = verbosityHeader;
@@ -91,7 +93,7 @@ public final class RequestContext {
         this.headers.putAll(headers);
     }
     
-    public RequestContext(String basePath, String requestUri, String verbosityHeader, Principal userPrincipal, Map<String, String> headers) {
+    public RequestContext(String basePath, String requestUri, String verbosityHeader, Principal userPrincipal, Map<String, List<String>> headers) {
         this.basePath = basePath;
         this.requestUri = requestUri;
         this.verbosityHeader = verbosityHeader;
@@ -115,8 +117,16 @@ public final class RequestContext {
     	return this.userPrincipal;
     }
 
-    public String get(String name) {
-        return headers.get(name);
+    public List<String> getHeaders(String headerName) {
+        if (headers.containsKey(headerName)) {
+            return Collections.unmodifiableList(headers.get(headerName));
+        } else {
+            return Collections.emptyList();
+        }
     }
 
+    public String getFirstHeader(String headerName) {
+        List<String> headerValues = getHeaders(headerName);
+        return headerValues.isEmpty() ? null : headerValues.get(0);
+    }
 }
