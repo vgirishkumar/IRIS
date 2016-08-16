@@ -77,6 +77,10 @@ public class AtomUtil {
 	}
 
 	public static Entry updateEntryContent(Document document, Entry entry) {
+		if (document == null) {
+			// no content to update the entry
+			return entry;
+		}
 		DOMSource domSource = new DOMSource(document);
 		StringWriter writer = new StringWriter();
 		StreamResult result = new StreamResult(writer);
@@ -94,9 +98,7 @@ public class AtomUtil {
 
 	public static Document buildXmlDocument(String xmlContent) {
 		if (xmlContent == null || xmlContent.isEmpty()) {
-			throw new IllegalStateException(
-					"Failed to build Atom Entry content into XML. Entry content '"
-							+ xmlContent + "'");
+			return null;
 		}
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		factory.setNamespaceAware(true);

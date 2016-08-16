@@ -261,4 +261,9 @@ public class AtomXmlContentHandlerTest {
 		assertEquals("foo1", xmlContentHandler.getValue("foo-group(0)/foo-1"));
 	}
 
+	@Test(expected = IllegalArgumentException.class)
+	public void testForNullDocument() {
+		xmlContentHandler = new AtomXmlContentHandler(null);
+	}
+
 }

@@ -44,6 +44,10 @@ public class AtomXmlContentHandler {
 	private Document document;
 
 	public AtomXmlContentHandler(Document document) {
+		if (document == null) {
+			throw new IllegalArgumentException(
+					"Invalid content document 'null'");
+		}
 		this.document = document;
 	}
 

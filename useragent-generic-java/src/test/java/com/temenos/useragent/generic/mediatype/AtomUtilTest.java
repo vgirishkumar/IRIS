@@ -79,14 +79,14 @@ public class AtomUtilTest {
 		}
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void testBuildXmlDocumentForNullContent() {
-		AtomUtil.buildXmlDocument(null);
+		assertNull(AtomUtil.buildXmlDocument(null));
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void testBuildXmlDocumentForEmptyContent() {
-		AtomUtil.buildXmlDocument("");
+		assertNull(AtomUtil.buildXmlDocument(""));
 	}
 
 	@Test(expected = IllegalStateException.class)

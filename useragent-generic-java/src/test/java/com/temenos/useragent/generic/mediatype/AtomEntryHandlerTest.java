@@ -189,6 +189,8 @@ public class AtomEntryHandlerTest {
 		checkForValueWithException("Customer_AddressGroup(1)/Customer_AddressSubGroup{1}/Address");
 		checkForValueWithException("Customer_AddressGroup(1)/Customer_AddressSubGroup{0}/Address");
 	}
+	
+	
 
 	private void checkForValueWithException(String fqPropertyName) {
 		try {

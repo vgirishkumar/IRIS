@@ -132,18 +132,23 @@ public class AtomEntryHandler implements EntityHandler {
         initHandler(entry);
     }
 
-    private void initHandler(Entry entry) {
-        this.entry = entry;
-        this.xmlContentHandler = new AtomXmlContentHandler(AtomUtil.buildXmlDocument(entry.getContent()));
-        entryNotSet = false;
-    }
-    
-    private void validateHandler() {
-        if (entryNotSet) {
-            throw new IllegalStateException("Entity handler '" + this.getClass().getName()
-                    + "' is not set with any content");
-        }
-    }
+	private void initHandler(Entry entry) {
+		this.entry = entry;
+		org.w3c.dom.Document contentDocument = AtomUtil.buildXmlDocument(entry
+				.getContent());
+		if (contentDocument != null) { // entry with no content and only links
+			this.xmlContentHandler = new AtomXmlContentHandler(contentDocument);
+		}
+		entryNotSet = false;
+	}
+
+	private void validateHandler() {
+		if (entryNotSet || xmlContentHandler == null) {
+			throw new IllegalStateException("Entity handler '"
+					+ this.getClass().getName()
+					+ "' is not set with any content");
+		}
+	}
 
     @Override
     public InputStream getContent() {
