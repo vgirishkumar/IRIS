@@ -111,13 +111,14 @@ public class AtomLinkHandler {
 				content = getContent(entryElement);
 			}
 		}
+		
+		String contentType = abderaLink.getAttributeValue("type")!=null?abderaLink.getAttributeValue("type"):AtomUtil.MEDIA_TYPE;
 		PayloadHandlerFactory<? extends PayloadHandler> factory = ContextFactory
 				.get()
 				.getContext()
 				.entityHandlersRegistry()
 				.getPayloadHandlerFactory(
-						DefaultHttpClientHelper.removeParameter(abderaLink
-								.getAttributeValue("type")));
+						DefaultHttpClientHelper.removeParameter(contentType));
 		PayloadHandler handler = factory.createHandler(content);
 		PayloadWrapper wrapper = new DefaultPayloadWrapper();
 		wrapper.setHandler(handler);

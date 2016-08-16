@@ -37,6 +37,7 @@ public class AtomLinkHandlerTest {
     
     private static final String TEST_DATA = "/atom_entry_with_link_embedded.txt";
     private static final String TEST_EMPTY_INLINE_LINK_DATA = "/atom_entry_with_embedded_empty_inline_link.txt";
+    private static final String TEST_INLINE_SELF_LINK_DATA = "/atom_entry_with_embedded_self_link.txt";
 
 	private Entry testEntry;
 
@@ -133,6 +134,15 @@ public class AtomLinkHandlerTest {
 		Payload embeddedErrors = errorsLinkHandler.getEmbeddedPayload();
 		assertNotNull(embeddedErrors.links().get(0).baseUrl());
 	}
+    
+    @Test
+    public void testGetEmbeddedSelfLink() {
+    	testEntry = loadTestEntry(TEST_INLINE_SELF_LINK_DATA);
+    	AtomLinkHandler selfLinkHandler = new AtomLinkHandler(
+				testEntry.getLink("self"));
+		Payload selfPayload = selfLinkHandler.getEmbeddedPayload();
+		assertNotNull(selfPayload);
+    }
     
 	private Entry loadTestEntry(String resource) {
 		Entry entry = new Abdera()
