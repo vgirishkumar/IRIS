@@ -481,6 +481,13 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             case CONFLICT:
                 status = Status.PRECONDITION_FAILED;
                 break;
+            case CREATED:
+            	if (ctx.getResource() == null) {
+                    status = Status.NO_CONTENT;
+                } else {
+                    status = Status.CREATED;
+                }
+                break;
             case SUCCESS: {
 
                 status = Status.INTERNAL_SERVER_ERROR;
@@ -507,17 +514,21 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                         }
                     }
                 } else if (event.getMethod().equals(HttpMethod.POST)) {
-                    // TODO need to add support for differed create (ACCEPTED) and
-                    // actually created (CREATED)
+                    // TODO need to add support for differed create (ACCEPTED)
                     ResourceState currentState = ctx.getCurrentState();
                     if (result == Result.SUCCESS) {
-                        if (currentState != null && currentState.getAllTargets() != null
-                                && currentState.getAllTargets().size() > 0 && ctx.getResource() != null) {
+                    	/*
+                    	 * attempt to maintain some backward compatibility.  Several RIMs in the 'wild'
+                    	 * have returned a CREATED response when an auto transition occurs.  
+                    	 * e.g. 'new' resources would often auto transition to the created entity and that
+                    	 * was signalling the 201 CREATED response
+                    	 */
+                        List<Transition> autoTransitions = getTransitions(ctx, currentState, Transition.AUTO);
+                        if (autoTransitions.size() > 0 && ctx.getResource() != null) {
                             status = Status.CREATED;
                         } else if (ctx.getResource() == null) {
                             status = Status.NO_CONTENT;
                         } else {
-                            LOGGER.warn("This pseudo state creates a new resource (the command implementing POST returns a resource), but no transitions have been configured");
                             status = Status.OK;
                         }
                     }
@@ -526,10 +537,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                  * The resource manager must return an error result code or have
                  * stored this resource in a consistent state (conceptually a
                  * transaction)
-                 */
-                /*
-                 * TODO add support for PUTs that create (CREATED) and PUTs that
-                 * replace (OK)
                  */
                     if (result == Result.SUCCESS && ctx.getResource() == null) {
                         status = Status.NO_CONTENT;
@@ -669,7 +676,9 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             }
         } else if (status.equals(Response.Status.CREATED)) {
             ResourceState currentState = ctx.getCurrentState();
-            assert (currentState.getAllTargets() != null && currentState.getAllTargets().size() > 0) : "A pseudo state that creates a new resource MUST contain an auto transition to that new resource";
+            if (currentState.getAllTargets() != null && currentState.getAllTargets().size() > 0) {
+            	LOGGER.warn("A pseudo state that creates a new resource SHOULD contain an auto transition to that new resource");
+            }
             if(!ignoreAutoTransitions){
                 List<Transition> autoTransitions = getTransitions(ctx, currentState, Transition.AUTO);
                 if (!autoTransitions.isEmpty()) {

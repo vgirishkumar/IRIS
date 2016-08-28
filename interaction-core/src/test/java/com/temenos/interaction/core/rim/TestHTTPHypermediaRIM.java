@@ -103,9 +103,6 @@ public class TestHTTPHypermediaRIM {
             InteractionCommand mockCommand1 = mock(InteractionCommand.class);
             when(mockCommand1.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
             when(cc.fetchCommand("GET")).thenReturn(mockCommand1);
-            InteractionCommand mockCommand2 = mock(InteractionCommand.class);
-            when(mockCommand2.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
-            when(cc.fetchCommand("POST")).thenReturn(mockCommand2);
         } catch (InteractionException ie) {
             Assert.fail(ie.getMessage());
         }
@@ -116,7 +113,6 @@ public class TestHTTPHypermediaRIM {
         CommandController cc = mock(CommandController.class);
         when(cc.fetchCommand("DO")).thenReturn(mockCommand);
         when(cc.fetchCommand("GET")).thenReturn(mockCommand);
-        when(cc.fetchCommand("POST")).thenReturn(mockCommand);
         return cc;
     }
 
@@ -560,6 +556,58 @@ public class TestHTTPHypermediaRIM {
         verify(mockCommand).execute((InteractionContext) argThat(new CommandReceivesResourceArgumentMatcher()));
     }
 
+    @Test
+    public void testPOSTCommandCreate() throws Exception {
+        // this test incorrectly supplies a resource as a result of the command.
+        InteractionCommand mockCommand = new InteractionCommand() {
+            public Result execute(InteractionContext ctx) {
+                ctx.setResource(mock(EntityResource.class));
+                return Result.CREATED;
+            }
+        };
+
+        // create mock command controller
+        CommandController mockCommandController = mockCommandController(mockCommand);
+
+        // create a state machine with a POST interaction
+        ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
+        ResourceState newState = new ResourceState("entity", "new", mockActions(), "/path");
+        initialState.addTransition(new Transition.Builder().method("POST").target(newState).build());
+        ResourceStateMachine stateMachine = new ResourceStateMachine(initialState);
+        
+        // RIM with command controller that issues commands that always return
+        // SUCCESS
+        HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, stateMachine, createMockMetadata());
+        Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mock(EntityResource.class));
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    public void testPOSTCommandCreateNoContent() throws Exception {
+        // this test incorrectly supplies a resource as a result of the command.
+        InteractionCommand mockCommand = new InteractionCommand() {
+            public Result execute(InteractionContext ctx) {
+                ctx.setResource(null);
+                return Result.CREATED;
+            }
+        };
+
+        // create mock command controller
+        CommandController mockCommandController = mockCommandController(mockCommand);
+
+        // create a state machine with a POST interaction
+        ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
+        ResourceState newState = new ResourceState("entity", "new", mockActions(), "/path");
+        initialState.addTransition(new Transition.Builder().method("POST").target(newState).build());
+        ResourceStateMachine stateMachine = new ResourceStateMachine(initialState);
+        
+        // RIM with command controller that issues commands that always return
+        // SUCCESS
+        HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, stateMachine, createMockMetadata());
+        Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mock(EntityResource.class));
+        assertEquals(Status.NO_CONTENT.getStatusCode(), response.getStatus());
+    }
+
     @Test(expected = RuntimeException.class)
     public void testBootstrapInvalidCommandControllerConfigurationPUT() {
         String resourcePath = "/notes/{id}";
@@ -649,6 +697,58 @@ public class TestHTTPHypermediaRIM {
         assertEquals(comment.getPath(), resources.iterator().next().getResourcePath());
         assertEquals(transformer, ((HTTPHypermediaRIM) resources.iterator().next()).getHypermediaEngine()
                 .getTransformer());
+    }
+
+    @Test
+    public void testPUTCommandCreate() throws Exception {
+        // this test incorrectly supplies a resource as a result of the command.
+        InteractionCommand mockCommand = new InteractionCommand() {
+            public Result execute(InteractionContext ctx) {
+                ctx.setResource(mock(EntityResource.class));
+                return Result.CREATED;
+            }
+        };
+
+        // create mock command controller
+        CommandController mockCommandController = mockCommandController(mockCommand);
+
+        // create a state machine with a POST interaction
+        ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
+        ResourceState newState = new ResourceState("entity", "new", mockActions(), "/path");
+        initialState.addTransition(new Transition.Builder().method("PUT").target(newState).build());
+        ResourceStateMachine stateMachine = new ResourceStateMachine(initialState);
+
+        // RIM with command controller that issues commands that always return
+        // SUCCESS
+        HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, stateMachine, createMockMetadata());
+        Response response = rim.put(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mock(EntityResource.class));
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    public void testPUTCommandCreateNoContent() throws Exception {
+        // this test incorrectly supplies a resource as a result of the command.
+        InteractionCommand mockCommand = new InteractionCommand() {
+            public Result execute(InteractionContext ctx) {
+                ctx.setResource(null);
+                return Result.CREATED;
+            }
+        };
+
+        // create mock command controller
+        CommandController mockCommandController = mockCommandController(mockCommand);
+
+        // create a state machine with a POST interaction
+        ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
+        ResourceState newState = new ResourceState("entity", "new", mockActions(), "/path");
+        initialState.addTransition(new Transition.Builder().method("PUT").target(newState).build());
+        ResourceStateMachine stateMachine = new ResourceStateMachine(initialState);
+
+        // RIM with command controller that issues commands that always return
+        // SUCCESS
+        HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, stateMachine, createMockMetadata());
+        Response response = rim.put(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mock(EntityResource.class));
+        assertEquals(Status.NO_CONTENT.getStatusCode(), response.getStatus());
     }
 
     @Test
