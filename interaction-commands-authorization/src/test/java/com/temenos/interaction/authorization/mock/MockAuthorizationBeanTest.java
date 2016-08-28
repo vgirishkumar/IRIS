@@ -29,7 +29,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
-import java.util.List;
 import java.util.Set;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -41,315 +40,286 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.temenos.interaction.authorization.command.data.AccessProfile;
-import com.temenos.interaction.authorization.command.data.FieldName;
-import com.temenos.interaction.authorization.command.data.RowFilter;
-import com.temenos.interaction.authorization.command.data.RowFilter.Relation;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.odataext.odataparser.ODataParser;
+import com.temenos.interaction.odataext.odataparser.data.AccessProfile;
+import com.temenos.interaction.odataext.odataparser.data.FieldName;
+import com.temenos.interaction.odataext.odataparser.data.RowFilters;
 
 public class MockAuthorizationBeanTest {
 
-	@Before
-	public void setUp() throws Exception {
-	}
+    @Before
+    public void setUp() throws Exception {
+    }
 
-	@After
-	public void tearDown() {
-	}
+    @After
+    public void tearDown() {
+    }
 
-	/**
-	 * Test valid parameters are remembered.
-	 */
-	@Test
-	public void testParameters() {
+    /**
+     * Test valid parameters are remembered.
+     */
+    @Test
+    public void testParameters() {
+        String expectedFilters = "field1 eq value1 and field2 eq value2";
 
-		// Create the bean
-		MockAuthorizationBean bean = new MockAuthorizationBean("field1 eq value1 and field2 eq value2",
-				"select1, select2");
+        // Create the bean
+        MockAuthorizationBean bean = new MockAuthorizationBean(expectedFilters, "select1, select2");
 
-		// Create a minimal context
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		
-		boolean threw = false;
-		List<RowFilter>filters = null;
-		try {
-			filters = bean.getFilters(ctx);
-		}
-		catch (Exception e) {
-			threw = true;
-		}
-		assertFalse(threw);
+        // Create a minimal context
+        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+        MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+        InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+                queryParams, mock(ResourceState.class), mock(Metadata.class));
 
-		// Check that the expected parameter is present
-		assertEquals(2, filters.size());
-		assertEquals("field1", filters.get(0).getFieldName().getName());
-		assertEquals(Relation.EQ, filters.get(0).getRelation());
-		assertEquals("value1", filters.get(0).getValue());
-		assertEquals("field2", filters.get(1).getFieldName().getName());
-		assertEquals(Relation.EQ, filters.get(1).getRelation());
-		assertEquals("value2", filters.get(1).getValue());
-		
-		Set<FieldName>selects = null;
-		try {
-			selects = bean.getSelect(ctx);
-		}
-		catch (Exception e) {
-			threw = true;
-		}
-		assertFalse(threw);
+        boolean threw = false;
+        RowFilters filters = null;
+        try {
+            filters = bean.getFilters(ctx);
+        } catch (Exception e) {
+            threw = true;
+        }
+        assertFalse(threw);
 
-		assertEquals(2, selects.size());
-		assertTrue(selects.contains(new FieldName("select1")));
-		assertTrue(selects.contains(new FieldName("select2")));
-	}
-	
-	/**
-	 * Test throws if asked to.
-	 */
-	@Test
-	public void testThrows() {
+        // Check that the expected parameter is present
+        assertEquals(expectedFilters, ODataParser.toFilters(filters));
 
-		// Create the bean
-		MockAuthorizationBean bean = new MockAuthorizationBean(new InteractionException(Status.UNAUTHORIZED, "Test exception"));
+        Set<FieldName> selects = null;
+        try {
+            selects = bean.getSelect(ctx);
+        } catch (Exception e) {
+            threw = true;
+        }
+        assertFalse(threw);
 
-		// Create a minimal context
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		
-		boolean threw = false;
-		List<RowFilter>filters = null;
-		try {
-			filters = bean.getFilters(ctx);
-		}
-		catch (Exception e) {
-			threw = true;
-		}
-		assertTrue(threw);
+        assertEquals(2, selects.size());
+        assertTrue(selects.contains(new FieldName("select1")));
+        assertTrue(selects.contains(new FieldName("select2")));
+    }
 
-		threw = false;
-		
-		Set<FieldName>selects = null;
-		try {
-			selects = bean.getSelect(ctx);
-		}
-		catch (Exception e) {
-			threw = true;
-		}
-		assertTrue(threw);
-		
-		AccessProfile profile = null;
-		try {
-			profile = bean.getAccessProfile(ctx);
-		}
-		catch (Exception e) {
-			threw = true;
-		}
-		assertTrue(threw);
-	}
+    /**
+     * Test throws if asked to.
+     */
+    @Test
+    public void testThrows() {
 
-	
-	/**
-	 * Test valid parameters are returned in AccessProfile.
-	 */
-	@Test
-	public void testAccessProfile() {
+        // Create the bean
+        MockAuthorizationBean bean = new MockAuthorizationBean(new InteractionException(Status.UNAUTHORIZED,
+                "Test exception"));
 
-		// Create the bean
-		MockAuthorizationBean bean = new MockAuthorizationBean("field1 eq value1 and field2 eq value2",
-				"select1, select2");
+        // Create a minimal context
+        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+        MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+        InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+                queryParams, mock(ResourceState.class), mock(Metadata.class));
 
-		// Create a minimal context
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
+        boolean threw = false;
+        RowFilters filters = null;
+        try {
+            filters = bean.getFilters(ctx);
+        } catch (Exception e) {
+            threw = true;
+        }
+        assertTrue(threw);
 
-		// Check that the expected parameters are present
-		boolean threw = false;
-		AccessProfile profile = null;
-		try {
-			profile = bean.getAccessProfile(ctx);
-		}
-		catch (Exception e) {
-			threw = true;
-		}
-		assertFalse(threw);
-		
-		assertEquals(2, profile.getRowFilters().size());
-		assertEquals("field1", profile.getRowFilters().get(0).getFieldName().getName());
-		assertEquals(Relation.EQ, profile.getRowFilters().get(0).getRelation());
-		assertEquals("value1", profile.getRowFilters().get(0).getValue());
-		assertEquals("field2", profile.getRowFilters().get(1).getFieldName().getName());
-		assertEquals(Relation.EQ, profile.getRowFilters().get(1).getRelation());
-		assertEquals("value2", profile.getRowFilters().get(1).getValue());
+        threw = false;
 
-		assertEquals(2, profile.getFieldNames().size());
-		assertTrue(profile.getFieldNames().contains(new FieldName("select1")));
-		assertTrue(profile.getFieldNames().contains(new FieldName("select2")));
-	}
+        Set<FieldName> selects = null;
+        try {
+            selects = bean.getSelect(ctx);
+        } catch (Exception e) {
+            threw = true;
+        }
+        assertTrue(threw);
 
-	/**
-	 * Test null parameters.
-	 */
-	@Test
-	public void testNullParameters() {
+        AccessProfile profile = null;
+        try {
+            profile = bean.getAccessProfile(ctx);
+        } catch (Exception e) {
+            threw = true;
+        }
+        assertTrue(threw);
+    }
 
-		// Create the bean
-		MockAuthorizationBean bean = new MockAuthorizationBean(null, null);
+    /**
+     * Test valid parameters are returned in AccessProfile.
+     */
+    @Test
+    public void testAccessProfile() {
 
-		// Create a minimal context
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		
-		boolean threw = false;
-		List<RowFilter>filters = null;
-		try {
-			filters = bean.getFilters(ctx);
-		}
-		catch (Exception e) {
-			threw = true;
-		}
-		assertFalse(threw);
-		
-		Set<FieldName>selects = null;
-		try {
-			selects = bean.getSelect(ctx);
-		}
-		catch (Exception e) {
-			threw = true;
-		}
-		assertFalse(threw);
-	
-		assertEquals(null, filters);
-		assertEquals(null, selects);
-	}
-	
-	/**
-	 * Test empty parameters.
-	 */
-	@Test
-	public void testEmptyParameters() {
+        // Create the bean
+        String expectedFilters = "field1 eq value1 and field2 eq value2";
+        MockAuthorizationBean bean = new MockAuthorizationBean(expectedFilters,
+                "select1, select2");
 
-		// Create the bean
-		MockAuthorizationBean bean = new MockAuthorizationBean("", "");
+        // Create a minimal context
+        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+        MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+        InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+                queryParams, mock(ResourceState.class), mock(Metadata.class));
 
-		// Create a minimal context
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		
-		boolean threw = false;
-		List<RowFilter>filters = null;
-		try {
-			filters = bean.getFilters(ctx);
-		}
-		catch (Exception e) {
-			threw = true;
-		}
-		assertFalse(threw);
-		
-		Set<FieldName>selects = null;
-		try {
-			selects = bean.getSelect(ctx);
-		}
-		catch (Exception e) {
-			threw = true;
-		}
-		assertFalse(threw);
-		
-		assertTrue(null, filters.isEmpty());
-		assertTrue(null, selects.isEmpty());
-	}
+        // Check that the expected parameters are present
+        boolean threw = false;
+        AccessProfile profile = null;
+        try {
+            profile = bean.getAccessProfile(ctx);
+        } catch (Exception e) {
+            threw = true;
+        }
+        assertFalse(threw);
 
-	/**
-	 * Test parameters that won't parse.
-	 */
-	@Test
-	public void testBadParameters() {
+        assertEquals(expectedFilters, ODataParser.toFilters(profile.getNewRowFilters()));
+        
+        assertEquals(2, profile.getFieldNames().size());
+        assertTrue(profile.getFieldNames().contains(new FieldName("select1")));
+        assertTrue(profile.getFieldNames().contains(new FieldName("select2")));
+    }
 
-		// Create the bean
-		MockAuthorizationBean bean = new MockAuthorizationBean("filter", "select");
-		
-		// Create a minimal context
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		
-		// Should have created the 'no results' filter
-		boolean threw = false;
-		List<RowFilter>filters = null;
-		try {
-			filters = bean.getFilters(ctx);
-		}
-		catch (Exception e) {
-			threw = true;
-		}
-		assertFalse(threw);
-		
-		assertEquals(null, filters);
-	}
+    /**
+     * Test null parameters.
+     */
+    @Test
+    public void testNullParameters() {
 
-	/**
-	 * Test passed in parameters override construction time parameters.
-	 */
-	@Test
-	public void testPassedParameters() {
+        // Create the bean
+        MockAuthorizationBean bean = new MockAuthorizationBean(null, null);
 
-		// Create the bean
-		MockAuthorizationBean bean = new MockAuthorizationBean("badField eq badValue", "badSelect");
+        // Create a minimal context
+        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+        MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+        InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+                queryParams, mock(ResourceState.class), mock(Metadata.class));
 
-		// Create parameter list with different filter and select parameters.
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-		queryParams.add(MockAuthorizationBean.TEST_FILTER_KEY, "field1 eq value1 and field2 eq value2");
-		queryParams.add(MockAuthorizationBean.TEST_SELECT_KEY, "goodSelect");
+        boolean threw = false;
+        RowFilters filters = null;
+        try {
+            filters = bean.getFilters(ctx);
+        } catch (Exception e) {
+            threw = true;
+        }
+        assertFalse(threw);
 
-		// Create a minimal context
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
+        Set<FieldName> selects = null;
+        try {
+            selects = bean.getSelect(ctx);
+        } catch (Exception e) {
+            threw = true;
+        }
+        assertFalse(threw);
 
-		// Check that the expected parameter is present
-		boolean threw = false;
-		List<RowFilter>filters = null;
-		try {
-			filters = bean.getFilters(ctx);
-		}
-		catch (Exception e) {
-			threw = true;
-		}
-		assertFalse(threw);
-		
-		assertEquals(2, filters.size());
-		assertEquals("field1", filters.get(0).getFieldName().getName());
-		assertEquals(Relation.EQ, filters.get(0).getRelation());
-		assertEquals("value1", filters.get(0).getValue());
-		assertEquals("field2", filters.get(1).getFieldName().getName());
-		assertEquals(Relation.EQ, filters.get(1).getRelation());
-		assertEquals("value2", filters.get(1).getValue());
-		
-		Set<FieldName>selects = null;
-		try {
-			selects = bean.getSelect(ctx);
-		}
-		catch (Exception e) {
-			threw = true;
-		}
-		assertFalse(threw);
+        assertEquals(null, filters);
+        assertEquals(null, selects);
+    }
 
-		assertEquals(1, selects.size());
-		assertTrue(selects.contains(new FieldName("goodSelect")));
-	}
+    /**
+     * Test empty parameters.
+     */
+    @Test
+    public void testEmptyParameters() {
+
+        // Create the bean
+        MockAuthorizationBean bean = new MockAuthorizationBean("", "");
+
+        // Create a minimal context
+        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+        MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+        InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+                queryParams, mock(ResourceState.class), mock(Metadata.class));
+
+        boolean threw = false;
+        RowFilters filters = null;
+        try {
+            filters = bean.getFilters(ctx);
+        } catch (Exception e) {
+            threw = true;
+        }
+        assertFalse(threw);
+
+        Set<FieldName> selects = null;
+        try {
+            selects = bean.getSelect(ctx);
+        } catch (Exception e) {
+            threw = true;
+        }
+        assertFalse(threw);
+
+        assertTrue(null, filters.isEmpty());
+        assertTrue(null, selects.isEmpty());
+    }
+
+    /**
+     * Test parameters that won't parse.
+     */
+    @Test
+    public void testBadParameters() {
+
+        // Create the bean
+        MockAuthorizationBean bean = new MockAuthorizationBean("filter", "select");
+
+        // Create a minimal context
+        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+        MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+        InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+                queryParams, mock(ResourceState.class), mock(Metadata.class));
+
+        // Should have created the 'no results' filter
+        boolean threw = false;
+        RowFilters filters = null;
+        try {
+            filters = bean.getFilters(ctx);
+        } catch (Exception e) {
+            threw = true;
+        }
+        assertFalse(threw);
+
+        assertEquals(null, filters);
+    }
+
+    /**
+     * Test passed in parameters override construction time parameters.
+     */
+    @Test
+    public void testPassedParameters() {
+
+        // Create the bean
+        MockAuthorizationBean bean = new MockAuthorizationBean("badField eq badValue", "badSelect");
+
+        // Create parameter list with different filter and select parameters.
+        String expectedFilters = "field1 eq value1 and field2 eq value2";
+        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+        queryParams.add(MockAuthorizationBean.TEST_FILTER_KEY, expectedFilters);
+        queryParams.add(MockAuthorizationBean.TEST_SELECT_KEY, "goodSelect");
+
+        // Create a minimal context
+        MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
+        InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
+                queryParams, mock(ResourceState.class), mock(Metadata.class));
+
+        // Check that the expected parameter is present
+        boolean threw = false;
+        RowFilters filters = null;
+        try {
+            filters = bean.getFilters(ctx);
+        } catch (Exception e) {
+            threw = true;
+        }
+        assertFalse(threw);
+
+        assertEquals(expectedFilters, ODataParser.toFilters(filters));
+
+        Set<FieldName> selects = null;
+        try {
+            selects = bean.getSelect(ctx);
+        } catch (Exception e) {
+            threw = true;
+        }
+        assertFalse(threw);
+
+        assertEquals(1, selects.size());
+        assertTrue(selects.contains(new FieldName("goodSelect")));
+    }
 }

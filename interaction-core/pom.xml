@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.temenos.interaction</groupId>
 		<artifactId>interaction-parent</artifactId>
-		<version>0.7.2-SNAPSHOT</version>
+		<version>0.12.0-SNAPSHOT</version>
 		<relativePath>../interaction-parent/pom.xml</relativePath>
 	</parent>
 
@@ -95,7 +95,7 @@
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
+			<artifactId>javax.servlet-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
         <dependency>
@@ -104,6 +104,11 @@
         </dependency>
 		
 		<!-- TEST DEPENDENCIES -->
+        <dependency>
+          <groupId>org.hamcrest</groupId>
+          <artifactId>hamcrest-all</artifactId>
+          <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.apache.wink</groupId>
             <artifactId>wink-common</artifactId>
@@ -142,6 +147,21 @@
 			<groupId>org.odata4j</groupId>
 			<artifactId>odata4j-core</artifactId>
 		</dependency>
+                <dependency>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>org.reflections</groupId>
+                    <artifactId>reflections</artifactId>
+                    <version>0.9.10</version>
+                    <optional>true</optional>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-test</artifactId>
+                    <scope>test</scope>
+                </dependency>
 	</dependencies>
 
 	<!-- SONAR TEST COVERAGE PROFILE-->

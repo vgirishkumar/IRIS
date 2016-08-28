@@ -23,142 +23,151 @@ package com.temenos.interaction.winkext;
 
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
+
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import org.junit.Test;
 
-import com.temenos.interaction.core.command.NewCommandController;
+import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
-import com.temenos.interaction.core.hypermedia.Action;
-import com.temenos.interaction.core.hypermedia.Event;
+import com.temenos.interaction.core.hypermedia.MethodNotAllowedException;
 import com.temenos.interaction.core.hypermedia.ResourceState;
-import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
+import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
 
 public class TestLazyServiceRootFactory {
 
 	@Test
 	public void testPath() {
-		Properties beanMap = new Properties();
-		beanMap.put("SimpleModel_Home_home", "GET /test");
 		LazyServiceRootFactory factory = new LazyServiceRootFactory();
-		factory.setResourceStateProvider(mockResourceStateProvider(beanMap));
 		Set<HTTPResourceInteractionModel> serviceRoots = factory.getServiceRoots();
 		assertEquals(1, serviceRoots.size());
-		assertEquals("/test", serviceRoots.iterator().next().getResourcePath());
+		assertEquals("{var:.*}", serviceRoots.iterator().next().getResourcePath());
 	}
 
 	@Test
-	public void testRegister() {
-		Properties beanMap = new Properties();
-		beanMap.put("SimpleModel_Home_home", "GET /test");
+	public void testRegister() throws MethodNotAllowedException {
 		LazyServiceRootFactory factory = new LazyServiceRootFactory();
-		factory.setResourceStateProvider(mockResourceStateProvider(beanMap));
-		factory.setCommandController(mock(NewCommandController.class));
+		ResourceStateProvider resourceStateProvider = mock(ResourceStateProvider.class);
+		ResourceState state = mock(ResourceState.class);
+        when(state.getName()).thenReturn("resource");		
+        when(state.getPath()).thenReturn("/test");		
+		when(state.getResourcePath()).thenReturn("/test");		
+		when(state.getEntityName()).thenReturn("Mock");
+	    when(resourceStateProvider.getResourceStateId(eq("GET"), eq("/test"))).thenReturn("resource");
+		when(resourceStateProvider.getResourceState(eq("GET"), eq("/test"))).thenReturn(state);
+	    when(resourceStateProvider.getResourceState("resource")).thenReturn(state);
+		factory.setResourceStateProvider(resourceStateProvider);
+		
+        Set<String> methods = new HashSet<String>();
+        methods.add("GET");
+		
+        Map<String,Set<String>> resourceMethodsByState = new HashMap<String, Set<String>>();               
+        resourceMethodsByState.put("resource", methods);
+        when(resourceStateProvider.getResourceMethodsByState()).thenReturn(resourceMethodsByState);
+		
+		factory.setCommandController(mock(CommandController.class));
 		factory.setMetadata(mockMetadata());
 		Set<HTTPResourceInteractionModel> serviceRoots = factory.getServiceRoots();
 		assertEquals(1, serviceRoots.size());
-		// force initialise
-		serviceRoots.iterator().next().getCurrentState();
 		
-		ResourceStateMachine rsm = factory.getHypermediaEngine();
-		assertEquals("GET", rsm.getInteractionByPath().get("/test").iterator().next());
+		HTTPResourceInteractionModel rim = serviceRoots.iterator().next();
+
+        HttpHeaders headers = mock(HttpHeaders.class);
+        String id = "123";		
+        UriInfo uriInfo = mock(UriInfo.class);	
+        when(uriInfo.getPath(eq(false))).thenReturn("test");
+        when(uriInfo.getPathParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));   
+        when(uriInfo.getQueryParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));        
+
+		Response response = rim.get(headers, id, uriInfo);
+		
+		assertNotNull(response);
+		
+        EntityResource resource = mock(EntityResource.class);
+                
+        response = rim.post(headers, id, uriInfo, resource);
+            
+        assertEquals(response.getStatus(), 404);
 	}
 
 	@Test
-	public void testRegisterMultiple() {
-		Properties beanMap = new Properties();
-		beanMap.put("SimpleModel_Home_home", "GET /test");
-		beanMap.put("SimpleModel_Home_test", "PUT /test");
-		LazyServiceRootFactory factory = new LazyServiceRootFactory();
-		factory.setResourceStateProvider(mockResourceStateProvider(beanMap));
-		factory.setCommandController(mock(NewCommandController.class));
-		factory.setMetadata(mockMetadata());
-		Set<HTTPResourceInteractionModel> serviceRoots = factory.getServiceRoots();
-		assertEquals(1, serviceRoots.size());
-		// force initialise
-		serviceRoots.iterator().next().getCurrentState();
-		
-		ResourceStateMachine rsm = factory.getHypermediaEngine();
-		assertTrue(rsm.getInteractionByPath().get("/test").contains("GET"));
-		assertTrue(rsm.getInteractionByPath().get("/test").contains("PUT"));
-	}
+	public void testRegisterMultiple() throws MethodNotAllowedException {
+        LazyServiceRootFactory factory = new LazyServiceRootFactory();
+        ResourceStateProvider resourceStateProvider = mock(ResourceStateProvider.class);
+        
+        ResourceState state = mock(ResourceState.class);
+        when(state.getName()).thenReturn("resource");        
+        when(state.getPath()).thenReturn("/test");      
+        when(state.getResourcePath()).thenReturn("/test");      
+        when(state.getEntityName()).thenReturn("Mock");
+        when(resourceStateProvider.getResourceState(eq("GET"), eq("/test"))).thenReturn(state);
+        when(resourceStateProvider.getResourceStateId(eq("GET"), eq("/test"))).thenReturn("resource");
+        when(resourceStateProvider.getResourceState(eq("GET"), eq("/test"))).thenReturn(state);
+        when(resourceStateProvider.getResourceState("resource")).thenReturn(state);
+        
+        Set<String> methods = new HashSet<String>();
+        methods.add("GET");
+        
+        Map<String,Set<String>> resourceMethodsByState = new HashMap<String, Set<String>>();               
+        resourceMethodsByState.put("resource", methods);
+        when(resourceStateProvider.getResourceMethodsByState()).thenReturn(resourceMethodsByState);
+        
+        
+        ResourceState state2 = mock(ResourceState.class);
+        when(state.getName()).thenReturn("resource2");        
+        when(state2.getPath()).thenReturn("/test");      
+        when(state2.getResourcePath()).thenReturn("/test");      
+        when(state2.getEntityName()).thenReturn("Mock");
+        when(resourceStateProvider.getResourceState(eq("POST"), eq("/test"))).thenReturn(state);
+        when(resourceStateProvider.getResourceStateId(eq("POST"), eq("/test"))).thenReturn("resource");
+        when(resourceStateProvider.getResourceState(eq("POST"), eq("/test"))).thenReturn(state);
+        when(resourceStateProvider.getResourceState("resource")).thenReturn(state);
 
-	private ResourceStateProvider mockResourceStateProvider(Properties beanMap) {
-		
-		final Map<String, Set<String>> resourceStatesByPath =  new HashMap<String, Set<String>>();
-		final Map<String, ResourceState> statesByName = new HashMap<String, ResourceState>();
-		final Map<String, Set<String>> resourceMethodsByState = new HashMap<String, Set<String>>();
-		final Map<String, String> resourcePathsByState = new HashMap<String, String>();
-		for (Object key : beanMap.keySet()) {
-			String stateName = key.toString();
-			String binding = beanMap.getProperty(stateName);
-			// split into methods and path
-			String[] strs = binding.split(" ");
-			String methodPart = strs[0];
-			String path = strs[1];
-			String[] methodsStrs = methodPart.split(",");
-			Set<String> stateNames = resourceStatesByPath.get(path);
-			if (stateNames == null) {
-				stateNames = new HashSet<String>();
-			}
-			stateNames.add(stateName.toString());
-			resourceStatesByPath.put(path, stateNames);
-			// path
-			resourcePathsByState.put(stateName, path);
-			// methods
-			Set<String> methods = resourceMethodsByState.get(stateName);
-			if (methods == null) {
-				methods = new HashSet<String>();
-			}
-			for (String method : methodsStrs) {
-				methods.add(method);
-			}
-			resourceMethodsByState.put(stateName, methods);
+        
+        Set<String> methods2 = new HashSet<String>();
+        methods2.add("POST");
+                       
+        resourceMethodsByState.put("resource2", methods2);
+        
 
-			statesByName.put(stateName, new ResourceState("mock", stateName, new ArrayList<Action>(), path));
-		}
-		return new ResourceStateProvider() {
-			@Override
-			public Map<String, Set<String>> getResourceStatesByPath() {
-				return resourceStatesByPath;
-			}
-			
-			@Override
-			public ResourceState getResourceState(String name) {
-				return statesByName.get(name);
-			}
+        factory.setResourceStateProvider(resourceStateProvider);
+        factory.setCommandController(mock(CommandController.class));
+        factory.setMetadata(mockMetadata());
+        Set<HTTPResourceInteractionModel> serviceRoots = factory.getServiceRoots();
+        assertEquals(1, serviceRoots.size());
+        
+        HTTPResourceInteractionModel rim = serviceRoots.iterator().next();
 
-			@Override
-			public boolean isLoaded(String name) {
-				return statesByName.get(name) != null;
-			}
-
-			@Override
-			public ResourceState determineState(Event event, String resourcePath) {
-				return null;
-			}
-
-			@Override
-			public Map<String, Set<String>> getResourceMethodsByState() {
-				return resourceMethodsByState;
-			}
-
-			@Override
-			public Map<String, String> getResourcePathsByState() {
-				return resourcePathsByState;
-			}
-		};
+        HttpHeaders headers = mock(HttpHeaders.class);
+        String id = "123";      
+        UriInfo uriInfo = mock(UriInfo.class);  
+        when(uriInfo.getPath(eq(false))).thenReturn("test");
+        when(uriInfo.getPathParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));   
+        when(uriInfo.getQueryParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));        
+        
+        Response response = rim.get(headers, id, uriInfo);
+        
+        assertNotNull(response);
+        
+        EntityResource resource = mock(EntityResource.class);        
+        response = rim.post(headers, id, uriInfo, resource);
+        
+        assertNotNull(response);        
 	}
 	
 	private Metadata mockMetadata() {

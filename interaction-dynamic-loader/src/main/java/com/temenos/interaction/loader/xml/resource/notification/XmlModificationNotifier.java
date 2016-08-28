@@ -30,6 +30,7 @@ import java.util.Set;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.io.Resource;
 
 import com.temenos.interaction.core.loader.FileEvent;
 import com.temenos.interaction.loader.xml.resource.action.ResourceModificationAction;
@@ -57,7 +58,7 @@ public class XmlModificationNotifier implements ApplicationContextAware {
     	return resourcePatterns;
     }
     
-	public void execute(FileEvent event) {
+	public void execute(FileEvent<Resource> event) {
 		if(rmas == null) {
 			rmas = ctx.getBeansOfType(ResourceModificationAction.class).values();
 		}

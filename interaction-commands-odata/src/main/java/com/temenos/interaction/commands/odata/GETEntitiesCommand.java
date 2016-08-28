@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
+import com.temenos.interaction.core.command.InteractionProducerException;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
@@ -72,8 +73,13 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 			    
 			CollectionResource<OEntity> cr = CommandHelper.createCollectionResource(entitySetName, response.getEntities());
 			ctx.setResource(cr);
-		}
-		catch(ODataProducerException ope) {
+		} catch (InteractionProducerException ipe) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("GET entities on [" + entityName + ", " + ctx.getId() + "] failed: ", ipe.getMessage());
+			}			
+			ctx.setResource(ipe.getEntityResource());
+			throw new InteractionException(ipe.getHttpStatus(), ipe);
+		} catch (ODataProducerException ope) {
 			logger.debug("GET entities on [" + entityName + ", " + ctx.getId() + "] failed: ", ope);
 			throw new InteractionException(ope.getHttpStatus(), ope);
 		} catch (InteractionException e) {
@@ -123,6 +129,7 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 					OptionsQueryParser.parseSelect(select));
 		} catch (RuntimeException e) {
 			// all runtime exceptions are due to failure in parsing the query options
+		    logger.error("Invalid query option in '" + queryParams + "'. Error: ", e);
 			throw new InteractionException(Status.BAD_REQUEST,"Invalid query option in '" + queryParams + "'. Error: ", e);
 		}
 	}

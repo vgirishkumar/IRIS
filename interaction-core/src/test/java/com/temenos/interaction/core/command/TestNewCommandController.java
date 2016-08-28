@@ -36,7 +36,7 @@ public class TestNewCommandController {
 
 	@Test
 	public void testDefaultConstructorNotNullNotRegistered() {
-		NewCommandController cc = new NewCommandController();
+		CommandController cc = new NewCommandController();
 		InteractionCommand command = cc.fetchCommand("dostuff");
 		assertNull(command);
 	}
@@ -48,7 +48,7 @@ public class TestNewCommandController {
 
 	@Test
 	public void testFetchCommandNoCommandsSetNotFound() {
-		NewCommandController cc = new NewCommandController(new HashMap<String, InteractionCommand>());
+		CommandController cc = new NewCommandController(new HashMap<String, InteractionCommand>());
 		InteractionCommand command = cc.fetchCommand("dostuff");
 		assertNull(command);
 	}

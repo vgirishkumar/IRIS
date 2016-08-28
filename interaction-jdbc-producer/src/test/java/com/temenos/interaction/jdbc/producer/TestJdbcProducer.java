@@ -42,7 +42,6 @@ import org.springframework.jdbc.InvalidResultSetAccessException;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.jndi.JndiTemplate;
 
-import com.temenos.interaction.authorization.command.util.ODataParser;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Entity;
@@ -50,8 +49,9 @@ import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.jdbc.ServerMode;
 import com.temenos.interaction.jdbc.exceptions.JdbcException;
-import com.temenos.interaction.jdbc.producer.SqlCommandBuilder.ServerMode;
+import com.temenos.interaction.odataext.odataparser.ODataParser;
 
 /**
  * Test JdbcProducer class.
@@ -477,125 +477,6 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
             rowCount++;
         }
         assertEquals(TEST_ROW_COUNT, rowCount);
-    }
-
-    /**
-     * Test access to database using Iris parameters with a $filter term.
-     */
-    @Test
-    public void testIrisFilterQuery() {
-        // Populate the database.
-        populateTestTable();
-
-        // Create the producer
-        JdbcProducer producer = null;
-        try {
-            producer = new JdbcProducer(dataSource);
-        } catch (Exception e) {
-            fail();
-        }
-
-        // Build up an InteractionContext
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-        queryParams.add(ODataParser.FILTER_KEY, VARCHAR_FIELD_NAME + " eq " + TEST_VARCHAR_DATA + "2");
-        MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
-        InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-                queryParams, mock(ResourceState.class), mock(Metadata.class));
-
-        // Run a query
-        SqlRowSet rs = null;
-        try {
-            rs = producer.query(TEST_TABLE_NAME, null, ctx);
-        } catch (Exception e) {
-            fail();
-        }
-
-        // Check the results. Should get all fields of the single row we
-        // filtered for.
-        assertFalse(null == rs);
-
-        int rowCount = 0;
-        while (rs.next()) {
-            assertEquals(TEST_KEY_DATA + 2, rs.getString(KEY_FIELD_NAME));
-            assertEquals(TEST_VARCHAR_DATA + 2, rs.getString(VARCHAR_FIELD_NAME));
-            assertEquals(TEST_INTEGER_DATA + 2, rs.getInt(INTEGER_FIELD_NAME));
-            rowCount++;
-        }
-        assertEquals(1, rowCount);
-    }
-
-    /**
-     * Test access to database using Iris parameters with a numeric $filter
-     * term.
-     */
-    @Test
-    public void testIrisNumericFilterQuery() {
-        // Populate the database.
-        populateTestTable();
-
-        // Create the producer
-        JdbcProducer producer = null;
-        try {
-            producer = new JdbcProducer(dataSource);
-        } catch (Exception e) {
-            fail();
-        }
-
-        // Build up an InteractionContext
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-        queryParams.add(ODataParser.FILTER_KEY, INTEGER_FIELD_NAME + " eq " + (TEST_INTEGER_DATA + 2));
-        MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
-        InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-                queryParams, mock(ResourceState.class), mock(Metadata.class));
-
-        // Run a query
-        SqlRowSet rs = null;
-        try {
-            rs = producer.query(TEST_TABLE_NAME, null, ctx);
-        } catch (Exception e) {
-            fail();
-        }
-
-        // Check the results. Should get all fields of the single row we
-        // filtered for.
-        assertFalse(null == rs);
-
-        int rowCount = 0;
-        while (rs.next()) {
-            assertEquals(TEST_KEY_DATA + 2, rs.getString(KEY_FIELD_NAME));
-            assertEquals(TEST_VARCHAR_DATA + 2, rs.getString(VARCHAR_FIELD_NAME));
-            assertEquals(TEST_INTEGER_DATA + 2, rs.getInt(INTEGER_FIELD_NAME));
-            rowCount++;
-        }
-        assertEquals(1, rowCount);
-    }
-
-    /**
-     * Test access to database using Iris parameters with a non numeric value
-     * for a numeric $filter term.
-     */
-    @Test(expected = SecurityException.class)
-    public void testIrisBadNumericFilterQuery() throws Exception {
-        // Populate the database.
-        populateTestTable();
-
-        // Create the producer
-        JdbcProducer producer = null;
-        try {
-            producer = new JdbcProducer(dataSource);
-        } catch (Exception e) {
-            fail();
-        }
-
-        // Build up an InteractionContext
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-        queryParams.add(ODataParser.FILTER_KEY, INTEGER_FIELD_NAME + " eq " + "bad");
-        MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
-        InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-                queryParams, mock(ResourceState.class), mock(Metadata.class));
-
-        // Run a query. Should fail and throw.
-        producer.query(TEST_TABLE_NAME, null, ctx);
     }
 
     /**

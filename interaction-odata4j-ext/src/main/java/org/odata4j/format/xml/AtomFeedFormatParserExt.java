@@ -28,7 +28,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.MediaType;
+import javax.xml.stream.XMLInputFactory;
 
+import org.apache.commons.lang.StringUtils;
 import org.core4j.Enumerable;
 import org.core4j.Func1;
 import org.odata4j.core.OCollection;
@@ -63,12 +65,13 @@ import org.odata4j.stax2.XMLEvent2;
 import org.odata4j.stax2.XMLEventReader2;
 import org.odata4j.stax2.XMLEventWriter2;
 import org.odata4j.stax2.XMLFactoryProvider2;
-import org.odata4j.stax2.util.StaxUtil;
+import org.odata4j.stax2.staximpl.StaxXMLInputFactory2Ext;
 
 import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
-	private static MetadataOData4j metadataOData4j;
+    
+    private static MetadataOData4j metadataOData4j;
 
 	public AtomFeedFormatParserExt(MetadataOData4j metadataOData, String entitySetName, OEntityKey entityKey, FeedCustomizationMapping fcMapping) {
 		super(metadataOData.getMetadata(), entitySetName, entityKey, fcMapping);
@@ -112,7 +115,7 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 	
 	@Override
 	public AtomFeed parse(Reader reader) {
-	    return parseFeed(StaxUtil.newXMLEventReader(reader), getEntitySet());
+	    return parseFeed(createXMLEventReader(reader), getEntitySet());
 	}
 	
 	AtomFeed parseFeed(XMLEventReader2 reader, EdmEntitySet entitySet) {
@@ -442,6 +445,10 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 		            // no inlined entity
 		          rt.add(OLinks.relatedEntity(link.relation, link.title, link.href));
 		        }
+		      } else {
+		          if (!StringUtils.isEmpty(link.relation) && !StringUtils.isEmpty(link.title) && !StringUtils.isEmpty(link.href)) {
+		              rt.add(OLinks.relatedEntity(link.relation, link.title, link.href));
+		          }
 		      }
 		    }
 		    return rt;
@@ -555,4 +562,18 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 		}
 		throw new RuntimeException();
 	}
+	
+	private XMLEventReader2 createXMLEventReader(Reader reader)
+    {
+	    XMLInputFactory factory = XMLInputFactory.newInstance();
+	    
+	    //XXE on its own can be prevented by setting IS_SUPPORT_EXTERNAL_ENTITIES to false but this will not
+	    //prevent a billion laugh attack. Setting IS_REPLACING_ENTITY_REFERENCES to false does
+	    //not force the implementation to not process internal entity references.
+	    //Safest thing to do is to set SUPPORT_DTD to false to prevent both XXE and billion laugh.
+	    factory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
+	    
+        XMLEventReader2 xmlEventReader2 =  new StaxXMLInputFactory2Ext(factory).createXMLEventReader(reader);
+        return xmlEventReader2;       
+    }
 }

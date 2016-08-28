@@ -38,12 +38,12 @@ import javax.ws.rs.core.UriInfo;
 import org.junit.Test;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-import com.temenos.interaction.authorization.command.util.ODataParser;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
-import com.temenos.interaction.jdbc.producer.SqlCommandBuilder.ServerMode;
+import com.temenos.interaction.jdbc.ServerMode;
+import com.temenos.interaction.odataext.odataparser.ODataParser;
 
 /**
  * Test $orderby options withJdbcProducer class.
@@ -92,7 +92,7 @@ public class TestOrderBy extends AbstractJdbcProducerTest {
         // Build up an InteractionContext
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 
-        // Return all but the last row.
+        // Order by integer.
         queryParams.add(ODataParser.ORDERBY_KEY, INTEGER_FIELD_NAME + " " + direction);
 
         MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
@@ -104,7 +104,7 @@ public class TestOrderBy extends AbstractJdbcProducerTest {
         try {
             rs = producer.query(TEST_TABLE_NAME, null, ctx);
         } catch (Exception e) {
-            fail();
+            fail("Query failed: " + e);
         }
 
         // Check the results. Should get all fields of the single row we

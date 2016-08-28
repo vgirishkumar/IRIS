@@ -50,10 +50,14 @@ import org.junit.runner.RunWith;
 import com.google.inject.Inject;
 import com.temenos.interaction.rimdsl.rim.DomainModel;
 import com.temenos.interaction.rimdsl.rim.ResourceInteractionModel;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @InjectWith(RIMDslSpringPRDInjectorProvider.class)
 @RunWith(XtextRunner.class)
 public class GeneratorSpringPRDTest {
+    
+    private final static Logger LOGGER = Logger.getLogger(GeneratorSpringPRDTest.class.getName());
 
 	@Inject
 	IGenerator underTest;
@@ -908,7 +912,8 @@ public class GeneratorSpringPRDTest {
 		try {
 			underTest.doGenerate(model.eResource(), fsa);
 		} catch (RuntimeException e) {
-			exceptionThrown = true;
+                    LOGGER.log(Level.SEVERE, "Error on testGenerateFromIncompleteRIM.", e);
+                    exceptionThrown = true;
 		}
 		assertFalse(exceptionThrown);
 	}
@@ -926,6 +931,7 @@ public class GeneratorSpringPRDTest {
 			InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
 			underTest.doGenerate(null, fsa);
 		} catch (RuntimeException e) {
+            LOGGER.log(Level.SEVERE, "Error on testGenerateWithNull.", e);
 			exceptionThrown = true;
 		}
 		assertTrue(exceptionThrown);
@@ -1068,7 +1074,9 @@ public class GeneratorSpringPRDTest {
 				constructorValue1 = attribute.getValue();
 				System.out.println("constructorValue1 = " + attribute.getValue());
 				assertTrue(constructorValue1.equals("GETServiceDocument") || constructorValue1.equals("VIEW")
-						|| constructorValue1.equals("path") || constructorValue1.equals("ENTRY")|| constructorValue1.equals("UpdateEntity") || constructorValue1.equals("GetEntity") || constructorValue1.equals("GETEntities")  || constructorValue1.equals("GetException")  || constructorValue1.equals("GETEntities")  || constructorValue1.equals("GetException")  || constructorValue1.equals("VIEW") || constructorValue1.equals("rels") || constructorValue1.equals("uriSpec") || constructorValue1.equals("errorState") );
+						|| constructorValue1.equals("path") || constructorValue1.equals("ENTRY")|| constructorValue1.equals("UpdateEntity") 
+						|| constructorValue1.equals("GetEntity") || constructorValue1.equals("GETEntities")  || constructorValue1.equals("GetException") 
+                        || constructorValue1.equals("rels") || constructorValue1.equals("uriSpec") || constructorValue1.equals("errorState") );
 			} else if (constructorValue2 == null) {
 				constructorValue2 = attribute.getValue();
 				System.out.println("constructorValue2 = " + attribute.getValue());

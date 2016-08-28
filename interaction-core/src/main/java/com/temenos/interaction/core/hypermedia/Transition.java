@@ -77,6 +77,9 @@ public class Transition {
 
 	private String linkId;
 	
+	// optional field which causes this transition
+	private String sourceField;
+	
 	public String getLinkId() {
 		return linkId;
 	}
@@ -108,6 +111,23 @@ public class Transition {
 	public String getLabel() {
 		return label;
 	}
+	
+	/**
+	 * This method returns the field/property name which causes this transition
+	 * to come to exist, if applicable.
+	 * 
+	 * @return the sourceField
+	 */
+	public String getSourceField() {
+		return sourceField;
+	}
+
+    /**
+     * @param sourceField the sourceField to set
+     */
+    public void setSourceField(String sourceField) {
+        this.sourceField = sourceField;
+    }
 
 	public String getId() {
 		String labelText = "";
@@ -164,7 +184,8 @@ public class Transition {
 				&& isSameStateName(target, otherTrans.target)
 				&& StringUtils.equals(label, otherTrans.label)
 				&& ObjectUtils.equals(command, otherTrans.command)
-				&& StringUtils.equals(linkId, otherTrans.linkId);
+				&& StringUtils.equals(linkId, otherTrans.linkId)
+				&& StringUtils.equals(sourceField, otherTrans.sourceField);
 	}
 
 	private static boolean isSameStateName(ResourceState state1, ResourceState state2) {
@@ -184,7 +205,14 @@ public class Transition {
 	public boolean isType(int type) {
 		return (command.getFlags() & type) == type;
 	}
-	
+
+	public boolean isAnyOfTypes(int... types) {
+		for(int type : types) {
+			if (isType(type)) return true;
+		}
+		return false;
+	}
+
 	public int hashCode() {
 		return (source != null ? source.getName().hashCode() : 0)
 				+ (target != null ? target.getName().hashCode() : 0)
@@ -211,6 +239,7 @@ public class Transition {
 		private Expression evaluation;
 		private Map<String, String> uriParameters;
 		private String linkId;
+		private String sourceField;
 
 		public Builder source(ResourceState source) {
 			this.source = source;
@@ -256,6 +285,11 @@ public class Transition {
 			this.linkId = linkId;
 			return this;
 		}
+		
+		public Builder sourceField(String sourceField) {
+            this.sourceField = sourceField;
+            return this;
+        }
 
 		public Transition build() {
 			return new Transition(this);
@@ -272,6 +306,7 @@ public class Transition {
 		this.evaluation = builder.evaluation;
 		this.uriParameters = builder.uriParameters;
 		this.linkId = builder.linkId;
+		this.sourceField = builder.sourceField;
 
 		// this one's a bit special
 		this.command = new TransitionCommandSpec(method,

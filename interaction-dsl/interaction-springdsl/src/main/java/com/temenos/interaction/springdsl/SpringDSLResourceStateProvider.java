@@ -22,8 +22,8 @@ package com.temenos.interaction.springdsl;
  */
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -42,42 +42,47 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import com.temenos.interaction.core.hypermedia.Event;
+import com.temenos.interaction.core.hypermedia.MethodNotAllowedException;
+import com.temenos.interaction.core.hypermedia.PathTree;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 import com.temenos.interaction.core.resource.ConfigLoader;
 
 public class SpringDSLResourceStateProvider implements ResourceStateProvider, DynamicRegistrationResourceStateProvider {
-	private final Logger logger = LoggerFactory.getLogger(SpringDSLResourceStateProvider.class);
+    private final Logger logger = LoggerFactory.getLogger(SpringDSLResourceStateProvider.class);
 
 	private ConcurrentMap<String, ResourceState> resources = new ConcurrentHashMap<String, ResourceState>();
 
-	private StateRegisteration stateRegisteration;
+	protected StateRegisteration stateRegisteration;
 	
 	private ConfigLoader configLoader = new ConfigLoader();
 
     /**
      * Map of ResourceState bean names, to paths.
      */
-	private Properties beanMap;
+	protected Properties beanMap;
 
-	private boolean initialised = false;
+	protected boolean initialised = false;
+	
 	/**
 	 * Map of paths to state names
 	 */
-	private Map<String, Set<String>> resourceStatesByPath = new HashMap<String, Set<String>>();
+	protected Map<String, Set<String>> resourceStatesByPath = new HashMap<String, Set<String>>();
 	/**
 	 * Map of request to state names
 	 */
-	private Map<String, String> resourceStatesByRequest = new HashMap<String, String>();
+	protected Map<String, String> resourceStatesByRequest = new HashMap<String, String>();
 	/**
 	 * Map of resource methods where state name is the key
 	 */
-	private Map<String, Set<String>> resourceMethodsByState = new HashMap<String, Set<String>>();
+	protected Map<String, Set<String>> resourceMethodsByState = new HashMap<String, Set<String>>();
 	/**
 	 * Map to a resource path where the state name is the key
 	 */
-	private Map<String, String> resourcePathsByState = new HashMap<String, String>();
+	protected Map<String, String> resourcePathsByState = new HashMap<String, String>();
 
+	PathTree pathTree = new PathTree();
+    
 	public SpringDSLResourceStateProvider() {}
 	public SpringDSLResourceStateProvider(Properties beanMap) {
 		this.beanMap = beanMap;
@@ -92,21 +97,24 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 		this.configLoader = configLoader;
 	}
 
-	private void initialise() {
+	protected void initialise() {
 		if (initialised)
 			return;
 		for (Object stateObj : beanMap.keySet()) {
 			storeState(stateObj, null);
 		}
+				
 		initialised = true;
 	}
 
-	private void storeState(Object stateObj, String binding){
+	protected void storeState(Object stateObj, String binding) {
 		String stateName = stateObj.toString();
+		
 		// binding is [GET,PUT /thePath]
 		if (binding == null){
-			binding = beanMap.getProperty(stateName.toString());
+			binding = beanMap.getProperty(stateName);
 		}
+		
 		// split into methods and path
 		String[] strs = binding.split(" ");
 		String methodPart = strs[0];
@@ -116,15 +124,21 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 		// path
 		resourcePathsByState.put(stateName, path);
 		// methods
-		Set<String> methods = resourceMethodsByState.get(stateName);
-		if (methods == null) {
-			methods = new HashSet<String>();
+		Set<String> methodSet = resourceMethodsByState.get(stateName);
+		
+		if (methodSet == null) {
+		    methodSet = new HashSet<String>();
 		}
-		for (String method : methodsStrs) {
-			methods.add(method);
-		}
-		resourceMethodsByState.put(stateName, methods);
-		for (String method : methods) {
+		
+        for(String methodStr: methodsStrs) {
+            methodSet.add(methodStr);
+            
+            pathTree.put(path, methodStr, stateName);
+        }
+		
+		resourceMethodsByState.put(stateName, methodSet);
+		
+		for (String method : methodSet) {
 			String request = method + " " + path;
 			logger.debug("Binding ["+stateName+"] to ["+request+"]");
 			String found = resourceStatesByRequest.get(request);
@@ -138,10 +152,11 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 		if (stateNames == null) {
 			stateNames = new HashSet<String>();
 		}
-		stateNames.add(stateName.toString());
-		resourceStatesByPath.put(path, stateNames);
-
+		stateNames.add(stateName);
+		resourceStatesByPath.put(path, stateNames);		
 	}
+	
+	
 
 	public void addState(String stateObj, Properties properties) {
 		if (initialised) {
@@ -158,24 +173,25 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 			// methods
 			String[] methods = methodPart.split(",");
 
-			logger.info("Attempting to register state: " + stateName + " methods: " + methods + " path: " + path
-					+ " using: " + stateRegisteration);
+			logger.info("Attempting to register state: " + stateName + " methods: " + methods + " path: " + path);
 
-			/*
-			 * Thierry : Let's load it here. There is a lot of chance that if someone is
-			 * adding a new state, he will then browse it.
-			 * This will speed up the first call to this resource.
-			 */
+			// preemptive loading
 			ResourceState state = getResourceState(stateName);
+			
 			if (state != null){
 				storeState(stateName, binding);
-				this.stateRegisteration.register(stateName, path, new HashSet<String>(Arrays.asList(methods)));
+				
+				Set<String> methodSet = new HashSet<String>();
+				
+		        for(String methodStr: methods) {
+		            methodSet.add(methodStr);
+		        }
 			}
 		}
 	}
-
-	public void unload(String name) {
-		resources.remove(name);
+	
+	public void unload(String name) {	    
+	    resources.remove(name);
 	}
 
 	@Override
@@ -197,7 +213,7 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 					ResourceStateLoad newState = new ResourceStateLoad(resourceStateName);
 					newState.load();
 					if ( newState.isLoaded() ) {
-						result = newState.loaded();
+						result = newState.loaded();						
 					} else {
 						logger.error( newState.toString() );
 					}
@@ -393,7 +409,15 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 
 				if(irisResourceDir.exists() && irisResourceDir.isDirectory()) {
 					File file = new File(irisResourceDir, beanXml);
-					String path = file.getAbsolutePath();
+					
+					
+					String path = "";
+                    try {
+                        path = file.toURL().toString();
+                    } catch (MalformedURLException e) {
+                        logger.error("Failed to load IRIS PRD file: " + file.getAbsolutePath(), e); 
+                    }
+                    
 					attempts.add(path);
 
 					if(file.exists()) {
@@ -407,4 +431,42 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 			return result;
 		}
 	}
+
+
+    @Override
+    public ResourceState getResourceState(String httpMethod, String url) throws MethodNotAllowedException {
+        String resourceStateId = getResourceStateId(httpMethod, url);
+        if(resourceStateId == null) {
+            if(pathTree.get(url) != null) {
+                Set<String> allowedMethods = pathTree.get(url).keySet();
+                throw new MethodNotAllowedException(allowedMethods);
+            } else {
+                return null;
+            }
+        }
+        return getResourceState(resourceStateId);
+    }
+    
+    public String getResourceStateId(String httpMethod, String url) throws MethodNotAllowedException {
+        Map<String,String> methodToState = null;
+        
+        initialise();
+        methodToState = pathTree.get(url);
+
+        String resourceStateId = null;
+        
+        if(methodToState != null) {
+            resourceStateId = methodToState.get(httpMethod);
+            if(resourceStateId == null) {
+                if(pathTree.get(url) != null) {
+                    Set<String> allowedMethods = pathTree.get(url).keySet();
+                    throw new MethodNotAllowedException(allowedMethods);
+                }
+            }
+        } else {
+            return null;
+        }
+        
+        return resourceStateId;
+    }
 }

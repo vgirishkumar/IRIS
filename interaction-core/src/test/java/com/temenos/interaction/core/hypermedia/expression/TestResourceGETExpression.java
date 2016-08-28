@@ -43,6 +43,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
@@ -69,7 +70,7 @@ public class TestResourceGETExpression {
         RequestContext.setRequestContext(ctx);
 	}
 
-	private NewCommandController mockCommandController() {
+	private CommandController mockCommandController() {
 		NewCommandController cc = new NewCommandController();
 		try {
 			InteractionCommand dosomthing = mock(InteractionCommand.class);
@@ -89,7 +90,7 @@ public class TestResourceGETExpression {
 	}
 	
 	private HTTPHypermediaRIM mockRimHandler() {
-		NewCommandController mockCommandController = mockCommandController();
+		CommandController mockCommandController = mockCommandController();
 		Metadata mockMetadata = mock(Metadata.class);
 		when(mockMetadata.getEntityMetadata(anyString())).thenReturn(mock(EntityMetadata.class));
 		return new HTTPHypermediaRIM(mockCommandController, mockRIM(), mockMetadata);

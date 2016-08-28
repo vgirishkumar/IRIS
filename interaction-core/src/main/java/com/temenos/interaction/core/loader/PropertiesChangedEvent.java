@@ -27,6 +27,6 @@ import java.util.Properties;
 public interface PropertiesChangedEvent<T> extends FileEvent<T> {
 	public Properties getNewProperties();
 
-	public void accept(PropertiesEventVisitor visitor);
+	public void accept(PropertiesEventVisitor<T> visitor);
 
 }

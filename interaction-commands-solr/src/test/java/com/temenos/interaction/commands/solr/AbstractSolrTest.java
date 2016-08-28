@@ -42,16 +42,21 @@ import org.junit.Before;
  */
 public class AbstractSolrTest {
 
-	// Names of entities. Will be the same as core names
-	protected static final String ENTITY1_TYPE = "test_entity1_search";
+    // Name of core which will be used for testing sharding
+    protected static final String SOLR_CORE_FOR_SHARD = "coreForSharding";
+    protected static final String SHARD_ENTITY = "MixResults";
+	
+    // Names of entities. Will be the same as core names
+    protected static final String ENTITY1_TYPE = "test_entity1_search";
 	protected static final String ENTITY2_TYPE = "test_entity2_search";
 
 	// Name of company
 	protected static final String COMPANY_NAME = "TestBank";
 
+	protected SolrServer shardCoreSolrServer;
 	protected SolrServer entity1SolrServer;
 	protected SolrServer entity2SolrServer;
-
+	
 	private String getSolrHome() {
 		return "solr";
 	}
@@ -68,6 +73,11 @@ public class AbstractSolrTest {
 	public void setUp() throws Exception {
 		System.setProperty("solr.solr.home", getSolrHome());
 
+		// Just initialise the core used for sharding without any data
+		TestHarness shardingTestHarness = initSolrCore(COMPANY_NAME + "/" + SOLR_CORE_FOR_SHARD);
+        shardCoreSolrServer = new EmbeddedSolrServer(shardingTestHarness.getCoreContainer(), shardingTestHarness.getCore()
+                .getName());
+	
 		// Populate Entity1 Solr core
 		TestHarness entity1TestHarness = initSolrCore(COMPANY_NAME + "/" + ENTITY1_TYPE);
 		entity1SolrServer = new EmbeddedSolrServer(entity1TestHarness.getCoreContainer(), entity1TestHarness.getCore()
@@ -78,8 +88,8 @@ public class AbstractSolrTest {
 		TestHarness entity2TestHarness = initSolrCore(COMPANY_NAME + "/" + ENTITY2_TYPE);
 		entity2SolrServer = new EmbeddedSolrServer(entity2TestHarness.getCoreContainer(), entity2TestHarness.getCore()
 				.getName());
+		
 		initEntity2TestData();
-
 	}
 
 	/**
@@ -120,7 +130,8 @@ public class AbstractSolrTest {
 
 	@After
 	public void tearDown() {
-		entity1SolrServer.shutdown();
+	    shardCoreSolrServer.shutdown();
+	    entity1SolrServer.shutdown();
 		entity2SolrServer.shutdown();
 
 		// Tidy all indexes

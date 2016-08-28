@@ -89,7 +89,8 @@ public class ErrorHandlingITCase {
 		catch(ODataProducerException ope) {
 			OError error = ope.getOError();
 			assertEquals("500", error.getCode());
-			assertEquals("Unexpected error.", error.getMessage());
+            System.out.println(error.getMessage());
+			assertEquals("java.lang.RuntimeException: error500RuntimeException is a Runtime Exception.", error.getMessage().substring(0,76));
 		}
 	}
 

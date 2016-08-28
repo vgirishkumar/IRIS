@@ -24,11 +24,12 @@ package com.temenos.interaction.loader.properties.resource.notification;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.io.Resource;
 
 import com.temenos.interaction.core.loader.PropertiesEvent;
 import com.temenos.interaction.loader.properties.ReloadablePropertiesListener;
 
-public class PropertiesModificationListener implements ReloadablePropertiesListener, ApplicationListener<ContextRefreshedEvent> {
+public class PropertiesModificationListener implements ReloadablePropertiesListener<Resource>, ApplicationListener<ContextRefreshedEvent> {
 	private boolean applicationInitialized = false;	
 	private PropertiesModificationNotifier notifier;
 	
@@ -37,12 +38,12 @@ public class PropertiesModificationListener implements ReloadablePropertiesListe
 	}
 
 	@Override
-	public String[] getResourcePatterns() {				
+	public String[] getResourcePatterns() {
 		return notifier.getPatterns().toArray(new String[0]);
 	}
 
 	@Override
-	public void propertiesChanged(PropertiesEvent event) {
+	public void propertiesChanged(PropertiesEvent<Resource> event) {
 		if(applicationInitialized) {
 			notifier.execute(event);
 		}

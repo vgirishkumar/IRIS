@@ -49,14 +49,18 @@ import com.temenos.interaction.springdsl.RIMRegistration;
 public class RegistrarWithSingletons extends Registrar implements RIMRegistration {
     private Set<Object> singletons = Collections.emptySet();
     
-	private final Logger logger = LoggerFactory.getLogger(RegistrarWithSingletons.class);    
+	private static final Logger LOGGER = LoggerFactory.getLogger(RegistrarWithSingletons.class);    
 
     // key = resourcePath
     private Map<String, DynamicResourceDelegate> resources = new HashMap<String, DynamicResourceDelegate>();
     
     ResourceRegistry resourceRegistry;    
     
-    public RegistrarWithSingletons() {}
+    public RegistrarWithSingletons() {
+        if (this.getInstances() == null) {
+            this.setInstances(new HashSet<Object>());
+        }
+    }
     
     @Override
     public Set<Object> getSingletons() {
@@ -71,10 +75,7 @@ public class RegistrarWithSingletons extends Registrar implements RIMRegistratio
      * Using a ServiceRootFactory get a set of service roots to bind to this instance of wink.
      */
     public void setServiceRootFactory(ServiceRootFactory drs) {
-    	setServiceRoots(drs.getServiceRoots());
-    	
-    	// Allow for registration of new services after initialisation
-    	drs.setRIMRegistration(this);
+    	setServiceRoots(drs.getServiceRoots());    	
     }
         
     /**
@@ -85,64 +86,23 @@ public class RegistrarWithSingletons extends Registrar implements RIMRegistratio
     	if (rootRIMs == null)
     		throw new IllegalArgumentException("Must provide a set of resource interaction models");
     	for (HTTPResourceInteractionModel rim : rootRIMs)
-    		addAllDynamicResource(rim);
+    		registerAll(rim);
     }
 
     public void setServiceRoot(HTTPResourceInteractionModel rootRIM) {
-    	addAllDynamicResource(rootRIM);
+    	registerAll(rootRIM);
     }
 
-    private void addAllDynamicResource(ResourceInteractionModel rim) {
-    	if (this.getInstances() == null) {
-        	this.setInstances(new HashSet<Object>());
-    	}
-    	addDynamicResource(rim);
+    private void registerAll(ResourceInteractionModel rim) {
+    	register((HTTPResourceInteractionModel) rim);
     	Collection<ResourceInteractionModel> children = rim.getChildren();
     	if (children != null) {
         	for (ResourceInteractionModel child : children) {
-        		addDynamicResource(child);
+        	    register((HTTPResourceInteractionModel) child);
         	}
     	}
     }
-    
-    private void addDynamicResource(ResourceInteractionModel rim) {
-    	assert(this.getInstances() != null);
-    	String rimKey = rim.getFQResourcePath();
-    	if (resources.get(rimKey) != null)
-    		return;
-    	DynamicResource parent = null;
-    	// is this a root resource
-    	if (rim.getParent() != null) {
-    		// climb back up the graph adding parent if necessary
-        	String parentKey = rim.getParent().getFQResourcePath();
-    		if (resources.get(parentKey) == null) {
-    			addDynamicResource(rim.getParent());
-    		}
-    		parent = resources.get(parentKey);
-    	}
-    	
-    	//Register the resource
-    	HTTPResourceInteractionModel parentResource = parent != null ? (HTTPResourceInteractionModel) parent : null;
-    	HTTPResourceInteractionModel resource = (HTTPResourceInteractionModel) rim;
-    	DynamicResourceDelegate dr = new DynamicResourceDelegate(parentResource, resource);
-    	resources.put(rimKey, dr);
-    	this.getInstances().add(dr);
-   	
-    	//Ensure OData collection resources are available with and without empty brackets (e.g. /customers() and /customers)
-    	if(rimKey.endsWith("()")) {
-    		String pathWithoutBrackets = rimKey.substring(0, rimKey.length() - 2);
-    		final DynamicResourceDelegate drWithoutBrackets = new DynamicResourceDelegate(parentResource, resource) {
-    			@Override
-    		    public String getPath() {
-    				String resourcePath = super.getResourcePath();
-    				return resourcePath.substring(0, resourcePath.length() - 2);
-    		    }
-        	};
-        	resources.put(pathWithoutBrackets, drWithoutBrackets);
-        	this.getInstances().add(drWithoutBrackets);
-    	}
-    }
-    
+
     /**
      * Using the path lookup the resource; return null if a resource has not been previously registered.
      * @param path
@@ -154,9 +114,9 @@ public class RegistrarWithSingletons extends Registrar implements RIMRegistratio
 
 	@Override
 	public void register(HTTPResourceInteractionModel rim) {
-		logger.info("Attempting to add resource: " + rim.getResourcePath());		
+		LOGGER.info("Attempting to add resource: " + rim.getResourcePath());		
 
-    	assert(this.getInstances() != null);
+    	assert this.getInstances() != null;
     	String rimKey = rim.getFQResourcePath();
     	if (resources.get(rimKey) != null)
     		return;
@@ -166,22 +126,24 @@ public class RegistrarWithSingletons extends Registrar implements RIMRegistratio
     		// climb back up the graph adding parent if necessary
         	String parentKey = rim.getParent().getFQResourcePath();
     		if (resources.get(parentKey) == null) {
-    			addDynamicResource(rim.getParent());
+    			register((HTTPResourceInteractionModel) rim.getParent());
     		}
     		parent = resources.get(parentKey);
     	}
     	
     	//Register the resource
     	HTTPResourceInteractionModel parentResource = parent != null ? (HTTPResourceInteractionModel) parent : null;
-    	HTTPResourceInteractionModel resource = (HTTPResourceInteractionModel) rim;
-    	DynamicResourceDelegate dr = new DynamicResourceDelegate(parentResource, resource);
+    	DynamicResourceDelegate dr = new DynamicResourceDelegate(parentResource, rim);
     	resources.put(rimKey, dr);
-    	resourceRegistry.addResource(dr, WinkApplication.DEFAULT_PRIORITY);
+    	if(resourceRegistry != null) {
+    	    resourceRegistry.addResource(dr, WinkApplication.DEFAULT_PRIORITY);
+    	}
+        this.getInstances().add(dr);
    	
     	//Ensure OData collection resources are available with and without empty brackets (e.g. /customers() and /customers)
     	if(rimKey.endsWith("()")) {
     		String pathWithoutBrackets = rimKey.substring(0, rimKey.length() - 2);
-    		final DynamicResourceDelegate drWithoutBrackets = new DynamicResourceDelegate(parentResource, resource) {
+    		final DynamicResourceDelegate drWithoutBrackets = new DynamicResourceDelegate(parentResource, rim) {
     			@Override
     		    public String getPath() {
     				String resourcePath = super.getResourcePath();
@@ -189,11 +151,15 @@ public class RegistrarWithSingletons extends Registrar implements RIMRegistratio
     		    }
         	};
         	resources.put(pathWithoutBrackets, drWithoutBrackets);
-        	resourceRegistry.addResource(drWithoutBrackets, WinkApplication.DEFAULT_PRIORITY);
+        	if(resourceRegistry != null) {
+        	    resourceRegistry.addResource(drWithoutBrackets, WinkApplication.DEFAULT_PRIORITY);
+        	}
+            this.getInstances().add(drWithoutBrackets);
     	}
 		
 	}
 	
+	@Override
     public void register(ResourceRegistry resourceRegistry, ProvidersRegistry providersRegistry) {
     	super.register(resourceRegistry, providersRegistry);
     	this.resourceRegistry = resourceRegistry;

@@ -31,6 +31,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.wink.common.internal.MultivaluedMapImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +63,7 @@ public class InteractionContext {
 	private final MultivaluedMap<String, String> pathParameters;
 	private final ResourceState currentState;
 	private final Metadata metadata;
-	private Map<String, String> outQueryParameters = new HashMap<String,String>();	
+	private MultivaluedMap<String, String> outQueryParameters = new MultivaluedMapImpl<String, String>();
 	private ResourceState targetState;
 	private Link linkUsed;
 	private InteractionException exception;
@@ -93,11 +94,9 @@ public class InteractionContext {
 		this.inQueryParameters = queryParameters;		
 		this.currentState = currentState;
 		this.metadata = metadata;
-		assert(pathParameters != null);
-		assert(queryParameters != null);
-// TODO, should be able to enable this assertion, its just that a lot of tests currently mock this 'new InteractionContext'
-//		assert(currentState != null);
-		assert(metadata != null);
+		assert pathParameters != null;
+		assert queryParameters != null;
+		assert metadata != null;
 	}
 
 	/**
@@ -130,7 +129,7 @@ public class InteractionContext {
 	 * @return
 	 */
 	public Object getRequestUri() {
-		return (this.uriInfo==null?null:this.uriInfo.getRequestUri());
+		return this.uriInfo==null ? null : this.uriInfo.getRequestUri();
 	}
 	
 	/**
@@ -225,16 +224,14 @@ public class InteractionContext {
             		if (entityMetadata != null) {
             			List<String> idFields = entityMetadata.getIdFields();
             			// TODO add support for composite ids
-            			assert(idFields.size() == 1) : "ERROR we currently only support simple ids";
+            			assert idFields.size() == 1 : "ERROR we currently only support simple ids";
             			if ( idFields.size() == 1 )
             				id = pathParameters.getFirst(idFields.get(0));
             		}
         		}
         	}
-    		if (logger.isDebugEnabled()) {
-            	for (String pathParam : pathParameters.keySet()) {
-            		logger.debug("PathParam " + pathParam + ":" + pathParameters.get(pathParam));
-            	}
+            for (String pathParam : pathParameters.keySet()) {		
+				logger.debug("PathParam " + pathParam + ":" + pathParameters.get(pathParam));
     		}
     	}
     	return id;
@@ -320,7 +317,7 @@ public class InteractionContext {
 	 * 
 	 * @return the outQueryParameters
 	 */
-	public Map<String, String> getOutQueryParameters() {
+	public MultivaluedMap<String, String> getOutQueryParameters() {
 		return outQueryParameters;
 	}
 }

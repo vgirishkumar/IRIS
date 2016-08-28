@@ -42,25 +42,24 @@ import java.util.Set;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response.Status;
 
-import org.odata4j.expression.BoolCommonExpression;
 import org.odata4j.expression.EntitySimpleProperty;
 import org.odata4j.producer.EntityQueryInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.authorization.IAuthorizationProvider;
-import com.temenos.interaction.authorization.command.data.AccessProfile;
-import com.temenos.interaction.authorization.command.data.FieldName;
-import com.temenos.interaction.authorization.command.data.RowFilter;
-import com.temenos.interaction.authorization.command.util.ODataParser;
-import com.temenos.interaction.authorization.command.util.ODataParser.UnsupportedQueryOperationException;
 import com.temenos.interaction.authorization.exceptions.AuthorizationException;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
+import com.temenos.interaction.odataext.odataparser.ODataParser;
+import com.temenos.interaction.odataext.odataparser.ODataParser.UnsupportedQueryOperationException;
+import com.temenos.interaction.odataext.odataparser.data.AccessProfile;
+import com.temenos.interaction.odataext.odataparser.data.FieldName;
+import com.temenos.interaction.odataext.odataparser.data.RowFilters;
 
 public class AuthorizationCommand extends AbstractAuthorizationCommand implements InteractionCommand {
-	private final static Logger logger = LoggerFactory.getLogger(AuthorizationCommand.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(AuthorizationCommand.class);
 
 	// Normal constructor
 	public AuthorizationCommand(IAuthorizationProvider authorizationBean) {
@@ -79,13 +78,13 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 		Iterator<String> it = ctx.getQueryParameters().keySet().iterator();
 		while (it.hasNext()) {
 			String theKey = (String) it.next();
-			logger.info("    Key " + theKey + " = Value " + ctx.getQueryParameters().getFirst(theKey));
+			LOGGER.info("    Key " + theKey + " = Value " + ctx.getQueryParameters().getFirst(theKey));
 		}
 
 		EntityQueryInfo queryInfo = ODataParser.getEntityQueryInfo(ctx);
 
 		// Add authorization to context
-		applyAuthorization(ctx, queryInfo.filter, queryInfo.select);
+		applyAuthorization(ctx, new RowFilters(queryInfo.filter), queryInfo.select);
 		
 		// Set attributes indicating that authorization has not yet been done.
 		ctx.setAttribute(AuthorizationAttributes.FILTER_DONE_ATTRIBUTE, Boolean.FALSE);
@@ -103,49 +102,48 @@ public class AuthorizationCommand extends AbstractAuthorizationCommand implement
 	 * @param oldSelect
 	 * @throws UnsupportedQueryOperationException
 	 */
-	private void applyAuthorization(InteractionContext ctx, BoolCommonExpression oldFilter,
+	private void applyAuthorization(InteractionContext ctx, RowFilters oldFilter,
 			List<EntitySimpleProperty> oldSelect) throws InteractionException {
 
 		// TODO When IRIS supports it the following line will become a call to an Authorization resource.
 		AccessProfile accessProfile = authorizationBean.getAccessProfile(ctx);
 		
-		List<RowFilter> newList = accessProfile.getRowFilters();
+		RowFilters newList = accessProfile.getNewRowFilters();
 		try {
 			addRowFilter(ctx, newList, oldFilter);
 		} catch (UnsupportedQueryOperationException e) {
-			throw (new AuthorizationException(Status.UNAUTHORIZED, e.toString()));
+		    LOGGER.warn("Attempted to do unauthorized action", e);
+		    
+			throw new AuthorizationException(Status.UNAUTHORIZED, e);
 		}
 
 		Set<FieldName> authSet = accessProfile.getFieldNames();
 		addColFilter(ctx, authSet, oldSelect);
 	}
 
-	private boolean addRowFilter(InteractionContext ctx, List<RowFilter> newList, BoolCommonExpression oldFilter)
+	private boolean addRowFilter(InteractionContext ctx, RowFilters newFilter, RowFilters oldFilter)
 			throws UnsupportedQueryOperationException {
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
 
-		// Get any existing filter
-		List<RowFilter> oldList = ODataParser.parseFilter(oldFilter);
-
 		// Final list contains both sets of filters
-		if (null != oldList) {
+		if (null != oldFilter) {
 			// TODO Some additional work may be required to combine filters on
 			// the same column. What if "a > b" and
 			// "a = c"? For now include both and let the database decide how it
 			// handles tests conditions.
-			newList.addAll(oldList);
-		}
+		    oldFilter.addFilters(newFilter);
+		} 
 
 		// By the time we get here the target 'and' terms will be in newList.
-		if (newList.isEmpty()) {
+		if (oldFilter.isEmpty()) {
 			// No filtering, i.e. return everything. Delete any existing filter.
 			queryParams.remove(ODataParser.FILTER_KEY);
 		} else {
-			queryParams.putSingle(ODataParser.FILTER_KEY, ODataParser.toFilter(newList));
+			queryParams.putSingle(ODataParser.FILTER_KEY, ODataParser.toFilters(oldFilter));
 		}
 
 		// Return the entries specified by the filter.
-		return (true);
+		return true;
 	}
 
 	private void addColFilter(InteractionContext ctx, Set<FieldName> authSet, List<EntitySimpleProperty> oldSelect) {

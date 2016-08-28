@@ -27,11 +27,15 @@ import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 
 public class DeleteEntityCommand implements InteractionCommand {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(DeleteEntityCommand.class);
 
 	private ODataConsumer consumer;
 	private EdmDataServices edmDataServices;
@@ -60,6 +64,7 @@ public class DeleteEntityCommand implements InteractionCommand {
 		try {
 			key = CommandHelper.createEntityKey(entityTypes, entity, ctx.getId());
 		} catch(Exception e) {
+		    LOGGER.warn("Failure to create the entity key.", e);
 			return Result.FAILURE;
 		}
 		
@@ -67,7 +72,7 @@ public class DeleteEntityCommand implements InteractionCommand {
 		try {
 			consumer.deleteEntity(entity, key).execute();
 		} catch (Exception e) {
-			// exception if the entity is not found, delete the entity if it exists;
+			LOGGER.warn("Failure to delete the entity because entity is not found.", e);
 			return Result.FAILURE;
 		}
 		return Result.SUCCESS;

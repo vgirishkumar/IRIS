@@ -32,6 +32,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.hypermedia.HypermediaTemplateHelper;
+import com.temenos.interaction.core.hypermedia.LazyResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transition;
@@ -92,14 +93,18 @@ public class ResourceGETExpression implements Expression {
 		} else {
 			target = ourTransition.getTarget();
 		}
-		target = hypermediaEngine.checkAndResolve(target);
+		
+        target = hypermediaEngine.checkAndResolve(target);
     	assert(ourTransition != null);
 		if (target == null)
 			throw new IllegalArgumentException("Indicates a problem with the RIM, it allowed an invalid state to be supplied");
 		assert(target.getActions() != null);
 		
-		//Create a new interaction context for this state
-    	MultivaluedMap<String, String> pathParameters = getPathParametersForTargetState(hypermediaEngine, ctx, ourTransition);
+		if(ourTransition.getTarget() instanceof LazyResourceState) {
+		    ourTransition.setTarget(target);
+		}
+        //Create a new interaction context for this state
+        MultivaluedMap<String, String> pathParameters = getPathParametersForTargetState(hypermediaEngine, ctx, ourTransition);
     	InteractionContext newCtx = new InteractionContext(ctx, null, pathParameters, null, target);
 
     	//Get the target resource

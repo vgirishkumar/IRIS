@@ -44,6 +44,9 @@ public final class NoopGETCommand implements InteractionCommand {
 		else {
 			ctx.setResource(new EntityResource<Object>());
 		}
+		
+		ctx.getOutQueryParameters().putAll(ctx.getQueryParameters());
+		
 		return Result.SUCCESS;
 	}
 

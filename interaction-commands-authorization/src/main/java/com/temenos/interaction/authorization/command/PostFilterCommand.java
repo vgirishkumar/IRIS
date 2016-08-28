@@ -32,12 +32,12 @@ import org.odata4j.producer.ODataProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.temenos.interaction.authorization.command.util.ODataParser;
 import com.temenos.interaction.authorization.exceptions.AuthorizationException;
 import com.temenos.interaction.commands.odata.ODataAttributes;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
+import com.temenos.interaction.odataext.odataparser.ODataParser;
 
 public class PostFilterCommand implements InteractionCommand {
 

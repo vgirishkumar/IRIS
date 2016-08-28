@@ -24,11 +24,11 @@ package com.temenos.interaction.core.hypermedia;
 
 
 /**
- * Implementations of this interface provide a way of resolving a aliases to resource parameters and values
+ * Implementations of this interface provide a way of resolving an aliases to resource parameters and values
  *
  * @author mlambert
  *
  */
 public interface ResourceParameterResolver {
-	public ParameterAndValue[] resolve(Object... aliases);
+	ParameterAndValue[] resolve(Object[] aliases, ResourceParameterResolverContext context);
 }

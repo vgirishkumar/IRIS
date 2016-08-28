@@ -29,12 +29,16 @@ package com.temenos.interaction.commands.solr;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import com.temenos.interaction.authorization.command.AuthorizationAttributes;
@@ -42,12 +46,43 @@ import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.CollectionResource;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
 
 public class SolrSearchCommandFilterTest extends AbstractSolrTest {
+
+	private @Mock ResourceState currentState;
+
+	private SolrSearchCommand command;
+	private InteractionContext ctx;
+	private MultivaluedMap<String, String> queryParams;
+	private MultivaluedMap<String, String> pathParams;
+
+
+	@Before
+	public void setup() {
+		MockitoAnnotations.initMocks(this);
+
+		command = new SolrSearchCommand();
+		queryParams = new MultivaluedMapImpl<String>();
+		pathParams = new MultivaluedMapImpl<String>();
+		ctx = spy(new InteractionContext(
+				mock(UriInfo.class),
+				mock(HttpHeaders.class),
+				pathParams,
+				queryParams,
+				mock(ResourceState.class),
+				mock(Metadata.class)));
+
+		when(currentState.getEntityName()).thenReturn(ENTITY1_TYPE);
+		when(ctx.getCurrentState()).thenReturn(currentState);
+	}
 
 	/**
 	 * Test for filtering on a single field
@@ -55,20 +90,14 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testFilterSingleField() {
-		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("companyid", COMPANY_NAME);
-
-		// Add OData filter
 		queryParams.add("$filter", "id eq 1111");
-
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
-
+		try {
+    		InteractionCommand.Result result = command.execute(ctx, entity1SolrServer);
+    		assertEquals(Result.SUCCESS, result);
+		} catch (InteractionException e) {
+		    fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+		}
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		assertEquals(1, cr.getEntities().size());
 	}
@@ -79,22 +108,15 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 	 */
 	@Test
 	public void testFilterDoneFlag() {
-		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("companyid", COMPANY_NAME);
-
-		// Add OData filter
 		queryParams.add("$filter", "id eq 1111");
-
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-	
 		// Set the flag to the not done state.
 		ctx.setAttribute(AuthorizationAttributes.FILTER_DONE_ATTRIBUTE, Boolean.FALSE);
-		
-		command.execute(ctx);
+		try {
+		command.execute(ctx, entity1SolrServer);
+		} catch (InteractionException e) {
+		    fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+		}
 		
 		// Check filtering has been done
 		assertEquals(Boolean.TRUE, (Boolean) ctx.getAttribute(AuthorizationAttributes.FILTER_DONE_ATTRIBUTE));
@@ -106,19 +128,15 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testFilterSingleDuplicateField() {
-		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("companyid", COMPANY_NAME);
-
-		// Add OData filter
 		queryParams.add("$filter", "id eq 1111");
-
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
+		try {
+    		InteractionCommand.Result result = command.execute(ctx, entity1SolrServer);
+    		assertEquals(Result.SUCCESS, result);
+		} catch (InteractionException e) {
+		    fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+		}
+		
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		assertEquals(1, cr.getEntities().size());
@@ -130,19 +148,14 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testFilterMultipleFieldsHits() {
-		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("companyid", COMPANY_NAME);
-
-		// Add OData filter
 		queryParams.add("$filter", "id eq 1111 and name eq 'Alan Jones'");
-
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
+		try {
+    		InteractionCommand.Result result = command.execute(ctx, entity1SolrServer);
+    		assertEquals(Result.SUCCESS, result);
+        } catch (InteractionException e) {
+            fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+        }
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		assertEquals(1, cr.getEntities().size());
@@ -154,19 +167,14 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testFilterMultipleFieldsMisses() {
-		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("companyid", COMPANY_NAME);
-
-		// Add OData filter
 		queryParams.add("$filter", "id eq 1111 and name eq 'B Jillian'");
-
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
+		try {
+    		InteractionCommand.Result result = command.execute(ctx, entity1SolrServer);
+    		assertEquals(Result.SUCCESS, result);
+        } catch (InteractionException e) {
+            fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+        }
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		assertEquals(0, cr.getEntities().size());
@@ -180,19 +188,14 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testFilterSingleFieldMisses() {
-		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("companyid", COMPANY_NAME);
-
-		// Add OData filter
 		queryParams.add("$filter", "id eq 1112");
-
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
+		try {
+    		InteractionCommand.Result result = command.execute(ctx, entity1SolrServer);
+    		assertEquals(Result.SUCCESS, result);
+        } catch (InteractionException e) {
+            fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+        }
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		assertEquals(0, cr.getEntities().size());
@@ -203,21 +206,12 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 	 */
 	@Test
 	public void testBadFilter() {
-		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("companyid", COMPANY_NAME);
-
-		// Add OData filter
 		queryParams.add("$filter", "rubbish");
-
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
 
 		boolean threw = false;
 		try {
-			command.execute(ctx);
+			command.execute(ctx, entity1SolrServer);
 		} catch (Exception e) {
 			threw = true;
 		}
@@ -229,21 +223,12 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 	 */
 	@Test
 	public void testKeywordFilter() {
-		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("companyid", COMPANY_NAME);
-
-		// Add OData filter
 		queryParams.add("$filter", "Landlord eq aequorin");
-
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
 
 		boolean threw = false;
 		try {
-			command.execute(ctx);
+			command.execute(ctx, entity1SolrServer);
 		} catch (Exception e) {
 			threw = true;
 		}
@@ -256,19 +241,14 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testFilterNotEqual() {
-		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("companyid", COMPANY_NAME);
-
-		// Add OData filter
 		queryParams.add("$filter", "id ne 1111");
-
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
+		try {
+    		InteractionCommand.Result result = command.execute(ctx, entity1SolrServer);
+    		assertEquals(Result.SUCCESS, result);
+        } catch (InteractionException e) {
+            fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+        }
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		
@@ -282,19 +262,14 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testFilterGreaterThan() {
-		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("companyid", COMPANY_NAME);
-
-		// Add OData filter
 		queryParams.add("$filter", "id gt 3333");
-
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
+		try {
+    		InteractionCommand.Result result = command.execute(ctx, entity1SolrServer);
+    		assertEquals(Result.SUCCESS, result);
+        } catch (InteractionException e) {
+            fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+        }
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		
@@ -308,19 +283,14 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testFilterLessThan() {
-		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("companyid", COMPANY_NAME);
-
-		// Add OData filter
 		queryParams.add("$filter", "id lt 2222");
-
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
+		try {
+    		InteractionCommand.Result result = command.execute(ctx, entity1SolrServer);
+    		assertEquals(Result.SUCCESS, result);
+        } catch (InteractionException e) {
+            fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+        }
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		
@@ -334,20 +304,15 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testFilterRange() {
-		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("companyid", COMPANY_NAME);
-
-		// Add OData filter
 		queryParams.add("$filter", "id gt 2222");
 		queryParams.add("$filter", "id lt 3333");
-
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
+		try {
+    		InteractionCommand.Result result = command.execute(ctx, entity1SolrServer);
+    		assertEquals(Result.SUCCESS, result);
+        } catch (InteractionException e) {
+            fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+        }
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		
@@ -361,19 +326,14 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testFilterGreaterThanEqual() {
-		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("companyid", COMPANY_NAME);
-
-		// Add OData filter
 		queryParams.add("$filter", "id ge 3333");
-
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
+		try {
+    		InteractionCommand.Result result = command.execute(ctx, entity1SolrServer);
+    		assertEquals(Result.SUCCESS, result);
+        } catch (InteractionException e) {
+            fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+        }
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		
@@ -387,19 +347,14 @@ public class SolrSearchCommandFilterTest extends AbstractSolrTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testFilterLessThanEqual() {
-		SolrSearchCommand command = new SolrSearchCommand(entity1SolrServer, entity2SolrServer, ENTITY1_TYPE);
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-
-		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("companyid", COMPANY_NAME);
-
-		// Add OData filter
 		queryParams.add("$filter", "id le 2222");
-
-		InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParams,
-				queryParams, mock(ResourceState.class), mock(Metadata.class));
-		InteractionCommand.Result result = command.execute(ctx);
-		assertEquals(Result.SUCCESS, result);
+		try {
+    		InteractionCommand.Result result = command.execute(ctx, entity1SolrServer);
+    		assertEquals(Result.SUCCESS, result);
+        } catch (InteractionException e) {
+            fail("InteractionException : " + e.getHttpStatus().toString() + " - " + e.getMessage());
+        }
 
 		CollectionResource<Entity> cr = (CollectionResource<Entity>) ctx.getResource();
 		

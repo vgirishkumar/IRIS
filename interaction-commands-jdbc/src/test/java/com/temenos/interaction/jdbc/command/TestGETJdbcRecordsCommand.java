@@ -32,7 +32,6 @@ import javax.ws.rs.core.UriInfo;
 
 import org.junit.Test;
 
-import com.temenos.interaction.authorization.command.util.ODataParser;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
@@ -43,6 +42,7 @@ import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.jdbc.producer.JdbcProducer;
+import com.temenos.interaction.odataext.odataparser.ODataParser;
 
 /**
  * Test the GETRawCommand class.

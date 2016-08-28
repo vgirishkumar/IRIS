@@ -222,7 +222,7 @@ resource flight_deleted {
 resource flight_updated {
 	type: item
 	entity: Flight
-	actions [ UpdateEntityWithEtag ]
+	commands [PUT : UpdateEntityWithEtag ]
 	relations [ "edit" ]
 	path: "/Flights({id})"
 }

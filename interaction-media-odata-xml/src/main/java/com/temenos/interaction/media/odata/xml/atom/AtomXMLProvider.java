@@ -22,6 +22,8 @@ package com.temenos.interaction.media.odata.xml.atom;
  */
 
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -34,10 +36,10 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.ws.rs.Consumes;
@@ -55,6 +57,7 @@ import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 
+import org.apache.commons.io.IOUtils;
 import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
@@ -64,7 +67,6 @@ import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.exceptions.NotFoundException;
-import org.odata4j.exceptions.ODataProducerException;
 import org.odata4j.format.Entry;
 import org.odata4j.format.xml.AtomEntryFormatParserExt;
 import org.odata4j.internal.InternalUtil;
@@ -73,6 +75,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.core.ExtendedMediaTypes;
+import com.temenos.interaction.core.UriInfoImpl;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityProperties;
@@ -81,9 +84,9 @@ import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.BeanTransformer;
 import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.DefaultResourceStateProvider;
-import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.HypermediaTemplateHelper;
 import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.MethodNotAllowedException;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
@@ -93,6 +96,7 @@ import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
+import com.temenos.interaction.core.rim.URLHelper;
 import com.temenos.interaction.core.web.RequestContext;
 import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
@@ -101,8 +105,8 @@ import com.temenos.interaction.odataext.entity.MetadataOData4j;
 @Produces({ExtendedMediaTypes.APPLICATION_ATOMSVC_XML, MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML})
 public class AtomXMLProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
 	private static final String UTF_8 = "UTF-8";
-	private final static Logger logger = LoggerFactory.getLogger(AtomXMLProvider.class);
-	private final static Pattern STRING_KEY_RESOURCE_PATTERN = Pattern.compile("(\\('.*'\\))");
+	private static final Logger LOGGER = LoggerFactory.getLogger(AtomXMLProvider.class);
+	private static final Pattern STRING_KEY_RESOURCE_PATTERN = Pattern.compile("(\\('.*'\\))");
 
 	@Context
 	private UriInfo uriInfo;
@@ -114,10 +118,11 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	
 	private final MetadataOData4j metadataOData4j;
 	private final Metadata metadata;
-	private final ResourceStateProvider resourceStateProvider;
 	private final ResourceState serviceDocument;
 	private final Transformer transformer;
 	private final LinkInterceptor linkInterceptor = new ODataLinkInterceptor(this);
+
+    private ResourceStateProvider resourceStateProvider;	
 
 	/**
 	 * Construct the jax-rs Provider for OData media type.
@@ -138,15 +143,16 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		this.metadataOData4j = metadataOData4j;
 		this.metadata = metadata;
 		this.resourceStateProvider = resourceStateProvider;
-		assert(resourceStateProvider != null);
+		assert resourceStateProvider != null;
 		this.serviceDocument = serviceDocument;
 		if (serviceDocument == null)
 			throw new RuntimeException("No 'ServiceDocument' found.");
-		assert(metadata != null);
+		assert metadata != null;
 		this.transformer = transformer;
 		entryWriter = new AtomEntryFormatWriter(serviceDocument);
 		feedWriter = new AtomFeedFormatWriter(serviceDocument);
 		entityEntryWriter = new AtomEntityEntryFormatWriter(serviceDocument, metadata);
+		this.uriInfo = new UriInfoImpl(uriInfo);
 	}
 
 	@Override
@@ -185,84 +191,81 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			MultivaluedMap<String, Object> httpHeaders,
 			OutputStream entityStream) throws IOException,
 			WebApplicationException {
-		assert (resource != null);
-		assert(uriInfo != null);
-		//Set response headers
+		assert resource != null;
+		assert uriInfo != null;
+		ByteArrayOutputStream buffer = new ByteArrayOutputStream();  		
+        RESTResource restResource = processLinks((RESTResource) resource);
+        Collection<Link> processedLinks = restResource.getLinks();
+        if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
+            EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
+            OEntity tempEntity = entityResource.getEntity();
+            EdmEntitySet entitySet = getEdmEntitySet(entityResource.getEntityName());
+            List<OLink> olinks = formOLinks(entityResource);
+            //Write entry
+            // create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
+            OEntity oentity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
+            entryWriter.write(uriInfo, new OutputStreamWriter(buffer, UTF_8), Responses.entity(oentity), entitySet, olinks);
+        } else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, Entity.class)) {
+            EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
+            //Write entry
+            Entity entity = entityResource.getEntity();
+            String entityName = entityResource.getEntityName();
+            // Write Entity object with Abdera implementation
+            entityEntryWriter.write(uriInfo, new OutputStreamWriter(buffer, UTF_8), entityName, entity, processedLinks, entityResource.getEmbedded());
+        } else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
+            EntityResource<Object> entityResource = (EntityResource<Object>) resource;
+            //Links and entity properties
+            Object entity = entityResource.getEntity();
+            String entityName = entityResource.getEntityName();
+            EntityProperties props = new EntityProperties();
+            if(entity != null) {
+                Map<String, Object> objProps = (transformer != null ? transformer : new BeanTransformer()).transform(entity);
+                if (objProps != null) {
+                    for(String propName : objProps.keySet()) {
+                        props.setProperty(new EntityProperty(propName, objProps.get(propName)));
+                    }
+                }
+            }
+            entityEntryWriter.write(uriInfo, new OutputStreamWriter(buffer, UTF_8), entityName, new Entity(entityName, props), processedLinks, entityResource.getEmbedded());
+        } else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
+            CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
+            EdmEntitySet entitySet = getEdmEntitySet(collectionResource.getEntityName());
+            List<EntityResource<OEntity>> collectionEntities = (List<EntityResource<OEntity>>) collectionResource.getEntities();
+            List<OEntity> entities = new ArrayList<OEntity>();
+            Map<OEntity, Collection<Link>> linkId = new HashMap<OEntity, Collection<Link>>();
+            for (EntityResource<OEntity> collectionEntity : collectionEntities) {
+                // create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
+                OEntity tempEntity = collectionEntity.getEntity();
+                List<OLink> olinks = formOLinks(collectionEntity);
+                Collection<Link> links = collectionEntity.getLinks();
+                OEntity entity = OEntities.create(entitySet, null, tempEntity.getEntityKey(), tempEntity.getEntityTag(), tempEntity.getProperties(), olinks);
+                entities.add(entity);
+                linkId.put(entity, links);
+            }
+            // TODO implement collection properties and get transient values for inlinecount and skiptoken
+            Integer inlineCount = null;
+            String skipToken = null;
+            feedWriter.write(uriInfo, new OutputStreamWriter(buffer, UTF_8), 
+                    processedLinks, 
+                    Responses.entities(entities, entitySet, inlineCount, skipToken), 
+                    metadata.getModelName(), linkId);
+        } else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class)) {
+            CollectionResource<Entity> collectionResource = ((CollectionResource<Entity>) resource);
+            
+            // TODO implement collection properties and get transient values for inlinecount and skiptoken
+            Integer inlineCount = null;
+            String skipToken = null;
+            //Write feed
+            AtomEntityFeedFormatWriter entityFeedWriter = new AtomEntityFeedFormatWriter(serviceDocument, metadata);
+            entityFeedWriter.write(uriInfo, new OutputStreamWriter(buffer, UTF_8), collectionResource, inlineCount, skipToken, metadata.getModelName());
+        } else {
+            LOGGER.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
+        IOUtils.copy(new ByteArrayInputStream(buffer.toByteArray()), entityStream);
+        //Set response headers
 		if(httpHeaders != null) {
 			httpHeaders.putSingle(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_ATOM_XML);		//Workaround for https://issues.apache.org/jira/browse/WINK-374
-		}
-		  		
-		try {
-			RESTResource restResource = processLinks((RESTResource) resource);
-			Collection<Link> processedLinks = restResource.getLinks();
-			if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, OEntity.class)) {
-				EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
-				OEntity tempEntity = entityResource.getEntity();
-				EdmEntitySet entitySet = getEdmEntitySet(entityResource.getEntityName());
-				List<OLink> olinks = formOLinks(entityResource);
-				//Write entry
-				// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
-				OEntity oentity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), null);
-				entryWriter.write(uriInfo, new OutputStreamWriter(entityStream, UTF_8), Responses.entity(oentity), entitySet, olinks);
-			} else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class, Entity.class)) {
-				EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
-				//Write entry
-				Entity entity = entityResource.getEntity();
-				String entityName = entityResource.getEntityName();
-				// Write Entity object with Abdera implementation
-				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, UTF_8), entityName, entity, processedLinks, entityResource.getEmbedded());
-			} else if(ResourceTypeHelper.isType(type, genericType, EntityResource.class)) {
-				EntityResource<Object> entityResource = (EntityResource<Object>) resource;
-				//Links and entity properties
-				Object entity = entityResource.getEntity();
-				String entityName = entityResource.getEntityName();
-				EntityProperties props = new EntityProperties();
-				if(entity != null) {
-					Map<String, Object> objProps = (transformer != null ? transformer : new BeanTransformer()).transform(entity);
-					if (objProps != null) {
-						for(String propName : objProps.keySet()) {
-							props.setProperty(new EntityProperty(propName, objProps.get(propName)));
-						}
-					}
-				}
-				entityEntryWriter.write(uriInfo, new OutputStreamWriter(entityStream, UTF_8), entityName, new Entity(entityName, props), processedLinks, entityResource.getEmbedded());
-			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
-				CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
-				EdmEntitySet entitySet = getEdmEntitySet(collectionResource.getEntityName());
-				List<EntityResource<OEntity>> collectionEntities = (List<EntityResource<OEntity>>) collectionResource.getEntities();
-				List<OEntity> entities = new ArrayList<OEntity>();
-				Map<OEntity, Collection<Link>> linkId = new HashMap<OEntity, Collection<Link>>();
-				for (EntityResource<OEntity> collectionEntity : collectionEntities) {
-		        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
-					OEntity tempEntity = collectionEntity.getEntity();
-					List<OLink> olinks = formOLinks(collectionEntity);
-					Collection<Link> links = collectionEntity.getLinks();
-	            	OEntity entity = OEntities.create(entitySet, null, tempEntity.getEntityKey(), tempEntity.getEntityTag(), tempEntity.getProperties(), olinks);
-					entities.add(entity);
-					linkId.put(entity, links);
-				}
-				// TODO implement collection properties and get transient values for inlinecount and skiptoken
-				Integer inlineCount = null;
-				String skipToken = null;
-				feedWriter.write(uriInfo, new OutputStreamWriter(entityStream, UTF_8), 
-						processedLinks, 
-						Responses.entities(entities, entitySet, inlineCount, skipToken), 
-						metadata.getModelName(), linkId);
-			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class)) {
-				CollectionResource<Entity> collectionResource = ((CollectionResource<Entity>) resource);
-				
-				// TODO implement collection properties and get transient values for inlinecount and skiptoken
-				Integer inlineCount = null;
-				String skipToken = null;
-				//Write feed
-				AtomEntityFeedFormatWriter entityFeedWriter = new AtomEntityFeedFormatWriter(serviceDocument, metadata);
-				entityFeedWriter.write(uriInfo, new OutputStreamWriter(entityStream, UTF_8), collectionResource, inlineCount, skipToken, metadata.getModelName());
-			} else {
-				logger.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
-				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
-			}
-		} catch (ODataProducerException e) {
-			logger.error("An error occurred while writing " + mediaType + " resource representation", e);
 		}
 	}
 	
@@ -303,7 +306,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		
 		//Add entity links
 		List<OLink> olinks = new ArrayList<OLink>();
-		if (entityResource.getLinks() != null && entityResource.getLinks().size() > 0) {
+		if (entityResource.getLinks() != null && !entityResource.getLinks().isEmpty()) {
 			for(Link link : entityResource.getLinks()) {
 				addLinkToOLinks(olinks, link, entityResource);
 			}		
@@ -360,8 +363,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 
 	private void addLinkToOLinks(List<OLink> olinks, Link link, RESTResource resource) {
 		RequestContext requestContext = RequestContext.getRequestContext();
-		assert(link != null);
-		assert(link.getTransition() != null);
+		assert link != null;
+		assert link.getTransition() != null;
 		Map<Transition,RESTResource> embeddedResources = resource.getEmbedded();
 		String rel = link.getRel();
 		String href = link.getHref();
@@ -432,30 +435,58 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			throws IOException, WebApplicationException {
 		
 		// check media type can be handled, isReadable must have been called
-		assert(ResourceTypeHelper.isType(type, genericType, EntityResource.class));
-		assert(mediaType.isCompatible(MediaType.APPLICATION_ATOM_XML_TYPE));
+		assert ResourceTypeHelper.isType(type, genericType, EntityResource.class);
+		assert mediaType.isCompatible(MediaType.APPLICATION_ATOM_XML_TYPE);
 		
 		try {
 			OEntityKey entityKey = null;
 
 			// work out the entity name using resource path from UriInfo
-			String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
-			String absoluteUri = AtomXMLProvider.getAbsolutePath(uriInfo);
-			logger.info("Reading atom xml content for [" + absoluteUri + "]");
-			String resourcePath = null;
-			StringBuffer regex = new StringBuffer("(?<=" + baseUri + ")\\S+");
-			Pattern p = Pattern.compile(regex.toString());
-			Matcher m = p.matcher(absoluteUri);
-			while (m.find()) {
-				resourcePath = m.group();
+			String absoluteUri = uriInfo.getAbsolutePath().toString();
+			
+			String resourcePath = absoluteUri.substring(uriInfo.getBaseUri().toString().length());
+			
+			ResourceState currentState = null;
+			
+			try {
+				currentState = getCurrentState(serviceDocument, resourcePath);
+			} catch (MethodNotAllowedException e1) {
+				StringBuilder allowHeader = new StringBuilder();
+				
+				Set<String> allowedMethods = new HashSet<String>(e1.getAllowedMethods());
+				allowedMethods.add("HEAD");
+				allowedMethods.add("OPTIONS");				
+				
+				for(String method: allowedMethods) {
+					allowHeader.append(method);
+					allowHeader.append(", ");
+				}
+				
+				Response response = Response.status(405).header("Allow", allowHeader.toString().substring(0, allowHeader.length() - 2)).build();
+				
+				throw new WebApplicationException(e1, response);
 			}
-			if (resourcePath == null)
-				throw new IllegalStateException("No resource found");
-			ResourceState currentState = getCurrentState(serviceDocument, resourcePath);
+			
 			if (currentState == null)
 				throw new IllegalStateException("No state found");
 			String pathIdParameter = getPathIdParameter(currentState);
-			MultivaluedMap<String, String> pathParameters = uriInfo.getPathParameters();
+			
+			UriInfo tmpUriInfo = new UriInfoImpl(uriInfo);
+			String uriPath = uriInfo.getAbsolutePath().toString().substring(uriInfo.getBaseUri().toString().length());
+			
+			if(uriPath.charAt(0) == '/') {
+				uriPath = uriPath.substring(1);
+			}
+			
+			String statePath = currentState.getPath();
+			
+			if(statePath.charAt(0) == '/') {
+				statePath = statePath.substring(1);
+			}
+			
+			new URLHelper().extractPathParameters(tmpUriInfo, uriPath.split("/"), statePath.split("/"));
+			
+			MultivaluedMap<String, String> pathParameters = tmpUriInfo.getPathParameters();
 			if (pathParameters != null && pathParameters.getFirst(pathIdParameter) != null) {
 				if (STRING_KEY_RESOURCE_PATTERN.matcher(resourcePath).find()) {
 					entityKey = OEntityKey.create(pathParameters.getFirst(pathIdParameter));				
@@ -481,17 +512,17 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			
 			// Lets parse the request content
 			Reader reader = new InputStreamReader(verifiedStream);
-			assert(entitySetName != null) : "Must have found a resource or thrown exception";
+			assert entitySetName != null : "Must have found a resource or thrown exception";
 			Entry e = new AtomEntryFormatParserExt(metadataOData4j, entitySetName, entityKey, null).parse(reader);
 			
 			return new EntityResource<OEntity>(e.getEntity());
 		} catch (IllegalStateException e) {
-			logger.warn("Malformed request from client", e);
+			LOGGER.warn("Malformed request from client", e);
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 
 	}
-
+	
 	/*
 	 * Find the entity set name for this resource
 	 */
@@ -505,12 +536,17 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				if (targetEntitySet != null)
 					entitySetName = targetEntitySet.getName();
 			}
-		} catch (NotFoundException e) {}
+		} catch (NotFoundException e) {
+		    if(LOGGER.isDebugEnabled()) {
+		        LOGGER.debug("Failed to get entity set name", e);
+		    }
+		}
+		
 		if (entitySetName == null) {
 			try {
 				entitySetName = getEdmEntitySet(state.getEntityName()).getName();
 			} catch (NotFoundException e) {
-				logger.warn("Entity [" + fqTargetEntityName + "] is not an entity set.");
+				LOGGER.warn("Entity [" + fqTargetEntityName + "] is not an entity set.", e);
 			}
 			if(entitySetName == null) {
 				entitySetName = state.getName();
@@ -519,55 +555,17 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		return entitySetName;
 	}
 	
-	protected ResourceState getCurrentState(ResourceState serviceDocument, String resourcePath) {
+	protected ResourceState getCurrentState(ResourceState serviceDocument, String resourcePath) throws MethodNotAllowedException {
 		ResourceState state = null;
 		if (resourcePath != null) {
-			/*
-			 * add a leading '/' if it needs it (when defining resources we must use a 
-			 * full path, but requests can be relative, i.e. without a '/'
-			 */
-			if (!resourcePath.startsWith("/")) {
-				resourcePath = "/" + resourcePath;
+		    String tmpResourcePath = uriInfo.getAbsolutePath().toString().replaceFirst(uriInfo.getBaseUri().toString(), "");
+		    
+		    if(tmpResourcePath.charAt(0) != '/') {
+		        tmpResourcePath = '/' + tmpResourcePath;
 			}
-			// add service document path to resource path
-			String serviceDocumentPath = serviceDocument.getPath();
-			if (serviceDocumentPath.endsWith("/")) {
-				serviceDocumentPath = serviceDocumentPath.substring(0, serviceDocumentPath.lastIndexOf("/"));
-			}
-			resourcePath = serviceDocumentPath + resourcePath;
-			// turn the uri back into a template uri
-			MultivaluedMap<String, String> pathParameters = uriInfo.getPathParameters();
-			if (pathParameters != null) {
-				for (String key : pathParameters.keySet()) {
-					List<String> values = pathParameters.get(key);
-					for (String value : values) {
-						resourcePath = resourcePath.replace(value, "{" + key + "}");
-					}
-				}
-			}
-			String httpMethod = requestContext.getMethod();
-			Event event = new Event(httpMethod, httpMethod);
-			state = resourceStateProvider.determineState(event, resourcePath);
-
-			if (state == null) {
-				logger.warn("No state found, dropping back to path matching " + resourcePath);
-				// escape the braces in the regex
-				resourcePath = Pattern.quote(resourcePath);
-				Map<String, Set<String>> pathToResourceStates = resourceStateProvider.getResourceStatesByPath();
-				for (String path : pathToResourceStates.keySet()) {
-					for (String name : pathToResourceStates.get(path)) {
-						ResourceState s = resourceStateProvider.getResourceState(name);
-						String pattern = null;
-						if (s instanceof CollectionResourceState) {
-							pattern = resourcePath + "(|\\(\\))";
-							Matcher matcher = Pattern.compile(pattern).matcher(path);
-							if (matcher.matches()) {
-								state = s;
-							}
-						}
-					}
-				}
-			}
+		    		    
+		    
+		    state = resourceStateProvider.getResourceState(requestContext.getMethod(), tmpResourcePath);
 		}
 		return state;
 	}
@@ -587,11 +585,20 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 
 	
 	/* Ugly testing support :-( */
-	protected void setUriInfo(UriInfo uriInfo) {
+	void setUriInfo(UriInfo uriInfo) {
 		this.uriInfo = uriInfo;
+		
+		if(resourceStateProvider instanceof DefaultResourceStateProvider) {
+		    ((DefaultResourceStateProvider)resourceStateProvider).setUriInfo(uriInfo);
+		}
 	}
-	protected void setRequestContext(Request request) {
+	
+	void setRequestContext(Request request) {
 		this.requestContext = request;
+	}
+
+	void setResourceStateProvider(ResourceStateProvider resourceStateProvider) {
+	    this.resourceStateProvider = resourceStateProvider;
 	}
 
 	/**
@@ -603,7 +610,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	private InputStream verifyContentReceieved(InputStream stream) throws IOException {
 
 		if (stream == null) {					// Check if its null
-			logger.debug("Request stream received as null");
+			LOGGER.debug("Request stream received as null");
 			return null;
 		} else if (stream.markSupported()) {	// Check stream supports mark/reset
 			// mark() and read the first byte just to check
@@ -615,7 +622,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				return stream;
 			} else {
 			    //stream empty
-				logger.debug("Request received with empty body");
+				LOGGER.debug("Request received with empty body");
 				return null;
 			}
 		} else {
@@ -628,7 +635,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				return pbs;
 			} else {
 				// Empty stream detected
-				logger.debug("Request received with empty body!");
+				LOGGER.debug("Request received with empty body!");
 				return null;
 			}
 		}
@@ -673,8 +680,11 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		try {
 			entitySet = getEdmDataService().getEdmEntitySet(entityType);
 		} catch (Exception e) {
-			//logger.error("Unable to find entity set for [" +entityName + "]");
+		    if(LOGGER.isDebugEnabled()) {
+		        LOGGER.debug("Unable to find entity set for [" +entityName + "]", e);
+		    }
 		}
+		
 		if(entitySet == null) {
 			return metadataOData4j.getEdmEntitySetByEntityName(entityName);
 		}

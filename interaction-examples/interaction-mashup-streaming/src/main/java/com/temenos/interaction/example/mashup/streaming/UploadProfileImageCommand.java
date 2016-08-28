@@ -77,19 +77,15 @@ public class UploadProfileImageCommand implements InteractionCommand {
 				out = new FileOutputStream(file);
 				
 				IOUtils.copy(in, out);
-			} catch (Exception e) {
+				
+				if( in != null) {
+                    in.close();
+                }                
+                out.close();
+			} catch (IOException e) {
+                throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e);
+            } catch (Exception e) {
 				throw new InteractionException(Status.INTERNAL_SERVER_ERROR,"error", e);
-			} finally {
-				try {
-					if( in != null) {
-						in.close();
-					}
-					if( out != null) {
-						out.close();
-					}
-				} catch (IOException e) {
-					throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e);
-				}
 			}
 			
 			// We'll use the filename as the entity key

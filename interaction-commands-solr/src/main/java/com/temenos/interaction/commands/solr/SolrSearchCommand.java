@@ -37,43 +37,36 @@ import java.util.List;
 import java.util.Set;
 
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.authorization.command.AuthorizationAttributes;
-import com.temenos.interaction.authorization.command.data.FieldName;
-import com.temenos.interaction.authorization.command.data.RowFilter;
-import com.temenos.interaction.authorization.command.util.ODataParser;
+import com.temenos.interaction.commands.solr.data.SolrConstants;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
+import com.temenos.interaction.core.entity.EntityProperties;
+import com.temenos.interaction.odataext.odataparser.ODataParser;
+import com.temenos.interaction.odataext.odataparser.data.FieldName;
+import com.temenos.interaction.odataext.odataparser.data.RowFilter;
 
 public class SolrSearchCommand extends AbstractSolrCommand implements InteractionCommand {
+
 	private final static Logger logger = LoggerFactory.getLogger(SolrSearchCommand.class);
 
-	// Somewhere to store references to the embedded Solr servers used during
-	// testing.
-	private SolrServer testEntity1SolrServer = null;
-	private SolrServer testEntity2SolrServer = null;
-
-	// Type of entity used during testing.
-	private String testEntityType;
-
-	// Root of the Solr URL
-	private String solrRootURL;
-
-	// Keys for the key/value pairs which can be passed in as part of the search
-	// URL.
-	private static final String CORE_KEY = "core";
-	private static final String QUERY_KEY = "q";
-	private static final String FIELD_NAME_KEY = "fieldname";
-	private static final String COMPANY_NAME_KEY = "companyid";
+	private static final String TEXT = "text";
+	private static final String COLON = ":";
+	private static final String STAR = "*";
 
 	/**
 	 * Instantiates a new select command.
@@ -87,108 +80,41 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 		this.solrRootURL = solrRootURL;
 	}
 
-	/**
-	 * Instantiates a new select command for unittests.
-	 * 
-	 * Unit tests use an embedded Solr server. It has no URL so just pass in the
-	 * server references.
-	 * 
-	 * The third argument tells the test which entity type to associate witht he
-	 * first test server.
-	 * 
-	 * NOT TO BE USED FOR PRODUCTION CODE.
-	 * 
-	 * @param solrServer
-	 *            the solr server
-	 */
-	public SolrSearchCommand(SolrServer entity1Server, SolrServer entity2Server, String entityType) {
-		testEntity1SolrServer = entity1Server;
-		testEntity2SolrServer = entity2Server;
-		testEntityType = entityType;
+	protected SolrSearchCommand() {}
+
+	@Override
+	public Result execute(InteractionContext ctx) throws InteractionException {
+		try {
+			URL coreURL = new URL(solrRootURL + "/" +  getCompanyId(ctx) + "_" + getCoreName(ctx));
+			// URL coreURL = new URL(solrRootURL + "/" + coreName);
+			logger.info("Connecting to external Solr server " + coreURL + ".");
+			return execute(ctx, new HttpSolrServer(coreURL.toString()));
+		} catch (MalformedURLException e) {
+			logger.error("Malformed URL when connecting to Solr Server. " + e);
+			throw new InteractionException(Status.BAD_REQUEST, "Malformed URL when connecting to Solr Server", e);
+		}
 	}
 
-	public Result execute(InteractionContext ctx) {
-
-		// Validate passed parameters
-		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
-
-		// Dump query parameters
-		Iterator<String> it = ctx.getQueryParameters().keySet().iterator();
-		logger.info("SolrSearch command parameters:");
-		while (it.hasNext()) {
-			String theKey = (String) it.next();
-			logger.info("    " + theKey + " = " + ctx.getQueryParameters().getFirst(theKey));
-		}
-
-		String coreName = queryParams.getFirst(CORE_KEY);
-		String entityType = ctx.getCurrentState().getEntityName();
-
-		String companyName = ctx.getPathParameters().getFirst(COMPANY_NAME_KEY);
-		if (null == companyName) {
-			logger.warn("Search called with no company string.");
-			return Result.FAILURE;
-		}
-
-		// TODO remove before production.
-		logger.info("Calling search on company " + companyName + " core " + coreName + " entity " + entityType);
-
-		// Validate entity type
-		if (null == entityType) {
-			if (null == testEntity1SolrServer) {
-				// In production there must always be a valid entity name
-				logger.error("Select invoked with null entity type.");
-				return (Result.FAILURE);
-			} else {
-				// For test this expected. Use core or passed entity type.
-				if (null == coreName) {
-					entityType = testEntityType;
-				} else {
-					entityType = coreName;
-				}
-			}
-		}
-
-		// Work out which core should be used.
-		if (null == coreName) {
-			// Use a core with the same name as the entity type.
-			coreName = entityType;
-		}
+	protected Result execute(InteractionContext ctx, SolrServer solrServer) throws InteractionException {
+		logQueryParameters(ctx.getQueryParameters());
 
 		// Set up query
-		SolrQuery query = buildQuery(queryParams);
+		SolrQuery query = buildQuery(ctx.getQueryParameters());
 		if (null == query) {
 			// Could not build a valid query.
-			return (Result.FAILURE);
+			throw new InteractionException(Status.BAD_REQUEST, "Search query is empty, please provide valid options");
 		}
 
-		// Set up a client side stub connecting to a Solr server
-		SolrServer solrServer;
-		if (null != testEntity1SolrServer) {
-			// Use one of the test servers
-			if (testEntityType == entityType) {
-				solrServer = testEntity1SolrServer;
-			} else {
-				solrServer = testEntity2SolrServer;
-			}
-		} else {
-			// Connect to an external SOLR server
-			try {
-				URL coreURL = new URL(solrRootURL + "/" + companyName + "_" + coreName);
-				logger.info("Connecting to external Solr server " + coreURL + ".");
-				solrServer = new HttpSolrServer(coreURL.toString());
-			} catch (MalformedURLException e) {
-				logger.error("Malformed URL when connecting to Solr Server. " + e);
-				return (Result.FAILURE);
-			}
-		}
+		// TODO The following 4 lines, and the URL built with 'comapnyName', are a temporary work round to RTC1671119.
+		// TODO Once expected behavior is understood feel free to remove this.
 
 		// Run the query
 		Result res = Result.FAILURE;
 		try {
-			QueryResponse rsp = solrServer.query(query);
+		    QueryResponse rsp = solrServer.query(query);
 			// SolrDocumentList list = rsp.getResults();
 
-			ctx.setResource(buildCollectionResource(entityType, rsp.getResults()));
+			ctx.setResource(buildCollectionResource(getEntityName(ctx), rsp.getResults()));
 	
 			// Indicate that database level filtering was successful.
 			ctx.setAttribute(AuthorizationAttributes.FILTER_DONE_ATTRIBUTE, Boolean.TRUE);
@@ -201,25 +127,53 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 			logger.error("An unexpected error occurred while querying Solr " + e);
 		}
 
-		// If we connected to an external server disconnect.
-		if (null == testEntity1SolrServer) {
-			// If we started a server connection close it down.
-			solrServer.shutdown();
-		}
+		solrServer.shutdown();
 
-		return (res);
+		return res;
 	}
 
-	// Build up a query from the parameters. Returns null on failure.
-	SolrQuery buildQuery(MultivaluedMap<String, String> queryParams) {
+	private void logQueryParameters(MultivaluedMap<String, String> queryParams) {
+		Iterator<String> it = queryParams.keySet().iterator();
+		logger.info("SolrSearch command parameters:");
+		while (it.hasNext()) {
+			String theKey = (String) it.next();
+			logger.info("    " + theKey + " = " + queryParams.getFirst(theKey));
+		}
+	}
+
+	private String getCoreName(InteractionContext ctx) throws InteractionException {
+		if (ctx.getQueryParameters().containsKey(SolrConstants.SOLR_CORE_KEY)) {
+			return ctx.getQueryParameters().getFirst(SolrConstants.SOLR_CORE_KEY);
+		}
+		return getEntityName(ctx);
+	}
+
+	private String getCompanyId(InteractionContext ctx) throws InteractionException {
+		String companyName = ctx.getPathParameters().getFirst("companyid");
+		if (null == companyName) {
+			throw new InteractionException(Status.BAD_REQUEST, "Missing company id");
+		}
+		return companyName;
+	}
+
+	private String getEntityName(InteractionContext ctx) throws InteractionException {
+		String entityName = ctx.getCurrentState().getEntityName();
+		if (entityName == null || entityName.isEmpty()) {
+			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, "Missing entity name");
+		}
+		return entityName;
+	}
+
+	private SolrQuery buildQuery(MultivaluedMap<String, String> queryParams) {
 		SolrQuery query = new SolrQuery();
 
-		// By default SolrQuery only returns 10 rows. This is true even if more
-		// rows are available. Since we will be
-		// reading more than this increase the number of rows returned.
-		query.setRows(MAX_ENTITIES_RETURNED);
-
-		// Build the query string.
+		// Add Number of rows to fetch
+		addNumOfRows(query, queryParams);
+		
+		// Add Shards for Distributed Query support
+		addShards(query, queryParams);
+		
+		// Add the query string
 		String queryString = buildQueryString(queryParams);
 		if (null != queryString) {
 			query.setQuery(queryString);
@@ -234,6 +188,46 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 		return (query);
 	}
 
+	/**
+	 * By default SolrQuery only returns 10 rows. This is true even if more
+     * rows are available. This method will check if user has provided its preference
+     * using $top, otherwise use Solr Default
+	 * @param query
+	 * @param queryParams
+	 */
+	private void addNumOfRows(SolrQuery query, MultivaluedMap<String, String> queryParams) {
+	    int top = 0;
+	   try {
+	       String topStr = queryParams.getFirst("$top");
+	       top = topStr == null || topStr.isEmpty() ? 0 : Integer.parseInt(topStr);
+	   } catch (NumberFormatException nfe) {
+	       // Do nothing and ignore as we have default value to use
+
+	   }
+	   if (top > 0) {
+           query.setRows(top);
+       } else {
+           query.setRows(MAX_ENTITIES_RETURNED);
+       }
+    }
+
+	/**
+	 * This method will add Shards to the Query
+	 * @param query
+	 * @param queryParams
+	 */
+	private void addShards(SolrQuery query, MultivaluedMap<String, String> queryParams) {
+	    String shards = queryParams.getFirst(SolrConstants.SOLR_SHARDS_KEY);
+	    if (shards != null && !shards.isEmpty()) {
+	        query.setParam(SolrConstants.SOLR_SHARDS_KEY, shards);
+	        // Check if user has specified shards.tolerant, add if available
+	        String shardsTolerant = queryParams.getFirst(SolrConstants.SOLR_SHARDS_TOLERANT_KEY);
+	        if (shardsTolerant != null && !shardsTolerant.isEmpty()) {
+	            query.setParam(SolrConstants.SOLR_SHARDS_TOLERANT_KEY, shardsTolerant);
+	        }
+	    }
+	}
+	
 	// Build Solr field list from an OData $select option.
 	private void addSelect(SolrQuery query, MultivaluedMap<String, String> queryParams) {
 
@@ -254,28 +248,21 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 
 	// Build the Solr query string from passed request.
 	private String buildQueryString(MultivaluedMap<String, String> queryParams) {
-		String queryStr = new String();
-
-		// If field name not passed use the 'text' field which contains all
-		// other fields.
-		String fieldName = queryParams.getFirst(FIELD_NAME_KEY);
-		if (null == fieldName) {
-			fieldName = "text";
+		String query = queryParams.getFirst(SolrConstants.SOLR_QUERY_KEY);
+		if (null == query || query.isEmpty()) {
+			return TEXT + COLON + STAR;
 		}
-
-		// Add "q=" option if present.
-		String query = queryParams.getFirst(QUERY_KEY);
-		if (null != query) {
-			queryStr = queryStr.concat(fieldName + ":" + query);
-		} else {
-			// If no query go with everything.
-			logger.info("Search called with no query string. Searching on '*'.");
-			queryStr = queryStr.concat(fieldName + ":*");
+		query = query.trim();
+		if (!query.contains(COLON)) {
+			return TEXT + COLON + query;
 		}
-
-		logger.info("Executing query " + queryStr + ".");
-
-		return (queryStr);
+		while (query.startsWith(STAR)) {
+			query = query.substring(1, query.length());
+		}
+		if (query.startsWith(COLON)) {
+			return TEXT + query;
+		}
+		return query;
 	}
 
 	// Build the Solr query string from passed request and any authorization
@@ -328,10 +315,15 @@ public class SolrSearchCommand extends AbstractSolrCommand implements Interactio
 					}
 				}
 			} catch (ODataParser.UnsupportedQueryOperationException e) {
-				logger.error("Could not interpret OData " + ODataParser.FILTER_KEY + " = " + filterOption);
+				logger.error("Could not interpret OData " + ODataParser.FILTER_KEY + " = " + filterOption, e);
 				return;
 			}
 		}
 		return;
+	}
+	
+	@Override
+	protected void customizeEntityProperties(SolrDocument doc, EntityProperties properties) {
+	    // By default nothing needs to be done
 	}
 }

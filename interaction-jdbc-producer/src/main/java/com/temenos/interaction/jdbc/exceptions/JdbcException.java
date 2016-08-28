@@ -1,5 +1,7 @@
 package com.temenos.interaction.jdbc.exceptions;
 
+import javax.ws.rs.core.Response.StatusType;
+
 /*
  * #%L
  * interaction-jdbc-producer
@@ -21,13 +23,11 @@ package com.temenos.interaction.jdbc.exceptions;
  * #L%
  */
 
-import javax.ws.rs.core.Response.StatusType;
 
-import com.temenos.interaction.core.command.InteractionException;
-
-public class JdbcException extends InteractionException {
+public class JdbcException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
+    private final transient StatusType httpStatus;	
 
 	/**
 	 * Construct a new exception
@@ -36,7 +36,7 @@ public class JdbcException extends InteractionException {
 	 *            HTTP status code
 	 */
 	public JdbcException(StatusType httpStatus) {
-		super(httpStatus);
+		this.httpStatus = httpStatus;
 	}
 
 	/**
@@ -48,7 +48,8 @@ public class JdbcException extends InteractionException {
 	 *            error message
 	 */
 	public JdbcException(StatusType httpStatus, String message) {
-		super(httpStatus, message);
+		super(message);
+		this.httpStatus = httpStatus;
 	}
 
 	/**
@@ -63,7 +64,8 @@ public class JdbcException extends InteractionException {
 	 *            cause is nonexistent or unknown.)
 	 */
 	public JdbcException(StatusType httpStatus, String message, Throwable cause) {
-		super(httpStatus, message, cause);
+		super(message, cause);
+		this.httpStatus = httpStatus;
 	}
 
 	/**
@@ -76,6 +78,15 @@ public class JdbcException extends InteractionException {
 	 *            cause is nonexistent or unknown.)
 	 */
 	public JdbcException(StatusType httpStatus, Throwable cause) {
-		super(httpStatus, cause);
+	    super(cause);
+		this.httpStatus = httpStatus;
 	}
+	
+    /**
+     * Return the HTTP status code
+     * @return http status code
+     */
+    public StatusType getHttpStatus() {
+        return httpStatus;
+    }	
 }

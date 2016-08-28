@@ -32,7 +32,7 @@ public class InteractionException extends Exception {
 
 	private static final long serialVersionUID = 1L;
 	
-	private StatusType httpStatus;
+	private final transient StatusType httpStatus;
 
 	/**
 	 * Construct a new exception

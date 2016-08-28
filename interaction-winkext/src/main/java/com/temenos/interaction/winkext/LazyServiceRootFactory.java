@@ -22,16 +22,11 @@ package com.temenos.interaction.winkext;
  */
 
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.temenos.interaction.core.cache.Cache;
-import com.temenos.interaction.core.command.NewCommandController;
+import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceLocatorProvider;
 import com.temenos.interaction.core.hypermedia.ResourceParameterResolverProvider;
@@ -40,39 +35,28 @@ import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 import com.temenos.interaction.core.hypermedia.Transformer;
 import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
-import com.temenos.interaction.springdsl.DynamicRegistrationResourceStateProvider;
-import com.temenos.interaction.springdsl.RIMRegistration;
-import com.temenos.interaction.springdsl.StateRegisteration;
 
 /**
  * A resource factory that uses the beans and configuration files from the SpringDSL implementation
  * to construct all the resources required for an hypermedia server instance.
  * @author aphethean
  */
-public class LazyServiceRootFactory implements ServiceRootFactory, StateRegisteration {
+public class LazyServiceRootFactory implements ServiceRootFactory {
 
-	private final Logger logger = LoggerFactory.getLogger(LazyServiceRootFactory.class);
-	
 	private ResourceStateProvider resourceStateProvider;
-	// resources by path
-	private Map<String, LazyResourceDelegate> resources = new HashMap<String, LazyResourceDelegate>();
 	private ResourceStateMachine hypermediaEngine;
 	
 	// members passed to lazy resources
-	private NewCommandController commandController;
+	private CommandController commandController;
 	private Metadata metadata;
 	private ResourceLocatorProvider resourceLocatorProvider;
 	private ResourceParameterResolverProvider parameterResolverProvider;
 	private Cache cacheImpl;
 	private ResourceState exception;
 	private Transformer transformer;
-	private RIMRegistration rimRegistration;
 
-	public Set<HTTPResourceInteractionModel> getServiceRoots() {
-		if(resourceStateProvider instanceof DynamicRegistrationResourceStateProvider) {
-			((DynamicRegistrationResourceStateProvider)resourceStateProvider).setStateRegisteration(this);
-		}
-		
+	@Override
+	public Set<HTTPResourceInteractionModel> getServiceRoots() {		
 		hypermediaEngine = new ResourceStateMachine.Builder()
 				.initial(null)
 				.exception(exception)
@@ -83,52 +67,33 @@ public class LazyServiceRootFactory implements ServiceRootFactory, StateRegister
 				.responseCache(cacheImpl)
 				.build();
 
-		Set<HTTPResourceInteractionModel> services = new HashSet<HTTPResourceInteractionModel>();
-		Map<String, Set<String>> resourceMethodsByState = resourceStateProvider.getResourceMethodsByState();
-		Map<String, String> resourcePathsByState = resourceStateProvider.getResourcePathsByState();
-		for (String stateName : resourceMethodsByState.keySet()) {
-			String path = resourcePathsByState.get(stateName);
-			LazyResourceDelegate resource = resources.get(path);
-			Set<String> methods = resourceMethodsByState.get(stateName);
-			if (resource == null) {
-				resource = new LazyResourceDelegate(hypermediaEngine,
-						resourceStateProvider,
-						commandController,
-						metadata,
-						stateName, 
-						path,
-						methods);
-			} else {
-				resource.addResource(stateName, methods);
-			}
-			resources.put(path, resource);
-		}
-		for (String path : resources.keySet()) {
-			services.add(resources.get(path));
-		}
-		return services;
+		Set<HTTPResourceInteractionModel> services = new HashSet<HTTPResourceInteractionModel>();		
+		Set<String> methods = new HashSet<String>();
+		methods.add("GET");
+        methods.add("POST");
+        methods.add("PUT");
+        methods.add("DELETE");
+        methods.add("OPTIONS");        
+		
+        // Register a single Wink resource that is responsible for delegating requests to IRIS
+		LazyResourceDelegate resource = new LazyResourceDelegate(hypermediaEngine,
+                resourceStateProvider,
+                commandController,
+                metadata,
+                "all", 
+                "{var:.*}",
+                methods);
+		
+		services.add(resource);
+		
+        return services;        
 	}
 	
-	@Override
-	public void register(String stateName, String path, Set<String> methods) {
-		logger.info("Attempting to add service: " + stateName);
-		
-		LazyResourceDelegate resource = new LazyResourceDelegate(hypermediaEngine,
-				resourceStateProvider,
-				commandController,
-				metadata,
-				stateName, 
-				path,
-				methods);
-		
-		rimRegistration.register(resource);		
-	}
-
-	public NewCommandController getCommandController() {
+	public CommandController getCommandController() {
 		return commandController;
 	}
 
-	public void setCommandController(NewCommandController commandController) {
+	public void setCommandController(CommandController commandController) {
 		this.commandController = commandController;
 	}
 
@@ -172,10 +137,6 @@ public class LazyServiceRootFactory implements ServiceRootFactory, StateRegister
 		this.resourceStateProvider = resourceStateProvider;
 	}
 
-	public ResourceStateMachine getHypermediaEngine() {
-		return hypermediaEngine;
-	}
-
 	public void setHypermediaEngine(ResourceStateMachine hypermediaEngine) {
 		this.hypermediaEngine = hypermediaEngine;
 	}
@@ -187,9 +148,4 @@ public class LazyServiceRootFactory implements ServiceRootFactory, StateRegister
 	public void setCacheImpl(Cache cache) {
 		cacheImpl = cache;
 	}
-
-	@Override
-	public void setRIMRegistration(RIMRegistration rimRegistration) {
-		this.rimRegistration = rimRegistration;		
-	}	
 }

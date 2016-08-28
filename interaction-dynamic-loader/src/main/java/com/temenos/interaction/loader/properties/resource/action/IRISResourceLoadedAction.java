@@ -24,6 +24,7 @@ package com.temenos.interaction.loader.properties.resource.action;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
 
 import com.temenos.interaction.core.loader.Action;
 import com.temenos.interaction.core.loader.PropertiesEvent;
@@ -35,7 +36,7 @@ import com.temenos.interaction.springdsl.SpringDSLResourceStateProvider;
  * @author mlambert
  *
  */
-public class IRISResourceLoadedAction implements Action<PropertiesEvent> {
+public class IRISResourceLoadedAction implements Action<PropertiesEvent<Resource>> {
 	private final Logger logger = LoggerFactory.getLogger(IRISResourceLoadedAction.class);	
 	
 	private SpringDSLResourceStateProvider resourceStateProvider;
@@ -48,7 +49,7 @@ public class IRISResourceLoadedAction implements Action<PropertiesEvent> {
 	}
 
 	@Override
-	public void execute(PropertiesEvent event) {			
+	public void execute(PropertiesEvent<Resource> event) {			
 		logger.debug("Properties loaded: " + event.getNewProperties());
 
 		for (Object key : event.getNewProperties().keySet()) {

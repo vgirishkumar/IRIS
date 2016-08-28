@@ -29,13 +29,13 @@ import com.temenos.interaction.core.loader.PropertiesEvent;
 import com.temenos.interaction.core.loader.PropertiesEventVisitor;
 import com.temenos.interaction.core.loader.PropertiesLoadedEvent;
 
-public class PropertiesLoadedEventImpl implements PropertiesEvent, PropertiesLoadedEvent {
+public class PropertiesLoadedEventImpl implements PropertiesEvent<Resource>, PropertiesLoadedEvent<Resource> {
 
-	private final ReloadableProperties target;
+	private final ReloadableProperties<Resource> target;
 	private final Resource resource;
 	private final Properties newProperties;
 	
-	public PropertiesLoadedEventImpl(ReloadableProperties target, Resource resource, Properties newProperties) {
+	public PropertiesLoadedEventImpl(ReloadableProperties<Resource> target, Resource resource, Properties newProperties) {
 		this.target = target;
 		this.resource = resource;
 		this.newProperties = newProperties;
@@ -46,7 +46,7 @@ public class PropertiesLoadedEventImpl implements PropertiesEvent, PropertiesLoa
 		return resource;
 	}
 
-	public ReloadableProperties getTarget() {
+	public ReloadableProperties<Resource> getTarget() {
 		return target;
 	}
 
@@ -54,7 +54,7 @@ public class PropertiesLoadedEventImpl implements PropertiesEvent, PropertiesLoa
 	 * @see com.temenos.interaction.loader.properties.PropertiesLoadedEvent#accept(com.temenos.interaction.core.loader.PropertiesEventVisitor)
 	 */
 	@Override
-	public void accept(PropertiesEventVisitor visitor) {
+	public void accept(PropertiesEventVisitor<Resource> visitor) {
 		visitor.visit(this);		
 	}
 

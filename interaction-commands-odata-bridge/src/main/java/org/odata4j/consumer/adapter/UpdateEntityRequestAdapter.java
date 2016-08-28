@@ -21,7 +21,6 @@ package org.odata4j.consumer.adapter;
  * #L%
  */
 
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,78 +32,78 @@ import org.odata4j.core.OLinks;
 import org.odata4j.core.OModifyRequest;
 import org.odata4j.core.OProperty;
 import org.odata4j.producer.ODataProducer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.temenos.interaction.commands.odata.consumer.GETNavPropertyCommand;
 
 public class UpdateEntityRequestAdapter<T> implements OModifyRequest<T> {
 
-  private final ODataProducer producer;
-  private final String entitySetName;
-  private final OEntityKey entityKey;
+    private static final Logger LOGGER = LoggerFactory.getLogger(GETNavPropertyCommand.class);
 
-  private List<OProperty<?>> properties = new ArrayList<OProperty<?>>();
-  private List<OLink> links = new ArrayList<OLink>();
+    private final ODataProducer producer;
+    private final String entitySetName;
+    private final OEntityKey entityKey;
 
-  public UpdateEntityRequestAdapter(ODataProducer producer,
-          String entitySetName, OEntityKey entityKey) {
-    super();
-    this.producer = producer;
-    this.entitySetName = entitySetName;
-    this.entityKey = entityKey;
-  }
+    private List<OProperty<?>> properties = new ArrayList<OProperty<?>>();
+    private List<OLink> links = new ArrayList<OLink>();
 
-  @Override
-  public OModifyRequest<T> properties(OProperty<?>... props) {
-    for (OProperty<?> prop : props) {
-      properties.add(prop);
+    public UpdateEntityRequestAdapter(ODataProducer producer, String entitySetName, OEntityKey entityKey) {
+        super();
+        this.producer = producer;
+        this.entitySetName = entitySetName;
+        this.entityKey = entityKey;
     }
-    return this;
-  }
 
-  @Override
-  public OModifyRequest<T> properties(Iterable<OProperty<?>> props) {
-    for (OProperty<?> prop : props) {
-      properties.add(prop);
+    @Override
+    public OModifyRequest<T> properties(OProperty<?>... props) {
+        for (OProperty<?> prop : props) {
+            properties.add(prop);
+        }
+        return this;
     }
-    return this;
-  }
 
-  @Override
-  public OModifyRequest<T> link(String navProperty, OEntity target) {
-    // TODO : check
-    OLink link = OLinks.relatedEntityInline(navProperty, null, null, target);
-    links.add(link);
-    return this;
-  }
-
-  @Override
-  public OModifyRequest<T> link(String navProperty, OEntityKey targetKey) {
-    // TODO : check
-    OLink link = OLinks.relatedEntity(navProperty, navProperty, null);
-    links.add(link);
-    return this;
-  }
-
-  @Override
-  public void execute() {
-    OEntity entity = OEntities.create(
-            producer.getMetadata().getEdmEntitySet(entitySetName), entityKey,
-            properties, links);
-    try {
-      producer.updateEntity(entitySetName, entity);
-    } catch (Exception e) {
-      // TODO : Add logs
+    @Override
+    public OModifyRequest<T> properties(Iterable<OProperty<?>> props) {
+        for (OProperty<?> prop : props) {
+            properties.add(prop);
+        }
+        return this;
     }
-  }
 
-  @Override
-  public OModifyRequest<T> nav(String navProperty, OEntityKey key) {
-    // TODO Auto-generated method stub
-    return this;
-  }
+    @Override
+    public OModifyRequest<T> link(String navProperty, OEntity target) {
+        OLink link = OLinks.relatedEntityInline(navProperty, null, null, target);
+        links.add(link);
+        return this;
+    }
 
-@Override
-public OModifyRequest<T> ifMatch(String precondition) {
-	// TODO Auto-generated method stub
-	return null;
-}
+    @Override
+    public OModifyRequest<T> link(String navProperty, OEntityKey targetKey) {
+        OLink link = OLinks.relatedEntity(navProperty, navProperty, null);
+        links.add(link);
+        return this;
+    }
+
+    @Override
+    public void execute() {
+        OEntity entity = OEntities.create(producer.getMetadata().getEdmEntitySet(entitySetName), entityKey, properties,
+                links);
+        try {
+            producer.updateEntity(entitySetName, entity);
+        } catch (Exception e) {
+            LOGGER.error("FAiled to update the entity", e);
+        }
+    }
+
+    @Override
+    public OModifyRequest<T> nav(String navProperty, OEntityKey key) {
+        return this;
+    }
+
+    @Override
+    public OModifyRequest<T> ifMatch(String precondition) {
+        return null;
+    }
 
 }

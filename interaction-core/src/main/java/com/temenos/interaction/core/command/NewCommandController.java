@@ -28,10 +28,16 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NewCommandController {
+/**
+ * Legacy implementation of command registry, refactored to implement {@link CommandController}
+ * @author trojanbug
+ * @deprecated as of introduction of {@link MapBasedCommandController}, for compatibility with configuration generator referring to NewCommandController explicitly.
+ */
+@Deprecated
+public class NewCommandController implements CommandController {
 	private final Logger logger = LoggerFactory.getLogger(NewCommandController.class);
 
-	private Map<String, InteractionCommand> commands = new HashMap<String, InteractionCommand>();
+	protected Map<String, InteractionCommand> commands = new HashMap<String, InteractionCommand>();
 
 	/**
 	 * Create an empty command controller.
@@ -83,4 +89,8 @@ public class NewCommandController {
 	public boolean isValidCommand(String name) {
 		return (commands.get(name) != null);
 	}
+
+    public void removeCommand(String name) {
+        commands.remove(name);
+    }
 }

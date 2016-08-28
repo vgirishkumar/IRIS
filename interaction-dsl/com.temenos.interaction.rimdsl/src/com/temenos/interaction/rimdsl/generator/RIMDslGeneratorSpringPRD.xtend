@@ -306,9 +306,9 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 		«IF transition.spec == null»
 				<property name="uriParameters"><util:map></util:map></property>
 				<property name="evaluation"><null /></property>
-		«ENDIF»
-
+		«ENDIF»		
 				<property name="label" value="«RIMDslGenerator::getTransitionLabel(transition)»" />
+		«includeTransitionSourceField(transition)»
 			</bean>
 	'''
 
@@ -388,6 +388,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 			«ENDIF»
 			<property name="label" value="«RIMDslGenerator::getTransitionLabel(transition)»" />
 			<property name="linkId" value="«RIMDslGenerator::getTransitionLinkId(transition)»" />
+			«includeTransitionSourceField(transition)»
 		</bean>
 	'''
 	
@@ -407,7 +408,8 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
             <property name="uriParameters"><util:map></util:map></property>
             «ENDIF»
             <property name="label" value="«RIMDslGenerator::getTransitionLabel(transition)»" />
-            <property name="linkId" value="«RIMDslGenerator::getTransitionLinkId(transition)»" />            
+            <property name="linkId" value="«RIMDslGenerator::getTransitionLinkId(transition)»" />
+            «includeTransitionSourceField(transition)»
         </bean>
     '''
 	
@@ -425,6 +427,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 			«IF transition.spec == null»
 			<property name="uriParameters"><util:map></util:map></property>
 			«ENDIF»
+			«includeTransitionSourceField(transition)»
 		</bean>
     '''
 
@@ -442,6 +445,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 			«IF transition.spec == null»
 			<property name="uriParameters"><util:map></util:map></property>
 			«ENDIF»
+			«includeTransitionSourceField(transition)»
 		</bean>
     '''
 
@@ -460,6 +464,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 			<property name="uriParameters"><util:map></util:map></property>
 			«ENDIF»
 			<property name="label" value="«RIMDslGenerator::getTransitionLabel(transition)»" />
+			«includeTransitionSourceField(transition)»
 		</bean>
     '''
 	def addUriMapValues(EList<UriLink> uriLinks) ''' 
@@ -479,5 +484,16 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 			<constructor-arg name="name" value="«stateVariableName(errorState)»" />
 		</bean>
 	'''
+	
+	/**
+     * create a new transition entry for source field
+     */
+    def includeTransitionSourceField(TransitionRef transition) '''
+        «IF transition.spec != null && transition.spec.field != null && transition.spec.field.name != null && transition.spec.field.name.length() > 0 »
+            <property name="sourceField" value="«transition.spec.field.name»" />
+        «ENDIF»
+    '''
+    
+    
 }
 

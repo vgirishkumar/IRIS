@@ -45,20 +45,23 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.jndi.JndiTemplate;
 
-import com.temenos.interaction.authorization.command.data.AccessProfile;
-import com.temenos.interaction.authorization.command.data.FieldName;
-import com.temenos.interaction.authorization.command.data.OrderBy;
-import com.temenos.interaction.authorization.command.data.RowFilter;
-import com.temenos.interaction.authorization.command.util.ODataParser;
-import com.temenos.interaction.authorization.command.util.ODataParser.UnsupportedQueryOperationException;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.jdbc.ServerMode;
 import com.temenos.interaction.jdbc.exceptions.JdbcException;
-import com.temenos.interaction.jdbc.producer.SqlCommandBuilder.ServerMode;
+import com.temenos.interaction.jdbc.producer.sql.ColumnTypesMap;
+import com.temenos.interaction.jdbc.producer.sql.SqlBuilder;
+import com.temenos.interaction.jdbc.producer.sql.SqlBuilderFactory;
+import com.temenos.interaction.odataext.odataparser.ODataParser;
+import com.temenos.interaction.odataext.odataparser.ODataParser.UnsupportedQueryOperationException;
+import com.temenos.interaction.odataext.odataparser.data.AccessProfile;
+import com.temenos.interaction.odataext.odataparser.data.FieldName;
+import com.temenos.interaction.odataext.odataparser.data.OrderBy;
+import com.temenos.interaction.odataext.odataparser.data.RowFilters;
 
 public class JdbcProducer {
     // Somewhere to store connection
@@ -68,7 +71,7 @@ public class JdbcProducer {
     private ServerMode serverMode;
     private ServerMode h2ServerMode = null;
 
-    private final static Logger logger = LoggerFactory.getLogger(JdbcProducer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcProducer.class);
 
     /*
      * Constructor called when a DataSource object to be obtained from Jndi.
@@ -138,14 +141,13 @@ public class JdbcProducer {
             throws UnsupportedQueryOperationException, JdbcException, Exception {
         // Not much point selecting from a null table
         if (null == tableName) {
-            logger.error("Jdbc producer cannot select from null table.");
-            throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Null table name"));
+            LOGGER.error("Jdbc producer cannot select from null table.");
+            throw new JdbcException(Status.INTERNAL_SERVER_ERROR, "Null table name");
         }
 
         // Get column types from Jdbc. We need these both for constructing the
         // command and processing it's result set.
         // We need the primary key for row ordering.
-        // TODO Eventually this should be cached.
         ColumnTypesMap colTypesMap = new ColumnTypesMap(this, tableName, true);
 
         // Unpack the commands $filter and $select terms.
@@ -158,12 +160,12 @@ public class JdbcProducer {
 
         List<OrderBy> orderBy = ODataParser.parseOrderBy(queryParams.getFirst(ODataParser.ORDERBY_KEY));
 
-        // Build an SQL command
-        SqlCommandBuilder sqlBuilder = new SqlCommandBuilder(tableName, key, accessProfile, colTypesMap, top, skip,
+        // Build an SQL command from an appropriate builder
+        SqlBuilder sqlBuilder = SqlBuilderFactory.getSqlBuilder(tableName, key, accessProfile, colTypesMap, top, skip,
                 orderBy, serverMode);
         String sqlCommand = sqlBuilder.getCommand();
 
-        logger.info("Jdbc producer about to execute \"" + sqlCommand + "\"");
+        LOGGER.info("Jdbc producer about to execute \"" + sqlCommand + "\"");
 
         // Execute the SQL command
         return query(sqlCommand);
@@ -174,15 +176,11 @@ public class JdbcProducer {
     }
 
     /*
-     * Method to unpack a contexts $filter and $select terms. For now use the
-     * parser from authorization module.
-     * 
-     * TODO At some point the parser should probably be moved into it's own
-     * module.
+     * Unpack a contexts $filter and $select terms.
      */
     private AccessProfile getAccessProfile(InteractionContext ctx) throws UnsupportedQueryOperationException {
         EntityQueryInfo queryInfo = ODataParser.getEntityQueryInfo(ctx);
-        List<RowFilter> filters = ODataParser.parseFilter(queryInfo.filter);
+        RowFilters filters = new RowFilters(queryInfo.filter);
         Set<FieldName> selects = ODataParser.parseSelect(queryInfo.select);
         return new AccessProfile(filters, selects);
     }
@@ -198,7 +196,7 @@ public class JdbcProducer {
 
         // Set cursor to first row
         if (!rowSet.next()) {
-            throw (new JdbcException(Status.NOT_FOUND, "Row not found. Entry with given key possibly not present."));
+            throw new JdbcException(Status.NOT_FOUND, "Row not found. Entry with given key possibly not present.");
         }
 
         // Build up properties for this row
@@ -226,7 +224,7 @@ public class JdbcProducer {
         // Check for additional rows. Not expected for a 'single'
         // command.
         if (rowSet.next()) {
-            throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Multiple rows returned for a single entity"));
+            throw new JdbcException(Status.INTERNAL_SERVER_ERROR, "Multiple rows returned for a single entity");
         }
 
         return entityResource;
@@ -277,7 +275,7 @@ public class JdbcProducer {
      * This is probably untestable.
      */
     private ServerMode getServerMode() throws JdbcException {
-        // If a server compatability mode has been passed use it.
+        // If a server comparability mode has been passed use it.
         if (null != h2ServerMode) {
             return h2ServerMode;
         }
@@ -290,36 +288,50 @@ public class JdbcProducer {
         try {
             connection = template.getDataSource().getConnection();
         } catch (SQLException ex) {
-            throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Could get connection to datasource. ", ex));
+            throw new JdbcException(Status.INTERNAL_SERVER_ERROR, "Could get connection to datasource. ", ex);
         }
 
         try {
             url = connection.getMetaData().getURL();
         } catch (SQLException ex) {
-            throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Could not get server URL. ", ex));
+            throw new JdbcException(Status.INTERNAL_SERVER_ERROR, "Could not get server URL. ", ex);
         } finally {
-            try {
-                connection.close();
-            } catch (SQLException ex) {
-                throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Could not close connection to datasource. ", ex));
-            }
+            closeConnection(connection);
         }
 
         // Extract server type from URL
         String[] tokens = url.split(":");
-        if (tokens[1].equals("oracle")) {
-            return ServerMode.ORACLE;
+
+        if (tokens != null && tokens.length > 1 && tokens[1] != null) {
+            String serverType = tokens[1];
+            if ("oracle".equals(serverType)) {
+                return ServerMode.ORACLE;
+            }
+
+            if ("mssql".equals(serverType) || "sqlserver".equals(serverType)) {
+                return ServerMode.MSSQL;
+            }
+
+            if ("h2".equals(serverType)) {
+                LOGGER.warn("Running under H2 but no server compatibility mode specified. Defaulting to emulated MSSQL mode.");
+                return ServerMode.H2_MSSQL;
+            }
+
+            throw new JdbcException(Status.PRECONDITION_FAILED, "JDBC Server type \"" + serverType
+                    + "\" not supported.");
         }
 
-        if (tokens[1].equals("mssql")) {
-            return ServerMode.MSSQL;
+        throw new JdbcException(Status.INTERNAL_SERVER_ERROR,
+                "Failed to detect JDBC server type from connection URL \"" + url + "\".");
+    }
+    
+    private static void closeConnection(Connection connection) {
+        try {
+            if (null != connection) {
+                connection.close();
+            }
+        } catch (SQLException ex) {
+            throw new JdbcException(Status.INTERNAL_SERVER_ERROR, "Could not close connection to datasource. ", ex);
         }
-
-        if (tokens[1].equals("h2")) {
-            logger.warn("Running under H2 but no server compatibility mode specified. Defaulting to emulated MSSQL mode.");
-            return ServerMode.H2_MSSQL;
-        }
-
-        throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Unknown serveer type \"" + tokens[1] + "\"."));
     }
 }

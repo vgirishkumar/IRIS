@@ -129,7 +129,7 @@ public class TestAtomXMLProviderWithBag {
 		AtomXMLProvider ap = getAtomXMLProvider(metadata, rsm);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		when(mockUriInfo.getPath()).thenReturn("/" + TELLER_ENTITY_SETNAME);
+		when(mockUriInfo.getAbsolutePath()).thenReturn(new URI("http://www.temenos.com/rest.svc/" + TELLER_ENTITY_SETNAME));
 		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
 		mockPathParameters.add("id", "2");
 		when(mockUriInfo.getPathParameters()).thenReturn(mockPathParameters);
@@ -182,7 +182,7 @@ public class TestAtomXMLProviderWithBag {
 		AtomXMLProvider ap = getAtomXMLProvider(metadata, rsm);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		when(mockUriInfo.getPath()).thenReturn("/" + TELLER_ENTITY_SETNAME);
+		when(mockUriInfo.getAbsolutePath()).thenReturn(new URI("http://www.temenos.com/rest.svc/" + TELLER_ENTITY_SETNAME));
 		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
 		mockPathParameters.add("id", "2");
 		when(mockUriInfo.getPathParameters()).thenReturn(mockPathParameters);
@@ -272,7 +272,7 @@ public class TestAtomXMLProviderWithBag {
 		
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		when(mockUriInfo.getPath()).thenReturn("/" + TELLER_ENTITY_SETNAME);
+		when(mockUriInfo.getAbsolutePath()).thenReturn(new URI("http://www.temenos.com/rest.svc/" + TELLER_ENTITY_SETNAME));
 		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
 		mockPathParameters.add("id", "2");
 		when(mockUriInfo.getPathParameters()).thenReturn(mockPathParameters);
@@ -380,7 +380,7 @@ public class TestAtomXMLProviderWithBag {
 		
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
-		when(mockUriInfo.getPath()).thenReturn("/" + CUSTOMER_ENTITY_SETNAME);
+		when(mockUriInfo.getAbsolutePath()).thenReturn(new URI("http://www.temenos.com/rest.svc/" + CUSTOMER_ENTITY_SETNAME));
 		MultivaluedMap<String, String> mockPathParameters = new MultivaluedMapImpl<String>();
 		mockPathParameters.add("id", "2");
 		when(mockUriInfo.getPathParameters()).thenReturn(mockPathParameters);

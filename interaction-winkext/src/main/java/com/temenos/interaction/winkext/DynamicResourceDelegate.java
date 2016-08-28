@@ -34,6 +34,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.wink.common.DynamicResource;
 import org.apache.wink.common.model.multipart.InMultiPart;
 
+import com.temenos.interaction.core.UriInfoImpl;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
@@ -97,43 +98,43 @@ public class DynamicResourceDelegate implements HTTPResourceInteractionModel, Dy
 
 	@Override
 	public Response get(HttpHeaders headers, String id, UriInfo uriInfo) {
-		return resource.get(headers, id, uriInfo);
+		return resource.get(headers, id, new UriInfoImpl(uriInfo));
 	}
 
 	@Override
 	public Response post(HttpHeaders headers, UriInfo uriInfo, InMultiPart inMP) {
-		return resource.post(headers, uriInfo, inMP);
+		return resource.post(headers, new UriInfoImpl(uriInfo), inMP);
 	}	
 	
 	@Override
     public Response post( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, 
     		MultivaluedMap<String, String> formParams) {
-		return resource.post(headers, id, uriInfo, formParams);
+		return resource.post(headers, id, new UriInfoImpl(uriInfo), formParams);
 	}
 
 	@Override
 	public Response post(HttpHeaders headers, String id, UriInfo uriInfo, EntityResource<?> eresource) {
-		return resource.post(headers, id, uriInfo, eresource);
+		return resource.post(headers, id, new UriInfoImpl(uriInfo), eresource);
 	}
 	
 	@Override
 	public Response put(HttpHeaders headers, UriInfo uriInfo, InMultiPart inMP) {
-		return resource.put(headers, uriInfo, inMP);
+		return resource.put(headers, new UriInfoImpl(uriInfo), inMP);
 	}	
 
 	@Override
 	public Response put(HttpHeaders headers, String id, UriInfo uriInfo, EntityResource<?> eresource) {
-		return resource.put(headers, id, uriInfo, eresource);
+		return resource.put(headers, id, new UriInfoImpl(uriInfo), eresource);
 	}
 
 	@Override
 	public Response delete(HttpHeaders headers, String id, UriInfo uriInfo) {
-		return resource.delete(headers, id, uriInfo);
+		return resource.delete(headers, id, new UriInfoImpl(uriInfo));
 	}
 
 	@Override
 	public Response options(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo) {
-		return resource.options(headers, id, uriInfo);
+		return resource.options(headers, id, new UriInfoImpl(uriInfo));
 	}
 
 	@Override

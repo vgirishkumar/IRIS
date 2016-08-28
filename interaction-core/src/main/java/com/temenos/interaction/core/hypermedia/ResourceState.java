@@ -34,7 +34,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ResourceState implements Comparable<ResourceState> {
+    
+    public static final String REL_SEPARATOR = " ";
+    
 	private final static Logger logger = LoggerFactory.getLogger(ResourceState.class);
+    private static final String[] DEFAULT_ITEM_RELATIONS = new String[] { "item" };
+
 	
 	/* the parent state (same entity, pseudo state is same path) */
 	private final ResourceState parent;
@@ -157,7 +162,7 @@ public class ResourceState implements Comparable<ResourceState> {
 		this.actions = actions;
 		this.uriSpecification = uriSpec;
 		if (rels == null) {
-			this.rels = "item".split(" ");
+			this.rels = DEFAULT_ITEM_RELATIONS;
 		} else {
 			this.rels = rels;
 		}
@@ -247,10 +252,20 @@ public class ResourceState implements Comparable<ResourceState> {
 	}
 	
 	public String getRel() {
-		StringBuffer sb = new StringBuffer();
-		for (String r : rels)
-			sb.append(r).append(" ");
-		return sb.deleteCharAt(sb.lastIndexOf(" ")).toString();
+	    String result = null;
+	    
+	    if(rels.length == 1) {
+	        result = rels[0];
+	    } else {
+    		StringBuilder sb = new StringBuilder();
+    		
+    		for (String r : rels)
+    			sb.append(r).append(REL_SEPARATOR);
+    		
+    		result = sb.deleteCharAt(sb.lastIndexOf(REL_SEPARATOR)).toString();
+	    }
+		
+		return result;
 	}
 	
 	public String[] getRels() {
