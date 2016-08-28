@@ -250,19 +250,13 @@ public class TestGETEntityCommand {
 	}
 
 	@Test
-	public void testGetEntityNotFound() {
+	public void testGetEntityNotFound() throws InteractionException {
 		ODataProducer mockProducer = createMockODataProducer("GetEntityNotFound", "Edm.String");
 		GETEntityCommand gec = new GETEntityCommand(mockProducer);
 		
         InteractionContext ctx = createInteractionContext("GetEntityNotFound", "1");
-        try {
-        	gec.execute(ctx);
-        	fail("Should have failed.");
-        }
-        catch(InteractionException ie) {
-    		assertEquals(Status.NOT_FOUND, ie.getHttpStatus());
-    		assertEquals("Entity does not exist.", ie.getCause().getMessage());
-        }
+    	InteractionCommand.Result result = gec.execute(ctx);
+    	assertEquals("Entity does not exist", InteractionCommand.Result.FAILURE, result);
 	}
 	
 	@Test	
