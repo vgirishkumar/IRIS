@@ -43,7 +43,7 @@ rim Restbucks {
 initial resource ServiceDocument {
 	type: item
 	entity: ServiceDocument
-	view: GETServiceDocument 
+	commands [ GET:GETServiceDocument ] 
 	path: "/"
 	GET -> Orders
 	GET -> Payments
@@ -53,7 +53,7 @@ initial resource ServiceDocument {
 resource shop {
 	type: item
 	entity: ServiceDocument
-	view: NoopGET 
+	commands [ GET:NoopGET ] 
 	path: "/shop"
 	POST -> OrderCreated
 }
@@ -62,7 +62,7 @@ resource shop {
 resource Orders {
 	type: collection
 	entity: Order
-	view: GETEntities
+	commands [ GET:GETEntities ]
 	path: "/Orders()"
 	POST -> OrderCreated
 	GET *-> order {
@@ -80,7 +80,7 @@ resource Orders {
 resource order {
 	type: item
 	entity: Order
-	view: GETEntity
+	commands [ GET:GETEntity ]
 	path: "/Orders({Id})"
 	GET -> payment {
 		title: "Payment"
@@ -100,7 +100,7 @@ resource order {
 resource OrderCancelled {
 	type: item
 	entity: Order
-	actions [ DeleteEntity ]
+	commands [ DELETE:DeleteEntity ]
 	relations [ cancel ]
 	path: "/Orders({Id})"
 }
@@ -108,15 +108,16 @@ resource OrderCancelled {
 resource OrderUpdated {
 	type: item
 	entity: Order
-	actions [ UpdateEntity ]
+	commands [ PUT:UpdateEntity ]
 	relations [ update ]
 	path: "/Orders({Id})"
+	GET --> order
 }
 
 resource OrderCreated {
 	type: item
 	entity: Order
-	actions [ CreateEntity ]
+	commands [ POST:CreateEntity ]
 	relations [ order ]
 	path: "/Orders()"
 	GET --> order {
@@ -127,7 +128,7 @@ resource OrderCreated {
 resource Payments {
 	type: collection
 	entity: Payment
-	view: GETEntities
+	commands [ GET:GETEntities ]
 	path: "/Payments()"
 	GET *-> payment
 	GET *-> order {
@@ -138,7 +139,7 @@ resource Payments {
 resource payment {
 	type: item
 	entity: Payment
-	view: GETEntity
+	commands [ GET:GETEntity ]
 	path: "/Payments({Id})"
 	GET -> order {
 		title: "Order"
@@ -148,7 +149,7 @@ resource payment {
 resource PaymentAccepted {
 	type: item
 	entity: Payment
-	actions [ CreateEntity ]
+	commands [ POST:CreateEntity ]
 	relations [ payment ]
 	path: "/Payments()"
 	GET --> payment {

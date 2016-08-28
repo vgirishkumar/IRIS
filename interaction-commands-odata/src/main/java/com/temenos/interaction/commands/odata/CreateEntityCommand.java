@@ -75,7 +75,7 @@ public class CreateEntityCommand extends AbstractODataCommand implements Interac
 		    if(LOGGER.isDebugEnabled()) {
 		        LOGGER.debug("OEntity class not found.", cce);
 		    }
-			entity = create(((EntityResource<Entity>) ctx.getResource()).getEntity());
+			entity = create(this, producer, ((EntityResource<Entity>) ctx.getResource()).getEntity());
 		}
 		String entityName = getEntityName(ctx);
 		
@@ -99,11 +99,11 @@ public class CreateEntityCommand extends AbstractODataCommand implements Interac
 	}
 
 	// TODO move this transformation up to where we have all the metadata, note the hacked hardcoded "Id"
-	private OEntity create(Entity entity) throws InteractionException {
+	protected static OEntity create(AbstractODataCommand command, ODataProducer producer, Entity entity) throws InteractionException {
 		try {
 			assert(entity != null);
 			assert(entity.getName() != null);
-			EdmEntitySet entitySet = getEdmEntitySet(entity.getName());
+			EdmEntitySet entitySet = command.getEdmEntitySet(entity.getName());
 			EdmEntityType entityType = entitySet.getType();
 					
 			String id = null;

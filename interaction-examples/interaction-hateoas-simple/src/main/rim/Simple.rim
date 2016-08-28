@@ -26,9 +26,9 @@ rim Simple {
 resource notes {
 	type: collection
 	entity: Note
-	view: GETNotes
+	commands [ GET: GETNotes ]
 	path: "/notes"
-    POST -> createNote
+	POST -> createNote
 	GET *+> note
 	DELETE *-> deletedNote {
 		condition: NOT_FOUND(NoteImportant)
@@ -38,7 +38,7 @@ resource notes {
 resource note {
 	type: item
 	entity: Note
-	view: GETNote
+	commands [ GET: GETNote ]
 	path: "/notes/{noteID}"
 	DELETE -> deletedNote
 	cache: 120
@@ -56,7 +56,7 @@ resource deletedNote {
 resource createNote {
 	type: item
 	entity: Note
-	actions [ CREATENote ]
+	commands [ POST:  CREATENote ]
 	path: "/notes"
 	// 'create' means post to the collection, 'new' means get the next available number
 	relations [ "http://relations.rimdsl.org/create" ]

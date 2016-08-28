@@ -34,9 +34,10 @@ import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
+import com.temenos.interaction.core.entity.Entity;
 
 public class UpdateEntityCommand extends AbstractODataCommand implements InteractionCommand {
-	private final static Logger logger = LoggerFactory.getLogger(UpdateEntityCommand.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(UpdateEntityCommand.class);
 
 	public UpdateEntityCommand(ODataProducer producer) {
 		super(producer);
@@ -54,17 +55,27 @@ public class UpdateEntityCommand extends AbstractODataCommand implements Interac
 		
 		// update the entity
 		String entityName = getEntityName(ctx);
-		logger.debug("Getting entity for " + entityName);
-		EntityResource<OEntity> entityResource = (EntityResource<OEntity>) ctx.getResource();
+		LOGGER.debug("Getting entity for " + entityName);
 		try {
-			producer.updateEntity(entityName, entityResource.getEntity());
+			// create the entity
+			OEntity entity = null;
+			try {
+				entity = ((EntityResource<OEntity>) ctx.getResource()).getEntity();
+			} catch (ClassCastException cce) {
+			    if(LOGGER.isDebugEnabled()) {
+			        LOGGER.debug("OEntity class not found.", cce);
+			    }
+				entity = CreateEntityCommand.create(this, producer, ((EntityResource<Entity>) ctx.getResource()).getEntity());
+			}
+
+			producer.updateEntity(entityName, entity);
 		}
 		catch(ODataProducerException ope) {
-			logger.debug("Failed to update entity [" + entityName + "]: ", ope);
+			LOGGER.debug("Failed to update entity [" + entityName + "]: ", ope);
 			throw new InteractionException(ope.getHttpStatus(), ope);
 		}
 		catch(Exception e) {
-			logger.debug("Error while updating entity [" + entityName + "]: ", e);
+			LOGGER.debug("Error while updating entity [" + entityName + "]: ", e);
 			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e);
 		}
 		
