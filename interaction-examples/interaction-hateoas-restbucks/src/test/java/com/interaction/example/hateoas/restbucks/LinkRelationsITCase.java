@@ -24,10 +24,12 @@ package com.interaction.example.hateoas.restbucks;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
+import java.util.UUID;
 
 import javax.ws.rs.core.Response.Status;
 
@@ -68,6 +70,21 @@ public class LinkRelationsITCase extends JerseyTest {
 	public void tearDown() {}
 
 	@Test
+	public void testOrderStatus() throws Exception {
+		// RB1000 already exists, inserted during test initialisation
+		ReadableRepresentation orderResource = get(webResource.path("/123456/Orders('RB1000')"));
+
+		// check the availability of the link to make the payment
+		// should be paid and therefore no link to pay
+		Link payment = orderResource.getLinkByRel("http://relations.restbucks.com/payment");
+		assertNull("'payment' link relation", payment);
+
+		// should be a link to the payment
+		
+		
+	}
+
+	@Test
 	public void testCupOfCoffee() throws Exception {
 	    
 	    /*
@@ -89,16 +106,23 @@ public class LinkRelationsITCase extends JerseyTest {
 		// POST order
 		Link order = rootResource.getLinkByRel("http://relations.restbucks.com/order");
 		assertNotNull("'order' link relation", order);
-		Representation orderRequest = buildOrderRequest();
+		UUID id = UUID.randomUUID();
+		Representation orderRequest = buildOrderRequest(id.toString());
 		ReadableRepresentation orderResource = post(webResource.uri(new URI(order.getHref())), orderRequest.toString(MediaType.APPLICATION_HAL_JSON));
 	    
-		// make the payment
+		// check the availability of the link to make the payment
 		Link payment = orderResource.getLinkByRel("http://relations.restbucks.com/payment");
 		assertNotNull("'payment' link relation", payment);
 		
-		// confirm the payment was successful
-		ReadableRepresentation paymentResource = get(webResource.uri(new URI(payment.getHref())));
-		assertNotNull("payment resource", paymentResource);
+		// make the payment
+		Representation paymentRequest = buildPaymentRequest(orderResource.getValue("Id").toString());
+		ReadableRepresentation paymentResource = post(webResource.uri(new URI(payment.getHref())), paymentRequest.toString(MediaType.APPLICATION_HAL_JSON));
+		assertNotNull(paymentResource);
+		
+		// confirm the payment was successful, no payment possible
+		ReadableRepresentation updatedOrderResource = get(webResource.uri(new URI(order.getHref())));
+		assertNull(updatedOrderResource.getLinkByRel("http://relations.restbucks.com/payment"));
+
 	}
 
 	private ReadableRepresentation get(WebResource resource) throws Exception {
@@ -142,10 +166,18 @@ public class LinkRelationsITCase extends JerseyTest {
 		return representation;
 	}
 
-    private Representation buildOrderRequest() {
+    private Representation buildOrderRequest(String id) {
         return representationFactory.newRepresentation()
+                .withProperty("Id", id)
                 .withProperty("milk", "yes")
                 .withProperty("name", "Aaron")
                 .withProperty("quantity", 1);
     }
+    
+    private Representation buildPaymentRequest(String orderId) {
+        return representationFactory.newRepresentation()
+                .withProperty("orderId", orderId)
+                .withProperty("authorisationCode", "authorised");
+    }
+    
 }

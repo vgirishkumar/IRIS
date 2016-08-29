@@ -22,20 +22,9 @@ package com.temenos.interaction.commands.odata;
  */
 
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.ws.rs.core.Response.Status;
 
-import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
-import org.odata4j.core.OEntityKey;
-import org.odata4j.core.OProperties;
-import org.odata4j.core.OProperty;
-import org.odata4j.edm.EdmEntitySet;
-import org.odata4j.edm.EdmEntityType;
-import org.odata4j.edm.EdmProperty;
-import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.exceptions.ODataProducerException;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
@@ -46,8 +35,6 @@ import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.entity.Entity;
-import com.temenos.interaction.core.entity.EntityProperties;
-import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.resource.EntityResource;
 
 public class CreateEntityCommand extends AbstractODataCommand implements InteractionCommand {
@@ -75,7 +62,7 @@ public class CreateEntityCommand extends AbstractODataCommand implements Interac
 		    if(LOGGER.isDebugEnabled()) {
 		        LOGGER.debug("OEntity class not found.", cce);
 		    }
-			entity = create(this, producer, ((EntityResource<Entity>) ctx.getResource()).getEntity());
+			entity = CommandHelper.createOEntityFromEntity(this, producer, ((EntityResource<Entity>) ctx.getResource()).getEntity(), null);
 		}
 		String entityName = getEntityName(ctx);
 		
@@ -98,40 +85,4 @@ public class CreateEntityCommand extends AbstractODataCommand implements Interac
 		return Result.SUCCESS;
 	}
 
-	// TODO move this transformation up to where we have all the metadata, note the hacked hardcoded "Id"
-	protected static OEntity create(AbstractODataCommand command, ODataProducer producer, Entity entity) throws InteractionException {
-		try {
-			assert(entity != null);
-			assert(entity.getName() != null);
-			EdmEntitySet entitySet = command.getEdmEntitySet(entity.getName());
-			EdmEntityType entityType = entitySet.getType();
-					
-			String id = null;
-			EntityProperties entityProps = entity.getProperties();
-			List<OProperty<?>> eProps = new ArrayList<OProperty<?>>();
-			for (String propKey : entityProps.getProperties().keySet()) {
-				EntityProperty prop = entityProps.getProperty(propKey);
-				if (prop.getName().equals("Id")) {
-					id = prop.getValue().toString();
-				} else if (entityType.findProperty(prop.getName()) != null) {
-					EdmProperty eProp = entityType.findProperty(prop.getName());
-					if (eProp.getType().equals(EdmSimpleType.STRING)) {
-						eProps.add(OProperties.string(prop.getName(), prop.getValue().toString()));
-					} else if (eProp.getType().equals(EdmSimpleType.INT32)) {
-						eProps.add(OProperties.int32(prop.getName(), new Integer(prop.getValue().toString())));
-					}
-				}
-			}
-//			assert(id != null) : "Id property not found";
-			OEntityKey eKey = null;
-			if (id != null) {
-				eKey = CommandHelper.createEntityKey(producer.getMetadata(), entity.getName(), id);				
-				return OEntities.create(entitySet, eKey, eProps, null);
-			} else {
-				return OEntities.createRequest(entitySet, eProps, null);
-			}
-		} catch (Exception e) {
-			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e);
-		}
-    }
 }

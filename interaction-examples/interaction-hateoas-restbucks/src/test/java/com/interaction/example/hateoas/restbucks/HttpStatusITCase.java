@@ -28,6 +28,7 @@ import static org.junit.Assert.assertNotNull;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
+import java.util.UUID;
 
 import javax.ws.rs.core.Response.Status;
 
@@ -75,28 +76,27 @@ public class HttpStatusITCase extends JerseyTest {
 		// POST order
 		Link order = rootResource.getLinkByRel("http://relations.restbucks.com/order");
 		assertNotNull("'order' link relation", order);
-		Representation orderRequest = buildOrderRequest();
+		UUID id = UUID.randomUUID();
+		Representation orderRequest = buildOrderRequest(id.toString());
 		ClientResponse response = post(webResource.uri(new URI(order.getHref())), orderRequest.toString(MediaType.APPLICATION_HAL_JSON));
 		assertEquals(201, response.getStatus());
 	}
 
 	@Test
 	public void testPUTCreate() throws Exception {
-		Representation orderRequest = buildOrderRequest();
-		ClientResponse response = put(webResource.path("/123456/Orders(123)"), orderRequest.toString(MediaType.APPLICATION_HAL_JSON));
-		assertEquals("204 status is WRONG", 204, response.getStatus());
-		// erroneously returns 204 until issue https://github.com/temenostech/IRIS/issues/453 is fixed
-		//		assertEquals(201, response.getStatus());
+		UUID id = UUID.randomUUID();
+		Representation orderRequest = buildOrderRequest(id.toString());
+		ClientResponse response = put(webResource.path("/123456/Orders('"+id.toString()+"')"), orderRequest.toString(MediaType.APPLICATION_HAL_JSON));
+		assertEquals(201, response.getStatus());
 	}
 
 	@Test
 	public void testPUTUpdate() throws Exception {
-		Representation orderRequest = buildOrderRequest();
-		put(webResource.path("/123456/Orders(111)"), orderRequest.toString(MediaType.APPLICATION_HAL_JSON));
-		ClientResponse response = put(webResource.path("/123456/Orders('111')"), orderRequest.toString(MediaType.APPLICATION_HAL_JSON));
-		assertEquals("204 status is WRONG", 204, response.getStatus());
-		// erroneously returns 204 until issue https://github.com/temenostech/IRIS/issues/453 is fixed
-		//		assertEquals(200, response.getStatus());
+		// RB1000 already exists, inserted during test initialisation
+		Representation orderRequest = buildOrderRequest("RB1000");
+		put(webResource.path("/123456/Orders('RB1000')"), orderRequest.toString(MediaType.APPLICATION_HAL_JSON));
+		ClientResponse response = put(webResource.path("/123456/Orders('RB1000')"), orderRequest.toString(MediaType.APPLICATION_HAL_JSON));
+		assertEquals(200, response.getStatus());
 	}
 
 	private ReadableRepresentation get(WebResource resource) throws Exception {
@@ -150,8 +150,9 @@ public class HttpStatusITCase extends JerseyTest {
 	}
 
 
-    private Representation buildOrderRequest() {
+    private Representation buildOrderRequest(String id) {
         return representationFactory.newRepresentation()
+                .withProperty("Id", id)
                 .withProperty("milk", "yes")
                 .withProperty("name", "Aaron")
                 .withProperty("quantity", 1);

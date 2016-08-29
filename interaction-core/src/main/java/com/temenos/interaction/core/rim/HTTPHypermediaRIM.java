@@ -463,6 +463,8 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         assert (event != null);
         assert (ctx != null);
 
+        ResourceState currentState = ctx.getCurrentState();
+        List<Transition> autoTransitions = getTransitions(ctx, currentState, Transition.AUTO);
         StatusType status = null;
 
         switch (result) {
@@ -482,7 +484,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                 status = Status.PRECONDITION_FAILED;
                 break;
             case CREATED:
-            	if (ctx.getResource() == null) {
+            	if (currentState.getTransitions().isEmpty() && ctx.getResource() == null) {
                     status = Status.NO_CONTENT;
                 } else {
                     status = Status.CREATED;
@@ -495,27 +497,21 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                 if (event.getMethod().equals(HttpMethod.GET)) {
                     String ifNoneMatch = HeaderHelper.getFirstHeader(headers, HttpHeaders.IF_NONE_MATCH);
                     String etag = ctx.getResource() != null ? ctx.getResource().getEntityTag() : null;
-                    ResourceState targetState = ctx.getTargetState();
-                    if (result == Result.SUCCESS && etag != null && etag.equals(ifNoneMatch)) {
-                        // Response etag matches IfNoneMatch precondition
-                        status = Status.NOT_MODIFIED;
-                    } else if (result == Result.SUCCESS) {
-                        boolean hasRedirect = false;
-                        for (ResourceState target : targetState.getAllTargets()) {
-                            for (Transition transition : targetState.getTransitions(target)) {
-                                if ((transition.getCommand().getFlags() & Transition.REDIRECT) == Transition.REDIRECT)
-                                    hasRedirect = true;
-                            }
-                        }
-                        if (hasRedirect) {
-                            status = Status.SEE_OTHER;
+                    List<Transition> redirectTransitions = getTransitions(ctx, currentState, Transition.REDIRECT);
+                    if (result == Result.SUCCESS) {
+                        if (etag != null && etag.equals(ifNoneMatch)) {
+                            // Response etag matches IfNoneMatch precondition
+                            status = Status.NOT_MODIFIED;
+                        } else if (!redirectTransitions.isEmpty()) {
+                        	status = Status.SEE_OTHER;
+                        } else if (ctx.getResource() == null) {
+                        	status = Status.NO_CONTENT;
                         } else {
-                            status = Status.OK;
+                        	status = Status.OK;
                         }
                     }
                 } else if (event.getMethod().equals(HttpMethod.POST)) {
                     // TODO need to add support for differed create (ACCEPTED)
-                    ResourceState currentState = ctx.getCurrentState();
                     if (result == Result.SUCCESS) {
                     	/*
                     	 * attempt to maintain some backward compatibility.  Several RIMs in the 'wild'
@@ -523,10 +519,9 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                     	 * e.g. 'new' resources would often auto transition to the created entity and that
                     	 * was signalling the 201 CREATED response
                     	 */
-                        List<Transition> autoTransitions = getTransitions(ctx, currentState, Transition.AUTO);
-                        if (autoTransitions.size() > 0 && ctx.getResource() != null) {
+                        if (!autoTransitions.isEmpty() && ctx.getResource() != null) {
                             status = Status.CREATED;
-                        } else if (ctx.getResource() == null) {
+                        } else if (autoTransitions.size() == 0 && ctx.getResource() == null) {
                             status = Status.NO_CONTENT;
                         } else {
                             status = Status.OK;
@@ -538,11 +533,13 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                  * stored this resource in a consistent state (conceptually a
                  * transaction)
                  */
-                    if (result == Result.SUCCESS && ctx.getResource() == null) {
-                        status = Status.NO_CONTENT;
-                    } else if (result == Result.SUCCESS) {
-                        status = Status.OK;
-                    }
+                	if (result == Result.SUCCESS) {
+                        if (autoTransitions.size() == 0 && ctx.getResource() == null) {
+                            status = Status.NO_CONTENT;
+                        } else {
+                            status = Status.OK;
+                        }
+                	}
                 } else if (event.getMethod().equals(HttpMethod.DELETE)) {
                     if (result == Result.SUCCESS) {
                         // We do not support a delete command that returns a
@@ -685,7 +682,9 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                     assert (resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
                     ResponseWrapper autoResponse = resolveAutomaticTransitions(headers, ctx, responseBuilder, currentState, autoTransitions);
                     responseBuilder = setLocationHeader(responseBuilder, autoResponse.getSelfLink().getHref(), autoResponse.getRequestParameters());
-                    resource = (RESTResource) ((GenericEntity<?>) autoResponse.getResponse().getEntity()).getEntity();
+                    if (autoResponse.getResponse().getEntity() != null) {
+                        resource = (RESTResource) ((GenericEntity<?>) autoResponse.getResponse().getEntity()).getEntity();
+                    }
                 }
             }
             assert (resource != null);
@@ -702,28 +701,31 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                     assert (resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
                     ResponseWrapper autoResponse = resolveAutomaticTransitions(headers, ctx, responseBuilder, currentState, autoTransitions);
                     responseBuilder = setLocationHeader(responseBuilder, autoResponse.getSelfLink().getHref(), autoResponse.getRequestParameters());
-                    resource = (RESTResource) ((GenericEntity<?>) autoResponse.getResponse().getEntity()).getEntity();
+                    if (autoResponse.getResponse().getEntity() != null) {
+                        resource = (RESTResource) ((GenericEntity<?>) autoResponse.getResponse().getEntity()).getEntity();
+                    }
                 }
             }
-            assert (resource != null);
-            StreamingOutput streamEntity = null;
-            if (resource instanceof EntityResource<?>) {
-                Object entity = ((EntityResource<?>) resource).getEntity();
-                if (entity instanceof StreamingOutput) {
-                    streamEntity = (StreamingOutput) entity;
+            if (resource != null) {
+                StreamingOutput streamEntity = null;
+                if (resource instanceof EntityResource<?>) {
+                    Object entity = ((EntityResource<?>) resource).getEntity();
+                    if (entity instanceof StreamingOutput) {
+                        streamEntity = (StreamingOutput) entity;
+                    }
                 }
-            }
-            /*
-             * Streaming or Wrap response into a JAX-RS GenericEntity object to
-             * ensure we have the type information available to the Providers
-             */
-            if (streamEntity != null) {
-                responseBuilder.entity(streamEntity);
-            } else {
-                responseBuilder.entity(resource.getGenericEntity());
+                /*
+                 * Streaming or Wrap response into a JAX-RS GenericEntity object to
+                 * ensure we have the type information available to the Providers
+                 */
+                if (streamEntity != null) {
+                    responseBuilder.entity(streamEntity);
+                } else {
+                    responseBuilder.entity(resource.getGenericEntity());
+                }
+                responseBuilder = HeaderHelper.etagHeader(responseBuilder, resource.getEntityTag());
             }
             responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
-            responseBuilder = HeaderHelper.etagHeader(responseBuilder, resource.getEntityTag());
 
             // If this was for a safe event, and there is a maxAge, apply it.
             cacheMaxAge = currentState.getMaxAge();
