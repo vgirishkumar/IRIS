@@ -27,10 +27,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -51,11 +49,8 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.odata4j.core.OCollection;
 import org.odata4j.core.OCollections;
 import org.odata4j.core.OComplexObject;
@@ -69,12 +64,10 @@ import org.odata4j.edm.EdmEntitySet;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.CommandController;
-import com.temenos.interaction.core.command.CommandHelper;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
 import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.command.InteractionException;
-import com.temenos.interaction.core.command.NewCommandController;
+import com.temenos.interaction.core.command.MapBasedCommandController;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
@@ -1346,29 +1339,26 @@ public class TestResourceStateMachine {
         assertEquals("root.initial>GET>root.initial", links.get(2).getId());
     }
 
-    private NewCommandController mockCommandController() {
-        NewCommandController cc = new NewCommandController();
-        try {
-            InteractionCommand notfound = mock(InteractionCommand.class);
-            when(notfound.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
-            InteractionCommand found = mock(InteractionCommand.class);
-            when(found.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
-            doAnswer(new Answer<Result>() {
-
-                @Override
-                public Result answer(InvocationOnMock invocation) throws Throwable {
-                    InteractionContext ctx = (InteractionContext) invocation.getArguments()[0];
-                    ctx.setResource(CommandHelper.createEntityResource(new Entity("Customer", new EntityProperties())));
-                    return Result.SUCCESS;
-                }
-            }).when(found).execute(any(InteractionContext.class));
-
-            cc.addCommand("notfound", notfound);
-            cc.addCommand("found", found);
-        } catch (InteractionException e) {
-            Assert.fail(e.getMessage());
-        }
+    private CommandController mockCommandController() {
+    	MapBasedCommandController cc = new MapBasedCommandController();
+        cc.getCommandMap().put("notfound", createCommand("Customer", new Entity("Customer", new EntityProperties()), Result.FAILURE));
+        cc.getCommandMap().put("found", createCommand("Customer", new Entity("Customer", new EntityProperties()), Result.SUCCESS));
         return cc;
+    }
+
+    // create command returning the supplied entity
+    private InteractionCommand createCommand(final String entityName, final Entity entity, final InteractionCommand.Result result) {
+        InteractionCommand command = new InteractionCommand() {
+            public Result execute(InteractionContext ctx) {
+            	if (entity == null) {
+            		ctx.setResource(null);
+            	} else {
+            		ctx.setResource(new EntityResource<Entity>(entityName, entity));
+            	}
+                return result;
+            }
+        };
+        return command;
     }
 
     /*
@@ -2423,7 +2413,7 @@ public class TestResourceStateMachine {
      */
     @Test
     public void testGetLinksContainingReservedCharacters() {
-        // (":", "/", "?", "#", "[", "]", "@")
+    	// (":", "/", "?", "#", "[", "]", "@")
         assertForUrlParamWithReservedChar("123:456", "123%3A456");
         assertForUrlParamWithReservedChar("123/456", "123%2F456");
         assertForUrlParamWithReservedChar("123?456", "123%3F456");
