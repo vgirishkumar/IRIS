@@ -22,6 +22,8 @@ package com.temenos.interaction.core.command;
  */
 
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -147,7 +149,23 @@ public class InteractionContext {
 	public MultivaluedMap<String, String> getPathParameters() {
 		return pathParameters;
 	}
-
+	
+	public MultivaluedMap<String, String> getEncodedParameters(MultivaluedMap<String, String> parameters) {
+		MultivaluedMap<String, String> encodedParameters = new com.temenos.interaction.core.MultivaluedMapImpl<String>();
+		for (String key : parameters.keySet()) {
+			String value = parameters.getFirst(key);
+	    	if (value != null) {
+	        	try {
+					String encodedValue = URLEncoder.encode(value.toString(), "UTF-8");
+					encodedParameters.add(key, encodedValue);
+				} catch (UnsupportedEncodingException e) {
+					logger.error("ERROR unable to encode " + key, e);
+				}
+	    	}
+		}
+		return encodedParameters;
+	}
+	
 	/**
 	 * The Uri of the current request
 	 * @return

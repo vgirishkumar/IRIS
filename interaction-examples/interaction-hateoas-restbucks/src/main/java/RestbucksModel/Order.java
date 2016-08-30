@@ -40,6 +40,7 @@ public class Order {
 
 	private String location;
 	private String name;
+	private String email;
 	private String milk;
 	private Integer quantity;
 	private String size;

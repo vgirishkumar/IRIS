@@ -21,9 +21,12 @@ package com.temenos.interaction.core.hypermedia;
  * #L%
  */
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -112,7 +115,14 @@ public class LinkGeneratorImpl implements LinkGenerator {
 
                 for (Map.Entry<String, List<String>> param : outQueryParams.entrySet()) {
                     for(String paramValue: param.getValue()) {
-                        linkTemplate.queryParam(param.getKey(), paramValue);
+            	    	if (paramValue != null) {
+            	        	try {
+            					String encodedValue = URLEncoder.encode(paramValue, "UTF-8");
+                                linkTemplate.queryParam(param.getKey(), encodedValue);
+            				} catch (UnsupportedEncodingException e) {
+            					logger.error("ERROR unable to encode " + param.getKey(), e);
+            				}
+            	    	}
                     }
                 }
             }
@@ -195,7 +205,6 @@ public class LinkGeneratorImpl implements LinkGenerator {
     }
 
     private String createLinkForProfile(Transition transition) {
-
         return transition.getLabel() != null && !transition.getLabel().equals("") ? transition.getLabel() : transition.getTarget().getName();
     }
 
@@ -203,7 +212,8 @@ public class LinkGeneratorImpl implements LinkGenerator {
         if (queryParameters != null && allQueryParameters) {
             for (String param : queryParameters.keySet()) {
                 if (!targetResourcePath.contains("{" + param + "}") && (uriParameters == null || !uriParameters.containsKey(param))) {
-                    linkTemplate.queryParam(param, queryParameters.getFirst(param));
+                	String value = queryParameters.getFirst(param);
+                	linkTemplate.queryParam(param, value);
                 }
             }
         }
@@ -263,12 +273,23 @@ public class LinkGeneratorImpl implements LinkGenerator {
     }
 
     private Link createLinkForResource(UriBuilder linkTemplate, LinkProperties linkProperties, ResourceState targetState, MultivaluedMap<String, String> queryParameters, Object entity) {
+        Map<String, Object> encodedLinkPropertiesMap = new HashMap<String, Object>();
+        for (String key : linkProperties.getTransitionProperties().keySet()) {
+        	Object value = linkProperties.getTransitionProperties().get(key);
+        	if (value != null) {
+            	try {
+    				String encodedValue = URLEncoder.encode(value.toString(), "UTF-8");
+    				encodedLinkPropertiesMap.put(key, encodedValue);
+    			} catch (UnsupportedEncodingException e) {
+    				logger.error("ERROR unable to encode " + key, e);
+    			}
+        	}
+        }
 
-        Map<String, Object> linkPropertiesMap = linkProperties.getTransitionProperties();
         // We are NOT dealing with a dynamic target
         String targetPath = targetState.getPath();
         linkTemplate.path(targetPath);
-        configureLink(linkTemplate, linkPropertiesMap, targetPath);
+        configureLink(linkTemplate, encodedLinkPropertiesMap, targetPath);
         String rel = getTargetRelValue(targetState);
 
         // Pass any query parameters
@@ -282,7 +303,7 @@ public class LinkGeneratorImpl implements LinkGenerator {
         } else {
             // Links in the transition properties are already encoded so
             // build the href using encoded map.
-            href = linkTemplate.buildFromEncodedMap(linkPropertiesMap);
+            href = linkTemplate.buildFromEncodedMap(encodedLinkPropertiesMap);
         }
 
         return buildLink(transition, linkProperties, entity, rel, href, transition.getCommand().getMethod());

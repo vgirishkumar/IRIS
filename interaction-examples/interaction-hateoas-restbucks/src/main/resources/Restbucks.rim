@@ -4,6 +4,9 @@ rim Restbucks {
 	// our Restbucks chain has gone global, lets use a franchise id to identify the individual store
 	basepath: "/{franchise}" 
 
+	relation history {
+		fqn: "http://relations.restbucks.com/history"
+	}
 	relation order {
 		fqn: "http://relations.restbucks.com/order"
 	}
@@ -57,29 +60,34 @@ resource shop {
 	commands [ GET:NoopGET ] 
 	path: "/shop"
 	POST -> OrderCreated
+	GET -> history
 }
 
+// find all orders with same email address
+resource history {
+	type: item
+	entity: Order
+	commands [ GET:NoopGET ] 
+	relations [ history ]
+	path: "/history"
+	GET -> Orders {
+		parameters [ query="email eq '{email}'" ]
+	}
+}
 
 resource Orders {
 	type: collection
 	entity: Order
-	commands [ GET:GETEntities ]
+	commands [ GET:GETEntities {
+			properties [ filter="{query}" ]
+		}
+	]
 	path: "/Orders()"
 	POST -> OrderCreated
 	GET *-> order {
 		// not required because 'Id' is a property of the Entity 'Order' so you get this link parameter automatically
 		// You specify path parameters or query parameters
 		parameters [ Id="{Id}" ]
-	}
-	GET *-> order_payment {
-		title: "Payment"
-		condition: OK(order_payment)
-	}
-	PUT *-> OrderUpdated {
-		condition: NOT_FOUND(order_payment)
-	}
-	DELETE *-> OrderCancelled {
-		condition: NOT_FOUND(order_payment)
 	}
 }
 
@@ -88,6 +96,9 @@ resource order {
 	entity: Order
 	commands [ GET:GETEntity ]
 	path: "/Orders({Id})"
+	GET -> history {
+		parameters [ email = "{email}" ]
+	}
 	GET -> order_payment {
 		title: "Payment"
 		condition: OK(order_payment) 

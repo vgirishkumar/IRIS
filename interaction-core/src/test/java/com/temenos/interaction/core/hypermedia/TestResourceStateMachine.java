@@ -2033,9 +2033,14 @@ public class TestResourceStateMachine {
 
         MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl();
         pathParameters.add("id", "123");
+        MultivaluedMap<String, String> queryParameters = new MultivaluedMapImpl();
         HttpHeaders headers = mock(HttpHeaders.class);
         Metadata metadata = mock(Metadata.class);
-        Collection<Link> links = rsm.injectLinks(rimHandler, new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParameters, mock(MultivaluedMap.class), airport, mock(Metadata.class)), new EntityResource<Object>(createAirport("London Luton", "LTN")), headers, metadata);
+        InteractionContext ctx = new InteractionContext(mock(UriInfo.class), mock(HttpHeaders.class), pathParameters, queryParameters, airport, mock(Metadata.class));
+        MultivaluedMap<String, String> outQueryParameters = new MultivaluedMapImpl();
+        outQueryParameters.add("email", "name@test.com");
+        ctx.getOutQueryParameters().putAll(outQueryParameters);
+        Collection<Link> links = rsm.injectLinks(rimHandler, ctx, new EntityResource<Object>(createAirport("London Luton", "LTN")), headers, metadata);
 
         assertNotNull(links);
         assertFalse(links.isEmpty());
@@ -2055,7 +2060,7 @@ public class TestResourceStateMachine {
         assertEquals("Airport.airport>GET>Airport.airport", sortedLinks.get(0).getId());
         assertEquals("/baseuri/Airports('123')", sortedLinks.get(0).getHref());
         assertEquals("Airport.airport>GET>Operational.operational", sortedLinks.get(1).getId());
-        assertEquals("/baseuri/FlightStats?apikey=Some+literal+value", sortedLinks.get(1).getHref());
+        assertEquals("/baseuri/FlightStats?email=name%40test.com&apikey=Some+literal+value", sortedLinks.get(1).getHref());
     }
 
     /*

@@ -32,6 +32,7 @@
 		</Property>
 		<Property Name="location" />
 		<Property Name="name" />
+		<Property Name="email" />
 		<Property Name="milk" />
 		<Property Name="quantity">
 			<Term Name="TERM_VALUE_TYPE">INTEGER_NUMBER</Term>

@@ -25,10 +25,13 @@ package com.interaction.example.hateoas.restbucks;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.util.List;
 import java.util.UUID;
 
 import javax.ws.rs.core.Response.Status;
@@ -70,6 +73,51 @@ public class LinkRelationsITCase extends JerseyTest {
 	public void tearDown() {}
 
 	@Test
+	public void testEncodedQueryParameterPassing() throws Exception {
+		ReadableRepresentation resource = get(webResource.path("/123456/history")
+				.queryParam("query", "test%40abc.com")
+				.queryParam("email", "test%40abc.com"));
+		Link orders = resource.getLinkByRel("collection");
+		assertNotNull("history of 'orders' link relation", orders);
+		assertEquals("http://localhost:8080/example/interaction-hateoas-restbucks.svc/123456/Orders()?query=test%40abc.com&query=email+eq+'test%40abc.com'&email=test%40abc.com", orders.getHref());
+	}
+
+	@Test
+	public void testOrderHistory() throws Exception {
+	    // request root
+		ReadableRepresentation rootResource = get(webResource.path("/123456/shop"));
+	    
+		// POST order
+		Link order = rootResource.getLinkByRel("http://relations.restbucks.com/order");
+		assertNotNull("'order' link relation", order);
+		UUID id = UUID.randomUUID();
+		Representation orderRequest = buildOrderRequest(id.toString());
+		ReadableRepresentation orderResource = post(webResource.uri(new URI(order.getHref())), orderRequest.toString(MediaType.APPLICATION_HAL_JSON));
+
+		// use the link on the order
+		Link history = orderResource.getLinkByRel("http://relations.restbucks.com/history");
+		assertNotNull(history);
+		webResource = webResource.uri(new URI(history.getHref()));
+		ReadableRepresentation historyResource1 = get(webResource);
+
+		// get the orders
+		Link orders1 = historyResource1.getLinkByRel("collection");
+		ReadableRepresentation historyOrders1 = get(webResource.uri(new URI(orders1.getHref())));
+		assertEquals(1, historyOrders1.getResourceMap().size());
+
+		// use the 'history' link on root to find all orders with same email address
+		Link rootHistory = rootResource.getLinkByRel("http://relations.restbucks.com/history");
+		assertNotNull(rootHistory);
+		webResource = webResource.uri(new URI(rootHistory.getHref())).queryParam("email", URLEncoder.encode(id.toString()+"+test@somewhere.com", "UTF-8"));
+		ReadableRepresentation historyResource2 = get(webResource);
+
+		// get the orders
+		Link orders2 = historyResource2.getLinkByRel("collection");
+		ReadableRepresentation historyOrders2 = get(webResource.uri(new URI(orders2.getHref())));
+		assertEquals(1, historyOrders2.getResourceMap().size());
+	}
+
+	@Test
 	public void testOrderStatus() throws Exception {
 		// RB1000 already exists, inserted during test initialisation
 		ReadableRepresentation orderResource = get(webResource.path("/123456/Orders('RB1000')"));
@@ -80,8 +128,14 @@ public class LinkRelationsITCase extends JerseyTest {
 		assertNull("'payment' link relation", payment);
 
 		// should be a link to the payment
-		
-		
+		List<Link> links = orderResource.getLinks();
+		boolean found = false;
+		for (Link link : links) {
+			if (link.getHref().equals("http://localhost:8080/example/interaction-hateoas-restbucks.svc/123456/Orders(RB1000)/payment")) {
+				found = true;
+			}
+		}
+		assertTrue("Payment link", found);
 	}
 
 	@Test
@@ -171,6 +225,7 @@ public class LinkRelationsITCase extends JerseyTest {
                 .withProperty("Id", id)
                 .withProperty("milk", "yes")
                 .withProperty("name", "Aaron")
+                .withProperty("email", id+"+test@somewhere.com")   // keep the + character in the email address to test url encoding
                 .withProperty("quantity", 1);
     }
     
