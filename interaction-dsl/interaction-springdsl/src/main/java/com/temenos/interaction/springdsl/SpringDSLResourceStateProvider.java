@@ -426,8 +426,7 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 						result = new FileSystemXmlApplicationContext( new String[] { path });
 					}
 				} else {
-					logger.error("The path for IRIS generated files directory (parameter 'com.temenos.interaction.config'), " +
-							"is pointing to a file or doesn't exists: " + irisResourceDir.getAbsolutePath());
+					logger.error("Invalid IRIS resource directory path: " + irisResourceDir.getAbsolutePath());
 				}
 			}
 
