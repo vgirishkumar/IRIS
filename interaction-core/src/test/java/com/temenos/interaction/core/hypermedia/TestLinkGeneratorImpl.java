@@ -130,6 +130,20 @@ public class TestLinkGeneratorImpl {
         assertFalse(links.isEmpty());
         assertEquals("/baseuri/test?filter=123", links.iterator().next().getHref());
     }
+    
+    @Test
+    public void testCreateLinkHrefUriParameterEmptyTokensReplaceQueryParameters() {
+        ResourceStateMachine engine = new ResourceStateMachine(mock(ResourceState.class), new BeanTransformer());
+        Map<String, String> uriParameters = new HashMap<String, String>();
+        uriParameters.put("param1", "");
+        Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mockTarget("/test")).uriParameters(uriParameters).build();
+        MultivaluedMap<String, String> queryParameters = new MultivaluedMapImpl<String>();
+        queryParameters.add("$param", "123");
+        LinkGenerator linkGenerator = new LinkGeneratorImpl(engine, t, null);
+        Collection<Link> links = linkGenerator.createLink(null, queryParameters, null);
+        assertFalse(links.isEmpty());
+        assertEquals("/baseuri/test?param1=", links.iterator().next().getHref());
+    }
 
     @Test
     public void testCreateLinkHrefAllQueryParameters() {
