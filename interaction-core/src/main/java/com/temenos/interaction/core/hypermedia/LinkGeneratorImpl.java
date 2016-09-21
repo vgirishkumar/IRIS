@@ -173,11 +173,7 @@ public class LinkGeneratorImpl implements LinkGenerator {
                 if (!targetResourcePath.contains("{" + key + "}")) {
                     String paramValue = HypermediaTemplateHelper.templateReplace(value, transitionProperties);
                     if (paramValue != null) {
-                        if(outQueryParams.containsKey(key)){
-                            outQueryParams.putSingle(key, paramValue);
-                        } else {
-                            outQueryParams.add(key, paramValue);
-                        }
+                        outQueryParams.putSingle(key, paramValue);
                     }
                 }
             }
