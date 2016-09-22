@@ -31,6 +31,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriBuilderException;
 
+import org.apache.wink.common.internal.MultivaluedMapImpl;
 import org.odata4j.core.OEntity;
 import org.odata4j.format.xml.XmlFormatWriter;
 import org.slf4j.Logger;
@@ -88,6 +89,7 @@ public class LinkGeneratorImpl implements LinkGenerator {
     private Link createLink(LinkProperties linkProperties, MultivaluedMap<String, String> queryParameters, Object entity) {
         assert (RequestContext.getRequestContext() != null);
         ResourceStateProvider resourceStateProvider = resourceStateMachine.getResourceStateProvider();
+        
         try {
             ResourceState targetState = transition.getTarget();            
 
@@ -105,17 +107,6 @@ public class LinkGeneratorImpl implements LinkGenerator {
             setErrorState(targetState, resourceStateProvider);
 
             UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath());
-
-            // Add any query parameters set by the command to the response
-            if (interactionContext != null) {
-                MultivaluedMap<String, String> outQueryParams = interactionContext.getOutQueryParameters();
-
-                for (Map.Entry<String, List<String>> param : outQueryParams.entrySet()) {
-                    for(String paramValue: param.getValue()) {
-                        linkTemplate.queryParam(param.getKey(), paramValue);
-                    }
-                }
-            }
 
             if (targetState instanceof DynamicResourceState) {
                 return createLinkForDynamicResource(linkTemplate, linkProperties, targetState, entity);
@@ -166,15 +157,31 @@ public class LinkGeneratorImpl implements LinkGenerator {
         // Pass uri parameters as query parameters if they are not
         // replaceable in the path, and replace any token.
         Map<String, String> uriParameters = transition.getCommand().getUriParameters();
+        MultivaluedMap<String, String> outQueryParams = new MultivaluedMapImpl<String, String>();
+        if (interactionContext != null) {
+            MultivaluedMap<String, String> outQueryParamsTemp = interactionContext.getOutQueryParameters();
+            for (Map.Entry<String, List<String>> param : outQueryParamsTemp.entrySet()) {
+                for(String paramValue: param.getValue()) {
+                    outQueryParams.add(param.getKey(), paramValue);
+                }
+            }
+        }
+        
         if (uriParameters != null) {
             for (String key : uriParameters.keySet()) {
                 String value = uriParameters.get(key);
                 if (!targetResourcePath.contains("{" + key + "}")) {
                     String paramValue = HypermediaTemplateHelper.templateReplace(value, transitionProperties);
                     if (paramValue != null) {
-                        linkTemplate.queryParam(key, paramValue);
+                        outQueryParams.putSingle(key, paramValue);
                     }
                 }
+            }
+        }
+        
+        for (Map.Entry<String, List<String>> param : outQueryParams.entrySet()) {
+            for(String paramValue: param.getValue()) {
+                linkTemplate.queryParam(param.getKey(), paramValue);
             }
         }
     }

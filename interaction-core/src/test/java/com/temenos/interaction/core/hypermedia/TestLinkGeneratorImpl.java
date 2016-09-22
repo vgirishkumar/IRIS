@@ -53,6 +53,7 @@ import org.odata4j.edm.EdmComplexType;
 import org.odata4j.edm.EdmEntitySet;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
+import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.web.RequestContext;
 
 
@@ -130,7 +131,59 @@ public class TestLinkGeneratorImpl {
         assertFalse(links.isEmpty());
         assertEquals("/baseuri/test?filter=123", links.iterator().next().getHref());
     }
-
+    
+    @Test
+    public void testCreateLinkHrefUriParameterTransitionPropertiesReplaceQueryParameters() {
+        ResourceStateMachine engine = new ResourceStateMachine(mock(ResourceState.class), new BeanTransformer());
+        Map<String, String> uriParameters = new HashMap<String, String>();
+        uriParameters.put("param1", "delta");
+        Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mockTarget("/test")).uriParameters(uriParameters).build();
+        InteractionContext ctx = mock(InteractionContext.class);
+        MultivaluedMap<String, String> queryParameters = new MultivaluedMapImpl<String>();
+        queryParameters.add("param1", "alpha");
+        queryParameters.add("param2", "beta");
+        queryParameters.add("param3", "gamma");
+        when(ctx.getOutQueryParameters()).thenReturn(queryParameters);
+        LinkGenerator linkGenerator = new LinkGeneratorImpl(engine, t, ctx);
+        Collection<Link> links = linkGenerator.createLink(null, null, null);
+        assertFalse(links.isEmpty());
+        assertEquals("/baseuri/test?param1=delta&param2=beta&param3=gamma", links.iterator().next().getHref());
+    }
+    
+    @Test
+    public void testCreateLinkHrefUriParametersQueryParametersAndNoTransitionProperties() {
+        ResourceStateMachine engine = new ResourceStateMachine(mock(ResourceState.class), new BeanTransformer());
+        Map<String, String> uriParameters = new HashMap<String, String>();
+        Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mockTarget("/test")).uriParameters(uriParameters).build();
+        InteractionContext ctx = mock(InteractionContext.class);
+        MultivaluedMap<String, String> queryParameters = new MultivaluedMapImpl<String>();
+        queryParameters.add("param1", "alpha");
+        queryParameters.add("param2", "beta");
+        queryParameters.add("param3", "gamma");
+        when(ctx.getOutQueryParameters()).thenReturn(queryParameters);
+        LinkGenerator linkGenerator = new LinkGeneratorImpl(engine, t, ctx);
+        Collection<Link> links = linkGenerator.createLink(null, null, null);
+        assertFalse(links.isEmpty());
+        assertEquals("/baseuri/test?param1=alpha&param2=beta&param3=gamma", links.iterator().next().getHref());
+    }
+    
+    @Test
+    public void testCreateLinkHrefUriParametersTransitionPropertiesAndNoQueryParameters() {
+        ResourceStateMachine engine = new ResourceStateMachine(mock(ResourceState.class), new BeanTransformer());
+        Map<String, String> uriParameters = new HashMap<String, String>();
+        uriParameters.put("param1", "alpha");
+        uriParameters.put("param2", "beta");
+        uriParameters.put("param3", "gamma");
+        Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mockTarget("/test")).uriParameters(uriParameters).build();
+        InteractionContext ctx = mock(InteractionContext.class);
+        MultivaluedMap<String, String> queryParameters = new MultivaluedMapImpl<String>();
+        when(ctx.getOutQueryParameters()).thenReturn(queryParameters);
+        LinkGenerator linkGenerator = new LinkGeneratorImpl(engine, t, ctx);
+        Collection<Link> links = linkGenerator.createLink(null, null, null);
+        assertFalse(links.isEmpty());
+        assertEquals("/baseuri/test?param1=alpha&param2=beta&param3=gamma", links.iterator().next().getHref());
+    }
+    
     @Test
     public void testCreateLinkHrefAllQueryParameters() {
         ResourceStateMachine engine = new ResourceStateMachine(mock(ResourceState.class), new BeanTransformer());
