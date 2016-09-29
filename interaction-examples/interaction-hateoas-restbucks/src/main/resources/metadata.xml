@@ -28,11 +28,11 @@
     <Entity Name="Metadata"></Entity>
 	<Entity Name="Order">
 		<Property Name="Id">
-			<Term Name="TERM_VALUE_TYPE">INTEGER_NUMBER</Term>
 			<Term Name="TERM_ID_FIELD">true</Term>
 		</Property>
 		<Property Name="location" />
 		<Property Name="name" />
+		<Property Name="email" />
 		<Property Name="milk" />
 		<Property Name="quantity">
 			<Term Name="TERM_VALUE_TYPE">INTEGER_NUMBER</Term>

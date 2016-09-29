@@ -1452,7 +1452,6 @@ public class TestResponseHTTPHypermediaRIM {
 		return uriInfo;
 	}
 	
-	@SuppressWarnings({ "unchecked" })
     private UriInfo mockUriInfoWithParams() {
         UriInfo uriInfo = mock(UriInfo.class);
         MultivaluedMap<String, String> queryParam = new MultivaluedMapImpl<String>();

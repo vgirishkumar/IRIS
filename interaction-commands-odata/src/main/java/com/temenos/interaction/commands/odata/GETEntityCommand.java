@@ -30,6 +30,7 @@ import javax.ws.rs.core.Response.Status;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmEntitySet;
+import org.odata4j.exceptions.NotFoundException;
 import org.odata4j.exceptions.ODataProducerException;
 import org.odata4j.producer.EntityQueryInfo;
 import org.odata4j.producer.EntityResponse;
@@ -89,12 +90,14 @@ public class GETEntityCommand extends AbstractODataCommand implements Interactio
 			}			
 			ctx.setResource(ipe.getEntityResource());
 			throw new InteractionException(ipe.getHttpStatus(), ipe);
-		}
-		catch(ODataProducerException ope) {
+		} catch(NotFoundException ope) {
+			logger.debug("GET entity on [" + entityName + ", " + ctx.getId() + "] failed: ", ope);
+	    	// do not even think about changing this back to an exception, not found is a failure to GET
+			return Result.FAILURE;
+		} catch(ODataProducerException ope) {
 			logger.debug("GET entity on [" + entityName + ", " + ctx.getId() + "] failed: ", ope);
 			throw new InteractionException(ope.getHttpStatus(), ope);
-		}
-		catch(Exception e) {
+		} catch(Exception e) {
 			logger.error("Failed to GET entity [" + entityName + ", " + ctx.getId() + "]: ", e);
 			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e);
 		}
