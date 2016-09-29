@@ -111,24 +111,6 @@ public class LinkGeneratorImpl implements LinkGenerator {
 
             UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath());
 
-            // Add any query parameters set by the command to the response
-            if (interactionContext != null) {
-                MultivaluedMap<String, String> outQueryParams = interactionContext.getOutQueryParameters();
-
-                for (Map.Entry<String, List<String>> param : outQueryParams.entrySet()) {
-                    for(String paramValue: param.getValue()) {
-            	    	if (paramValue != null) {
-            	        	try {
-            					String encodedValue = URLEncoder.encode(paramValue, "UTF-8");
-                                linkTemplate.queryParam(param.getKey(), encodedValue);
-            				} catch (UnsupportedEncodingException e) {
-            					logger.error("ERROR unable to encode " + param.getKey(), e);
-            				}
-            	    	}
-                    }
-                }
-            }
-
             if (targetState instanceof DynamicResourceState) {
                 return createLinkForDynamicResource(linkTemplate, linkProperties, targetState, entity);
             } else {
@@ -183,7 +165,11 @@ public class LinkGeneratorImpl implements LinkGenerator {
             MultivaluedMap<String, String> outQueryParamsTemp = interactionContext.getOutQueryParameters();
             for (Map.Entry<String, List<String>> param : outQueryParamsTemp.entrySet()) {
                 for(String paramValue: param.getValue()) {
-                    outQueryParams.add(param.getKey(), paramValue);
+                    try{
+                        outQueryParams.add(param.getKey(), URLEncoder.encode(paramValue, "UTF-8"));
+                    }catch(UnsupportedEncodingException uee){
+                        logger.error("Unable to encode {}={}.", param.getKey(), paramValue);
+                    }
                 }
             }
         }

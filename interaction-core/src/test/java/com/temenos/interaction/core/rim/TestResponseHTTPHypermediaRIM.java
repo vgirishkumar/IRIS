@@ -985,7 +985,7 @@ public class TestResponseHTTPHypermediaRIM {
         ResourceState door = new DynamicResourceState("house", "door", "locator", new String[]{"time"});
         ResourceState hallway = new ResourceState("house", "hallway", mockIncrementAction(), "/hallway", (String[])null);
         ResourceState kitchen = new ResourceState("house", "kitchen", mockSingleAction("DONE", Action.TYPE.ENTRY, "POST"), "/kitchen", new String[]{"http://temenostech.temenos.com/rels/new"});
-        ResourceState sink = new ResourceState("house", "sink", mockGetAction(), "/sink");
+        ResourceState sink = new ResourceState("house", "sink", mockSingleAction("GET", Action.TYPE.VIEW, "GET"), "/sink");
         ResourceState lighting = new ResourceState("house", "lighting", mockSingleAction("SEE", Action.TYPE.ENTRY, "POST"), "/lighting");
         entrance.addTransition(new Transition.Builder().flags(Transition.AUTO).target(doorframe).evaluation(new ResourceGETExpression(doorframe, ResourceGETExpression.Function.OK)).build());
         doorframe.addTransition(new Transition.Builder().flags(Transition.AUTO).target(door).build());
@@ -1077,7 +1077,7 @@ public class TestResponseHTTPHypermediaRIM {
         ResourceState door = new DynamicResourceState("house", "door", "locator", new String[]{"time"});
         ResourceState hallway = new ResourceState("house", "hallway", mockIncrementAction(), "/hallway", (String[])null);
         ResourceState kitchen = new ResourceState("house", "kitchen", mockSingleAction("DONE", Action.TYPE.ENTRY, "POST"), "/kitchen", new String[]{"http://temenostech.temenos.com/rels/new"});
-        ResourceState sink = new ResourceState("house", "sink", mockGetAction(), "/sink");
+        ResourceState sink = new ResourceState("house", "sink", mockSingleAction("GET", Action.TYPE.VIEW, "GET"), "/sink");
         ResourceState lighting = new ResourceState("house", "lighting", mockSingleAction("SEE", Action.TYPE.ENTRY, "POST"), "/lighting");
         entrance.addTransition(new Transition.Builder().flags(Transition.AUTO).target(doorframe).evaluation(new ResourceGETExpression(doorframe, ResourceGETExpression.Function.OK)).build());
         doorframe.addTransition(new Transition.Builder().flags(Transition.AUTO).target(door).build());
@@ -1156,7 +1156,6 @@ public class TestResponseHTTPHypermediaRIM {
         verify(increment, times(1)).execute(any(InteractionContext.class));
         verify(done, times(2)).execute(any(InteractionContext.class));
     }
-
     
     @Test
     public void testPOSTWithOneConditionalAutomaticTransitionAndDynamicResourceState() throws InteractionException {
@@ -1175,8 +1174,8 @@ public class TestResponseHTTPHypermediaRIM {
                 "house", "hallway", mockSingleAction("DONE", Action.TYPE.ENTRY, "POST"), 
                 "/hallway", (String[])null
         );
-        ResourceState curtains = new ResourceState("house", "curtains", mockGetAction(), "/curtains");
-        ResourceState lighting = new ResourceState("house", "lighting", mockGetAction(), "/lighting");
+        ResourceState curtains = new ResourceState("house", "curtains", mockSingleAction("GET", Action.TYPE.VIEW, "GET"), "/curtains");
+        ResourceState lighting = new ResourceState("house", "lighting", mockSingleAction("GET", Action.TYPE.VIEW, "GET"), "/lighting");
         entrance.addTransition(
                 new Transition.Builder()
                     .flags(Transition.AUTO)
