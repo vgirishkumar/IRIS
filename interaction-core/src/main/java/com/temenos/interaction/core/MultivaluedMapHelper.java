@@ -21,6 +21,7 @@ package com.temenos.interaction.core;
  * #L%
  */
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -37,8 +38,21 @@ import org.slf4j.LoggerFactory;
  */
 public class MultivaluedMapHelper {
     
+    private MultivaluedMapHelper(){}
+    
+    /**
+     * A MultivaluedMapHelper Strategy determines how values will be merged into the target map
+     * if there are duplicate keys.
+     * 
+     * @author dgroves
+     */
     public static enum Strategy {
-        FAVOUR_SRC, FAVOUR_DEST, UNION
+        /**Overwrite duplicate keys' values.*/
+        FAVOUR_SRC, 
+        /**Do not alter duplicate keys' values.*/
+        FAVOUR_DEST, 
+        /**Append unique values to duplicate keys.*/
+        UNION
     }
     
     private static final Logger LOGGER = LoggerFactory.getLogger(MultivaluedMapHelper.class);
@@ -48,27 +62,30 @@ public class MultivaluedMapHelper {
      * the chosen merge strategy, while unique entries will be replicated in the destination map. 
      * Null entry values will be replaced if the other map's entry value is not null, 
      * but null collection elements will be preserved. 
-     * If the source map or destination map is null, this method will return null. 
-     * @return The transformed destination map
+     * 
+     * @param from The source map.
+     * @param to The target map that values will be merged into.
      */
-    public static <K, V> MultivaluedMap<K, V> merge(MultivaluedMap<K, V> from, 
+    public static <K, V> void merge(MultivaluedMap<K, V> from, 
             MultivaluedMap<K, V> to, Strategy transformation){
         if(from == null || to == null){
             LOGGER.error("Attempted to merge a null map");
-            return null;
+            return;
         }
+        //use a LinkedList for faster insertion and removal
+        List<V> copiedValues = new LinkedList<V>();
         for(Map.Entry<K, List<V>> entry : from.entrySet()){
             if(!to.containsKey(entry.getKey())){
                 to.put(entry.getKey(), entry.getValue());
-                continue;
             }else if(to.get(entry.getKey()) == null || transformation == Strategy.FAVOUR_SRC){
                 to.put(entry.getKey(), entry.getValue());
             }else if(transformation == Strategy.UNION){
-                removeAllIgnoreNullValue(to.get(entry.getKey()), entry.getValue());
-                addAllIgnoreNullValue(entry.getValue(), to.get(entry.getKey()));
+                addAllIgnoreNullValue(entry.getValue(), copiedValues);
+                removeAllIgnoreNullValue(to.get(entry.getKey()), copiedValues);
+                addAllIgnoreNullValue(copiedValues, to.get(entry.getKey()));
+                copiedValues.clear();
             }
         }
-        return to;
     }
     
     private static <V> void addAllIgnoreNullValue(List<V> src, List<V> dest){
