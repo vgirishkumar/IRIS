@@ -545,6 +545,10 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			@SuppressWarnings("unchecked")
 			CollectionResource<OEntity> cr = (CollectionResource<OEntity>) resource;
 			List<EntityResource<OEntity>> entities = (List<EntityResource<OEntity>>) cr.getEntities();
+			Integer inlineCount = cr.getInlineCount();
+			if (inlineCount != null) {
+				halResource.withProperty("count", inlineCount.toString());
+			}
 			for (EntityResource<OEntity> er : entities) {
 				OEntity entity = er.getEntity();
 				// the subresource is an item of the collection (http://tools.ietf.org/html/rfc6573)

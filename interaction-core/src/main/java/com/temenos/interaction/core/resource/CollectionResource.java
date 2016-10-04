@@ -24,6 +24,7 @@ package com.temenos.interaction.core.resource;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.ws.rs.core.GenericEntity;
 import javax.xml.bind.annotation.XmlTransient;
@@ -42,12 +43,10 @@ public class CollectionResource<T> implements RESTResource {
 	
 	private Collection<EntityResource<T>> entities;
 
-	// TODO implement collection properties, used for things like inlinecount and skiptoken
 	// TODO implement JAXB Adapter for OProperty
 //	private List<OProperty<?>> properties;
 
 	@XmlTransient
-//    private String entityName;
 	private String entitySetName;
 	// links from a collection
 	@XmlTransient
@@ -56,6 +55,8 @@ public class CollectionResource<T> implements RESTResource {
     private Map<Transition, RESTResource> embedded;
 	@XmlTransient
     private String entityTag = null;
+	@XmlTransient
+	private Integer inlineCount;
 	
 	public CollectionResource() {}
 
@@ -141,4 +142,22 @@ public class CollectionResource<T> implements RESTResource {
 		this.entityTag = entityTag;
 	}
 
+	/**
+	 * Sets the inline count value of the collection response.
+	 * 
+	 * @param inline
+	 *            count
+	 */
+	public void setInlineCount(Integer inlineCount) {
+		this.inlineCount = inlineCount;
+	}
+
+	/**
+	 * Returns the inline count value of the collection response.
+	 * 
+	 * @return inline count or null if inline count is not available
+	 */
+	public Integer getInlineCount() {
+		return this.inlineCount;
+	}
 }

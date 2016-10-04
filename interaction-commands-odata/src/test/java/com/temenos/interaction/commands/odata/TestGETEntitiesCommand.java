@@ -25,6 +25,7 @@ package com.temenos.interaction.commands.odata;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -153,6 +154,58 @@ public class TestGETEntitiesCommand {
 			assertNotNull(mockContext.getResource());
 			assertEquals(mockContext.getResource().getEntityName(), "Errors");
 		}
+	}
+	
+	@Test
+	public void testExecuteWithInvalidInlineCount() {
+		try {
+			verifyForInlineCountValue("");
+			fail("InteractionException is expected");
+		} catch (Exception e) {
+			assertTrue(e instanceof InteractionException);
+		}
+		
+		try {
+			verifyForInlineCountValue("foo");
+			fail("InteractionException is expected");
+		} catch (Exception e) {
+			assertTrue(e instanceof InteractionException);
+		}
+	}
+	
+	@Test
+	public void testExecuteWithValidInlineCount() throws InteractionException {
+		verifyForInlineCountValue("allpages");
+		verifyForInlineCountValue("none");
+	}
+	
+	private void verifyForInlineCountValue(final String inlineCount) throws InteractionException {
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+		queryParams.add("$inlinecount", inlineCount);
+		
+		InteractionContext mockContext = createInteractionContext("MyEntity", queryParams);
+		ODataProducer mockProducer = createMockODataProducer("MyEntity", "Edm.String");
+		GETEntitiesCommand command = new GETEntitiesCommand(mockProducer);
+			
+		command.execute(mockContext);
+		
+		verify(mockProducer).getEntities(any(String.class), argThat(new ArgumentMatcher<QueryInfo>() {
+		
+			@Override
+			public boolean matches(Object argument) {
+				
+				if(argument instanceof QueryInfo) {
+					QueryInfo queryInfo = (QueryInfo)argument;
+																	
+					Map<String,String> customOptions = queryInfo.customOptions;
+					
+					if(inlineCount.equals(customOptions.get("$inlinecount"))) {
+						return true;
+						}   
+					}
+				return false;
+			}			
+		}));		
 	}
 
 	private ODataProducer createMockODataProducerException(String entityName, String keyTypeName) {
