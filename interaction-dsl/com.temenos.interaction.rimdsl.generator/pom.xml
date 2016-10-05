@@ -184,6 +184,12 @@
             <artifactId>com.temenos.interaction.rimdsl</artifactId>
             <version>${project.version}</version>
         </dependency>
+        
+         <dependency>
+            <groupId>com.temenos.interaction</groupId>
+            <artifactId>interaction-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
         	<groupId>org.eclipse.xtext</groupId>
