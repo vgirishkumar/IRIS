@@ -959,7 +959,7 @@ public class TestResponseHTTPHypermediaRIM {
         HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController, new ResourceStateMachine(entrance, new BeanTransformer(), locatorProvider), createMockMetadata(), locatorProvider);
         Response response = rim.post(mock(HttpHeaders.class), "id", mockUriInfoWithParams(), mockEntityResourceWithId("123"));
         //then {the response must be HTTP 201 Created}
-        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
         //and {the response entity must not be null and must be an instance of/subtype RESTResource}
         assertNotNull(GenericEntity.class.isAssignableFrom(response.getEntity().getClass()));
         GenericEntity<?> responseEntity = (GenericEntity<?>) response.getEntity();
@@ -1137,7 +1137,7 @@ public class TestResponseHTTPHypermediaRIM {
         Response response = rim.post(mock(HttpHeaders.class), "id", mockUriInfoWithParams(), mockEntityResourceWithId("123"));
         
         //then {the response must be HTTP 201 Created}
-        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
         
         //and {the response entity must not be null and must be an instance of/subtype RESTResource}
         assertNotNull(GenericEntity.class.isAssignableFrom(response.getEntity().getClass()));
@@ -1236,7 +1236,7 @@ public class TestResponseHTTPHypermediaRIM {
         Response response = rim.post(mock(HttpHeaders.class), "id", mockUriInfoWithParams(), mockEntityResourceWithId("123"));
         
         //then {the response must be HTTP 201 Created}
-        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
         
         //and {the response entity must not be null and must be an instance of/subtype RESTResource}
         assertNotNull(GenericEntity.class.isAssignableFrom(response.getEntity().getClass()));
