@@ -643,7 +643,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             ResourceState currentState = ctx.getCurrentState();
             Object entity = null;
             if (resource != null) {
-                assert (resource instanceof EntityResource) : "Must be an EntityResource for an auto transition";
                 entity = ((EntityResource<?>) resource).getEntity();
             }
             List<Transition> autoTransitions = getTransitions(ctx, currentState, Transition.AUTO);
@@ -677,7 +676,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             if(!ignoreAutoTransitions){
                 List<Transition> autoTransitions = getTransitions(ctx, currentState, Transition.AUTO);
                 if (!autoTransitions.isEmpty()) {
-                    assert (resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
                     ResponseWrapper autoResponse = resolveAutomaticTransitions(headers, ctx, responseBuilder, currentState, autoTransitions);
                     responseBuilder = setLocationHeader(responseBuilder, autoResponse.getSelfLink().getHref(), autoResponse.getRequestParameters());
                     if (autoResponse.getResponse().getEntity() != null) {

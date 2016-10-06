@@ -79,7 +79,7 @@ public class LinkRelationsITCase extends JerseyTest {
 				.queryParam("email", "test%40abc.com"));
 		Link orders = resource.getLinkByRel("collection");
 		assertNotNull("history of 'orders' link relation", orders);
-		assertEquals("http://localhost:8080/example/interaction-hateoas-restbucks.svc/123456/Orders()?query=test%40abc.com&query=email+eq+'test%40abc.com'&email=test%40abc.com", orders.getHref());
+		assertEquals("http://localhost:8080/example/interaction-hateoas-restbucks.svc/123456/Orders()?query=email+eq+'test%40abc.com'&email=test%40abc.com", orders.getHref());
 	}
 
 	@Test
