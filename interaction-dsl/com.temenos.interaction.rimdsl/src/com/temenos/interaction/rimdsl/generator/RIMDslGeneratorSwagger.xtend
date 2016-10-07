@@ -34,7 +34,6 @@ class RIMDslGeneratorSwagger implements IGenerator {
 	    if (resource == null) {
             throw new RuntimeException("Generator called with null resource");	        
 	    }
-	    var basepathapi = resource.allContents.toIterable.filter(typeof(BasePath))
 	    var domains = resource.allContents.toIterable.filter(typeof(DomainDeclaration))
 	    
 	    for (DomainDeclaration domain : domains) {
@@ -56,7 +55,7 @@ class RIMDslGeneratorSwagger implements IGenerator {
                                 resources.add(path)
                             }
                         }
-                        fsa.generateFile("api-docs-"+domain.name+"-"+rim.name+".json", toApiDocHeader(domain, rim) + toResourceListing(basepathapi, rim, initialState, resources, interactionsByPath, stateByMethodPath).toString + toApiDocFooter())
+                        fsa.generateFile("api-docs-"+domain.name+"-"+rim.name+".json", toApiDocHeader(domain, rim) + toResourceListing(rim, initialState, resources, interactionsByPath, stateByMethodPath).toString + toApiDocFooter())
                     } 
 	            }
 	        }
@@ -67,28 +66,26 @@ class RIMDslGeneratorSwagger implements IGenerator {
     {
         "swagger": "2.0",
         "info": {
-            "title": "«getAnnotation(domain.annotations,"title")»",
-            "description": "«getAnnotation(domain.annotations,"description")»",
+            "title": "«getAnnotation(rim.annotations,"title")»",
+            "description": "«getAnnotation(rim.annotations,"description")»",
             "version": "1.0.0"
         },
         "produces": ["application/json","application/xml"],
 	'''
 
-    def toResourceListing(Iterable<BasePath> basepathapis, ResourceInteractionModel rim, State initialState, Iterable<String> paths, Map<String, Set<String>> interactionsByPath, Map<String, State> stateByMethodPath) '''
-        «FOR basepathapi : basepathapis»
+    def toResourceListing(ResourceInteractionModel rim, State initialState, Iterable<String> paths, Map<String, Set<String>> interactionsByPath, Map<String, State> stateByMethodPath) '''
         "paths": {
-            «setPathPosition(0)»
-            «FOR path : paths»
-                «IF path != null && showResource(path,rim,interactionsByPath,stateByMethodPath)»
-                    «var interactions = interactionsByPath.get(path)»
-                    «IF interactions != null»
-                        "«path»": {
-                            «toOperations(path, rim, interactionsByPath, stateByMethodPath)»
-                        }
-                        «IF positionPath < paths.size - 1»,«setPathPosition(positionPath+1)»«ENDIF»
-                    «ENDIF»
+        «setPathPosition(0)»
+        «FOR path : paths»
+            «IF path != null && showResource(path,rim,interactionsByPath,stateByMethodPath)»
+                «var interactions = interactionsByPath.get(path)»
+                «IF interactions != null»
+                    "«path»": {
+                        «toOperations(path, rim, interactionsByPath, stateByMethodPath)»
+                    }
+                    «IF positionPath < paths.size - 1»,«setPathPosition(positionPath+1)»«ENDIF»
                 «ENDIF»
-            «ENDFOR»
+            «ENDIF»
         «ENDFOR»
         },
         "definitions": {

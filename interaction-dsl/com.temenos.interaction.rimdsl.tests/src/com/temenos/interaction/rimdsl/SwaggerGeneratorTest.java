@@ -97,72 +97,72 @@ public class SwaggerGeneratorTest {
 	private final static String SIMPLE_STATES_SWAGGER = "" +		
 	"{" + LINE_SEP + 
 	"    \"swagger\": \"2.0\"," + LINE_SEP + 
-	"    \"info\": {" + LINE_SEP + 
-	"        \"title\": \"\"," + LINE_SEP + 
-	"        \"description\": \"\"," + LINE_SEP + 
-	"        \"version\": \"1.0.0\"" + LINE_SEP + 
-	"    }," + LINE_SEP + 
-	"    \"produces\": [\"application/json\",\"application/xml\"]," + LINE_SEP + 
-	"\"paths\": {" + LINE_SEP +
-	"    \"/B\": {" + LINE_SEP + 
-	"        \"post\": {" + LINE_SEP + 
-	"            \"description\": \"\"," + LINE_SEP + 
-	"            \"consumes\": [\"application/json\",\"application/xml\"]," + LINE_SEP + 
-	"            \"produces\": [\"application/json\",\"application/xml\"]," + LINE_SEP + 
-	"            \"parameters\": [" + LINE_SEP + 
-	"                {" + LINE_SEP + 
-	"                    \"in\": \"body\"," + LINE_SEP + 
-	"                    \"name\": \"body\"," + LINE_SEP + 
-	"                    \"description\": \"-\"," + LINE_SEP + 
-	"                    \"required\": true," + LINE_SEP + 
-	"                    \"schema\": {" + LINE_SEP + 
-	"                        \"$ref\": \"#/definitions/ENTITY\"" + LINE_SEP + 
-	"                    }" + LINE_SEP + 
-	"                }" + LINE_SEP + 
-	"            ]," + LINE_SEP + 
-	"             \"tags\": [\"Simple\"" + LINE_SEP + 
-	"            ]," + LINE_SEP + 
-	"                \"responses\": {" + LINE_SEP + 
-	"                \"201\": {" + LINE_SEP + 
-	"                    \"description\": \"Created\"," + LINE_SEP + 
-	"                    \"schema\": {" + LINE_SEP + 
-	"                        \"type\": \"array\"," + LINE_SEP + 
-	"                        \"items\": {" + LINE_SEP + 
-	"                            \"$ref\": \"#/definitions/ENTITY\"" + LINE_SEP + 
-	"                        }" + LINE_SEP + 
-	"                    }" + LINE_SEP + 
-	"                }," + LINE_SEP + 
-	"                \"400\": {" + LINE_SEP + 
-	"                    \"description\": \"Bad request\"," + LINE_SEP + 
-	"                    \"schema\": {" + LINE_SEP + 
-	"                        \"type\": \"array\"," + LINE_SEP + 
-	"                        \"items\": {" + LINE_SEP + 
-	"                            \"$ref\": \"#/definitions/ErrorsMvGroup\"" + LINE_SEP + 
-	"                        }" + LINE_SEP + 
-	"                    }" + LINE_SEP + 
-	"                }," + LINE_SEP + 
-	"                \"401\": {" + LINE_SEP + 
-	"                    \"description\": \"Authentication/Authorization error\"," + LINE_SEP + 
-	"                    \"schema\": {" + LINE_SEP + 
-	"                        \"type\": \"array\"," + LINE_SEP + 
-	"                        \"items\": {" + LINE_SEP + 
-	"                            \"$ref\": \"#/definitions/ErrorsMvGroup\"" + LINE_SEP + 
-	"                        }" + LINE_SEP + 
-	"                    }" + LINE_SEP + 
-	"                }," + LINE_SEP + 
-	"                \"404\": {" + LINE_SEP + 
-	"                    \"description\": \"Resource not found\"" + LINE_SEP + 
-	"                }," + LINE_SEP + 
-	"                \"default\": {" + LINE_SEP + 
-	"                    \"description\": \"Unexpected output\"," + LINE_SEP + 
-	"                    \"schema\": {" + LINE_SEP + 
-	"                        \"$ref\": \"#/definitions/ErrorsMvGroup\"" + LINE_SEP + 
-	"                    }" + LINE_SEP + 
-	"                }" + LINE_SEP + 
-	"            }" + LINE_SEP + 
-	"        }" + LINE_SEP + 
-	"    }" + LINE_SEP + 
-	"}," + LINE_SEP + 
+    "    \"info\": {" + LINE_SEP + 
+    "        \"title\": \"\"," + LINE_SEP + 
+    "        \"description\": \"\"," + LINE_SEP + 
+    "        \"version\": \"1.0.0\"" + LINE_SEP + 
+    "    }," + LINE_SEP + 
+    "    \"produces\": [\"application/json\",\"application/xml\"]," + LINE_SEP + 
+    "\"paths\": {" + LINE_SEP +
+    "\"/B\": {" + LINE_SEP + 
+    "    \"post\": {" + LINE_SEP + 
+    "        \"description\": \"\"," + LINE_SEP + 
+    "        \"consumes\": [\"application/json\",\"application/xml\"]," + LINE_SEP + 
+    "        \"produces\": [\"application/json\",\"application/xml\"]," + LINE_SEP + 
+    "        \"parameters\": [" + LINE_SEP + 
+    "            {" + LINE_SEP + 
+    "                \"in\": \"body\"," + LINE_SEP + 
+    "                \"name\": \"body\"," + LINE_SEP + 
+    "                \"description\": \"-\"," + LINE_SEP + 
+    "                \"required\": true," + LINE_SEP + 
+    "                \"schema\": {" + LINE_SEP + 
+    "                    \"$ref\": \"#/definitions/ENTITY\"" + LINE_SEP + 
+    "                }" + LINE_SEP + 
+    "            }" + LINE_SEP + 
+    "        ]," + LINE_SEP + 
+    "         \"tags\": [\"Simple\"" + LINE_SEP + 
+    "        ]," + LINE_SEP + 
+    "            \"responses\": {" + LINE_SEP + 
+    "            \"201\": {" + LINE_SEP + 
+    "                \"description\": \"Created\"," + LINE_SEP + 
+    "                \"schema\": {" + LINE_SEP + 
+    "                    \"type\": \"array\"," + LINE_SEP + 
+    "                    \"items\": {" + LINE_SEP + 
+    "                        \"$ref\": \"#/definitions/ENTITY\"" + LINE_SEP + 
+    "                    }" + LINE_SEP + 
+    "                }" + LINE_SEP + 
+    "            }," + LINE_SEP + 
+    "            \"400\": {" + LINE_SEP + 
+    "                \"description\": \"Bad request\"," + LINE_SEP + 
+    "                \"schema\": {" + LINE_SEP + 
+    "                    \"type\": \"array\"," + LINE_SEP + 
+    "                    \"items\": {" + LINE_SEP + 
+    "                        \"$ref\": \"#/definitions/ErrorsMvGroup\"" + LINE_SEP + 
+    "                    }" + LINE_SEP + 
+    "                }" + LINE_SEP + 
+    "            }," + LINE_SEP + 
+    "            \"401\": {" + LINE_SEP + 
+    "                \"description\": \"Authentication/Authorization error\"," + LINE_SEP + 
+    "                \"schema\": {" + LINE_SEP + 
+    "                    \"type\": \"array\"," + LINE_SEP + 
+    "                    \"items\": {" + LINE_SEP + 
+    "                        \"$ref\": \"#/definitions/ErrorsMvGroup\"" + LINE_SEP + 
+    "                    }" + LINE_SEP + 
+    "                }" + LINE_SEP + 
+    "            }," + LINE_SEP + 
+    "            \"404\": {" + LINE_SEP + 
+    "                \"description\": \"Resource not found\"" + LINE_SEP + 
+    "            }," + LINE_SEP + 
+    "            \"default\": {" + LINE_SEP + 
+    "                \"description\": \"Unexpected output\"," + LINE_SEP + 
+    "                \"schema\": {" + LINE_SEP + 
+    "                    \"$ref\": \"#/definitions/ErrorsMvGroup\"" + LINE_SEP + 
+    "                }" + LINE_SEP + 
+    "            }" + LINE_SEP + 
+    "        }" + LINE_SEP + 
+    "    }" + LINE_SEP + 
+    "}" + LINE_SEP + 
+    "}," + LINE_SEP + 
 	"\"definitions\": {" + LINE_SEP + 
 	"    \"ErrorsMvGroup\": {" + LINE_SEP + 
 	"        \"type\": \"object\"," + LINE_SEP + 
