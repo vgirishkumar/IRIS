@@ -145,41 +145,26 @@ public class Generator {
 		resourceSet.addLoadOption(XtextResource.OPTION_RESOLVE_ALL, Boolean.TRUE);
 		Resource resource = resourceSet.getResource(URI.createFileURI(inputPath), true);
         
-		if(metadata!=null) {
-		    
-		    Map<String, Object> entitiesMap = new HashMap<String, Object>();
-		    
-		    for(State key : Iterables.<State>filter(IteratorExtensions.<EObject>toIterable(resource.getAllContents()), State.class)) {
-		        
-                String entity = key.getEntity().getName();
-                
-                if (StringUtils.isNotEmpty(entity)) {
-                
-                    try {
-                        
-                        EntityMetadata em = metadata.getEntityMetadata(entity);
-                        
-                        if (null != em) {
-                            
-                            Map<String, Object> entityPropMap = new HashMap<String, Object>();
-                            
-                            // To refactor
-                            
-                            for (String propertySimple : em.getTopLevelProperties()) {
-                                
+		if(metadata!=null) {		    
+		    Map<String, Object> entitiesMap = new HashMap<String, Object>();		    
+		    for(State key : Iterables.<State>filter(IteratorExtensions.<EObject>toIterable(resource.getAllContents()), State.class)) {		        
+                String entity = key.getEntity().getName();                
+                if (StringUtils.isNotEmpty(entity)) {                
+                    try {                        
+                        EntityMetadata em = metadata.getEntityMetadata(entity);                        
+                        if (null != em) {                            
+                            Map<String, Object> entityPropMap = new HashMap<String, Object>();                            
+                            for (String propertySimple : em.getTopLevelProperties()) {                                
                                 if(!em.isPropertyList(propertySimple)) {
                                     String propertyName = em.getSimplePropertyName(propertySimple);
                                     entityPropMap.put(propertyName, "string");
-                                } else {
-                                    
+                                } else {                                    
                                     String propertyName = em.getSimplePropertyName(propertySimple);
                                     entityPropMap.put(propertyName, complexTypeHandler(propertySimple, em));
                                 }
-                            }
-                            
+                            }                            
                             entitiesMap.put(entity, entityPropMap);
-                        }
-                        
+                        }                        
                     } catch (Exception e) {
                         System.out.println("Entity Not found: " + entity);
                     }
