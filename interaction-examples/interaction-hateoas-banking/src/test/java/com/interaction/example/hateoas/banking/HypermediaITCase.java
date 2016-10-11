@@ -206,8 +206,8 @@ public class HypermediaITCase extends JerseyTest {
 
 	/**
 	 * Attempt to PUT an invalid resource representation.  The supplied self link is not correctly formed.
+	 * This test is no longer required as validation of self link is not mandatory nor mentioned in HAL specification.
 	 */
-	@Test
 	public void putInvalidResource() throws Exception {
 		RepresentationFactory representationFactory = new StandardRepresentationFactory();
 		ReadableRepresentation r = representationFactory.newRepresentation("~/xyz/123");
