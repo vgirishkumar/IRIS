@@ -162,7 +162,7 @@ public class DefaultHttpClient implements HttpClient {
 
     private void logHttpResponse(HttpResponse response) {
 	    if (logger.isInfoEnabled()) {
-	        String payload = request.payload();
+	        String payload = response.payload();
 	        if (payload != null && !payload.isEmpty()) {
 	            logger.info("\nHEADERS: {}\nRESPONSE: {}", response.headers(),
 	                    DefaultHttpClientHelper.prettyPrintXml(payload));
