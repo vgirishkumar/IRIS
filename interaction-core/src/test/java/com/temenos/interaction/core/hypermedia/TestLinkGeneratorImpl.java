@@ -185,6 +185,23 @@ public class TestLinkGeneratorImpl {
     }
     
     @Test
+    public void testCreateLinkHrefUriParametersQueryParametersNonAsciiCharacters() {
+        ResourceStateMachine engine = new ResourceStateMachine(mock(ResourceState.class), new BeanTransformer());
+        Map<String, String> uriParameters = new HashMap<String, String>();
+        Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mockTarget("/test")).uriParameters(uriParameters).build();
+        InteractionContext ctx = mock(InteractionContext.class);
+        MultivaluedMap<String, String> queryParameters = new MultivaluedMapImpl<String>();
+        queryParameters.add("param1", "a@1");
+        queryParameters.add("param2", "b@2");
+        queryParameters.add("param3", "c@3");
+        when(ctx.getOutQueryParameters()).thenReturn(queryParameters);
+        LinkGenerator linkGenerator = new LinkGeneratorImpl(engine, t, ctx);
+        Collection<Link> links = linkGenerator.createLink(null, null, null);
+        assertFalse(links.isEmpty());
+        assertEquals("/baseuri/test?param1=a%401&param2=b%402&param3=c%403", links.iterator().next().getHref());
+    }
+    
+    @Test
     public void testCreateLinkHrefAllQueryParameters() {
         ResourceStateMachine engine = new ResourceStateMachine(mock(ResourceState.class), new BeanTransformer());
         Transition t = new Transition.Builder().source(mock(ResourceState.class)).target(mockTarget("/test")).build();

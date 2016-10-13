@@ -4,6 +4,9 @@ rim Restbucks {
 	// our Restbucks chain has gone global, lets use a franchise id to identify the individual store
 	basepath: "/{franchise}" 
 
+	relation history {
+		fqn: "http://relations.restbucks.com/history"
+	}
 	relation order {
 		fqn: "http://relations.restbucks.com/order"
 	}
@@ -39,11 +42,12 @@ rim Restbucks {
 	command GETServiceDocument
 	command NoopGET
 	command UpdateEntity
+	command UpdateCreateEntity
 
 initial resource ServiceDocument {
 	type: item
 	entity: ServiceDocument
-	view: GETServiceDocument 
+	commands [ GET:GETServiceDocument ] 
 	path: "/"
 	GET -> Orders
 	GET -> Payments
@@ -53,16 +57,31 @@ initial resource ServiceDocument {
 resource shop {
 	type: item
 	entity: ServiceDocument
-	view: NoopGET 
+	commands [ GET:NoopGET ] 
 	path: "/shop"
 	POST -> OrderCreated
+	GET -> history
 }
 
+// find all orders with same email address
+resource history {
+	type: item
+	entity: Order
+	commands [ GET:NoopGET ] 
+	relations [ history ]
+	path: "/history"
+	GET -> Orders {
+		parameters [ query="email eq '{email}'" ]
+	}
+}
 
 resource Orders {
 	type: collection
 	entity: Order
-	view: GETEntities
+	commands [ GET:GETEntities {
+			properties [ filter="{query}" ]
+		}
+	]
 	path: "/Orders()"
 	POST -> OrderCreated
 	GET *-> order {
@@ -70,37 +89,49 @@ resource Orders {
 		// You specify path parameters or query parameters
 		parameters [ Id="{Id}" ]
 	}
-	GET *-> payment {
-		title: "Payment"
-	}
-	PUT *-> OrderUpdated
-	DELETE *-> OrderCancelled
 }
 
 resource order {
 	type: item
 	entity: Order
-	view: GETEntity
+	commands [ GET:GETEntity ]
 	path: "/Orders({Id})"
-	GET -> payment {
+	GET -> history {
+		parameters [ email = "{email}" ]
+	}
+	GET -> order_payment {
 		title: "Payment"
+		condition: OK(order_payment) 
+	}
+	POST -> PaymentAccepted {
+		title: "Make Payment"
+		condition: NOT_FOUND(order_payment)
 	}
 	// Can only update or delete if we haven't paid
 	PUT -> OrderUpdated {
-		condition: NOT_FOUND(payment)
+		condition: NOT_FOUND(order_payment)
 	}
 	DELETE -> OrderCancelled {
-		condition: NOT_FOUND(payment)
+		condition: NOT_FOUND(order_payment)
 	}
-	POST -> PaymentAccepted {
-		condition: NOT_FOUND(payment)
-	}
+}
+
+// uses the 'payment' property on the 'Order' to get the Payment entity
+resource order_payment {
+	type: item
+	entity: Payment
+	commands [ 
+		GET: GETNavProperty {
+			properties [ navproperty="payment", entity=Order ]
+		}
+	]
+	path: "/Orders({Id})/payment"
 }
 
 resource OrderCancelled {
 	type: item
 	entity: Order
-	actions [ DeleteEntity ]
+	commands [ DELETE:DeleteEntity ]
 	relations [ cancel ]
 	path: "/Orders({Id})"
 }
@@ -108,15 +139,18 @@ resource OrderCancelled {
 resource OrderUpdated {
 	type: item
 	entity: Order
-	actions [ UpdateEntity ]
+	commands [ PUT:UpdateCreateEntity ]
 	relations [ update ]
 	path: "/Orders({Id})"
+	GET --> order {
+		parameters [ Id="{Id}" ]
+	}
 }
 
 resource OrderCreated {
 	type: item
 	entity: Order
-	actions [ CreateEntity ]
+	commands [ POST:CreateEntity ]
 	relations [ order ]
 	path: "/Orders()"
 	GET --> order {
@@ -127,7 +161,7 @@ resource OrderCreated {
 resource Payments {
 	type: collection
 	entity: Payment
-	view: GETEntities
+	commands [ GET:GETEntities ]
 	path: "/Payments()"
 	GET *-> payment
 	GET *-> order {
@@ -138,7 +172,7 @@ resource Payments {
 resource payment {
 	type: item
 	entity: Payment
-	view: GETEntity
+	commands [ GET:GETEntity ]
 	path: "/Payments({Id})"
 	GET -> order {
 		title: "Order"
@@ -148,7 +182,7 @@ resource payment {
 resource PaymentAccepted {
 	type: item
 	entity: Payment
-	actions [ CreateEntity ]
+	commands [ POST:CreateEntity ]
 	relations [ payment ]
 	path: "/Payments()"
 	GET --> payment {
