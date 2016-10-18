@@ -489,6 +489,18 @@ public class HypermediaITCase extends JerseyTest {
 	}
 
 	/**
+	 * Attempt a POST an invalid notes resource (a collection resource)
+	 */
+	@Test
+	public void postNoteBadRequest() throws Exception {
+		String halRequest = "{{";
+		// attempt to put to the notes collection, rather than an individual
+		ClientResponse response = webResource.path("/notes").type(MediaType.APPLICATION_HAL_JSON)
+				.post(ClientResponse.class, halRequest);
+		assertEquals(400, response.getStatus());
+	}
+
+	/**
 	 * Attempt a PUT an invalid notes resource (a collection resource)
 	 */
 	@Test
@@ -496,7 +508,7 @@ public class HypermediaITCase extends JerseyTest {
 		String halRequest = "{{";
 		// attempt to put to the notes collection, rather than an individual
 		ClientResponse response = webResource.path("/notes").type(MediaType.APPLICATION_HAL_JSON)
-				.post(ClientResponse.class, halRequest);
+				.put(ClientResponse.class, halRequest);
 		assertEquals(400, response.getStatus());
 	}
 

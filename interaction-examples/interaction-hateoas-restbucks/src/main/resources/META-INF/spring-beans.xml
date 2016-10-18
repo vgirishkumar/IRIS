@@ -199,6 +199,10 @@
 	<bean id="UpdateEntity" class="com.temenos.interaction.commands.odata.UpdateEntityCommand">
 		<constructor-arg ref="producer" />
 	</bean>
+
+	<bean id="UpdateCreateEntity" class="com.temenos.interaction.commands.odata.UpdateCreateEntityCommand">
+		<constructor-arg ref="producer" />
+	</bean>
 	
 	<bean id="DeleteEntity" class="com.temenos.interaction.commands.odata.DeleteEntityCommand">
 		<constructor-arg ref="producer" />
@@ -219,6 +223,7 @@
 				<entry key="CreateEntity" value-ref="CreateEntity" />
 				<entry key="GETNavProperty" value-ref="GETNavProperty" />
 				<entry key="UpdateEntity" value-ref="UpdateEntity" />
+				<entry key="UpdateCreateEntity" value-ref="UpdateCreateEntity" />
 				<entry key="DeleteEntity" value-ref="DeleteEntity" />
 			</util:map> 
 		</constructor-arg>

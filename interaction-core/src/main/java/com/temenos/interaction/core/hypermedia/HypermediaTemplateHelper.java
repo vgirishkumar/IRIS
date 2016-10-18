@@ -22,7 +22,6 @@ package com.temenos.interaction.core.hypermedia;
  */
 
 
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -96,9 +95,8 @@ public class HypermediaTemplateHelper {
 		String result = template;
 		Map<String, Object> normalizedProperties = null;
 		try {
-			if (template != null && template.contains("{") && template.contains("}")) {
+			if (template != null) {
 				Matcher m = TEMPLATE_PATTERN.matcher(template);
-
 				while(m.find()) {
 					String param = m.group(1);
 					if(null == normalizedProperties) {
@@ -106,7 +104,7 @@ public class HypermediaTemplateHelper {
 					}
 					if (normalizedProperties.containsKey(param)) {
 						// replace template tokens
-						result = result.replaceAll("\\{" + Pattern.quote(param) + "\\}", URLEncoder.encode(normalizedProperties.get(param).toString(), "UTF-8"));
+						result = result.replaceAll(Pattern.quote("{"+param+"}"), Matcher.quoteReplacement(normalizedProperties.get(param).toString()));
 					}
 				}
 			}

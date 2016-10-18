@@ -30,6 +30,7 @@ import javax.ws.rs.core.Response.Status;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.producer.BaseResponse;
+import org.odata4j.producer.CountResponse;
 import org.odata4j.producer.EntitiesResponse;
 import org.odata4j.producer.EntityResponse;
 import org.odata4j.producer.ODataProducer;
@@ -104,21 +105,24 @@ public class GETNavPropertyCommand extends AbstractODataCommand implements Inter
 					OptionsQueryParser.parseSelect(select));
 		}
 
-		BaseResponse response = producer.getNavProperty(entity, key, navProperty, query);
+		CountResponse count = producer.getNavPropertyCount(entity, key, navProperty, query);
+		if (count != null && count.getCount() > 0) {
+			BaseResponse response = producer.getNavProperty(entity, key, navProperty, query);
 
-		if (response instanceof PropertyResponse) {
-			logger.error("We don't currently support the ability to get an item property");
-		} else if (response instanceof EntityResponse) {
-        	OEntity oe = ((EntityResponse) response).getEntity();
-        	ctx.setResource(CommandHelper.createEntityResource(oe));
-        	return Result.SUCCESS;
-        } else if (response instanceof EntitiesResponse) {
-        	List<OEntity> entities = ((EntitiesResponse) response).getEntities();
-        	ctx.setResource(CommandHelper.createCollectionResource(entity, entities));
-        	return Result.SUCCESS;
-    	} else {
-			logger.error("Other type of unsupported response from ODataProducer.getNavProperty");
-        }
+			if (response instanceof PropertyResponse) {
+				logger.error("We don't currently support the ability to get an item property");
+			} else if (response instanceof EntityResponse) {
+	        	OEntity oe = ((EntityResponse) response).getEntity();
+	        	ctx.setResource(CommandHelper.createEntityResource(oe));
+	        	return Result.SUCCESS;
+	        } else if (response instanceof EntitiesResponse) {
+	        	List<OEntity> entities = ((EntitiesResponse) response).getEntities();
+	        	ctx.setResource(CommandHelper.createCollectionResource(entity, entities));
+	        	return Result.SUCCESS;
+	    	} else {
+				logger.error("Other type of unsupported response from ODataProducer.getNavProperty");
+	        }
+		}
 
 		return Result.FAILURE;
 	}
