@@ -21,9 +21,12 @@ package com.temenos.interaction.core.hypermedia;
  * #L%
  */
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -162,7 +165,11 @@ public class LinkGeneratorImpl implements LinkGenerator {
             MultivaluedMap<String, String> outQueryParamsTemp = interactionContext.getOutQueryParameters();
             for (Map.Entry<String, List<String>> param : outQueryParamsTemp.entrySet()) {
                 for(String paramValue: param.getValue()) {
-                    outQueryParams.add(param.getKey(), paramValue);
+                    try{
+                        outQueryParams.add(param.getKey(), URLEncoder.encode(paramValue, "UTF-8"));
+                    }catch(UnsupportedEncodingException uee){
+                        logger.error("Unable to encode {}={}.", param.getKey(), paramValue);
+                    }
                 }
             }
         }
@@ -270,12 +277,24 @@ public class LinkGeneratorImpl implements LinkGenerator {
     }
 
     private Link createLinkForResource(UriBuilder linkTemplate, LinkProperties linkProperties, ResourceState targetState, MultivaluedMap<String, String> queryParameters, Object entity) {
+        Map<String, Object> encodedLinkPropertiesMap = new HashMap<String, Object>();
+        for (String key : linkProperties.getTransitionProperties().keySet()) {
+        	Object value = linkProperties.getTransitionProperties().get(key);
+        	if (value != null) {
+            	try {
+    				String encodedValue = URLEncoder.encode(value.toString(), "UTF-8");
+    				encodedLinkPropertiesMap.put(key, encodedValue);
+    			} catch (UnsupportedEncodingException e) {
+    				logger.error("ERROR unable to encode " + key, e);
+    			}
+        	}
+        }
 
         Map<String, Object> linkPropertiesMap = linkProperties.getTransitionProperties();
         // We are NOT dealing with a dynamic target
         String targetPath = targetState.getPath();
         linkTemplate.path(targetPath);
-        configureLink(linkTemplate, linkPropertiesMap, targetPath);
+        configureLink(linkTemplate, encodedLinkPropertiesMap, targetPath);
         String rel = getTargetRelValue(targetState);
 
         // Pass any query parameters
@@ -289,7 +308,7 @@ public class LinkGeneratorImpl implements LinkGenerator {
         } else {
             // Links in the transition properties are already encoded so
             // build the href using encoded map.
-            href = linkTemplate.buildFromEncodedMap(linkPropertiesMap);
+            href = linkTemplate.buildFromEncodedMap(encodedLinkPropertiesMap);
         }
 
         return buildLink(transition, linkProperties, entity, rel, href, transition.getCommand().getMethod());

@@ -33,7 +33,8 @@ public interface InteractionCommand {
 		SUCCESS, 
 		FAILURE, 
 		INVALID_REQUEST, 
-		CONFLICT
+		CONFLICT,
+		CREATED
 	}
 	
 	/**

@@ -127,24 +127,18 @@ public class TestResponseHTTPHypermediaRIM {
 	}
 
 	private List<Action> mockActions() {
-		List<Action> actions = new ArrayList<Action>();
-		actions.addAll(mockGetAction());
-		actions.addAll(mockDoAction());
-		return actions;
+        return mockActions(new Action("GET", Action.TYPE.VIEW), 
+        		new Action("DO", Action.TYPE.ENTRY));
 	}
 	
-	private List<Action> mockGetAction() {
-        List<Action> actions = new ArrayList<Action>();
-        actions.add(new Action("GET", Action.TYPE.VIEW));
-        return actions;
+    private List<Action> mockActions(Action...actions) {
+        List<Action> actionsList = new ArrayList<Action>();
+        for (Action a : actions) {
+        	actionsList.add(a);
+        }
+    	return actionsList;
     }
-	
-	private List<Action> mockDoAction(){
-	    List<Action> actions = new ArrayList<Action>();
-        actions.add(new Action("DO", Action.TYPE.ENTRY));
-        return actions;
-	}
-	
+
 	private List<Action> mockIncrementAction() {
         List<Action> actions = new ArrayList<Action>();
         actions.add(new Action("INCREMENT", Action.TYPE.ENTRY, null, "POST"));
@@ -267,9 +261,10 @@ public class TestResponseHTTPHypermediaRIM {
 	 * view of this resource.
 	 */
 	@Test
-	public void testBuildResponseWithNoContent() throws Exception {
-		ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
-		initialState.addTransition(new Transition.Builder().method(HttpMethod.PUT).target(initialState).build());
+	public void testPUTBuildResponseWith204NoContent() throws Exception {
+		ResourceState initialState = new ResourceState("entity", "initialstate", mockActions(), "/path");
+		ResourceState updateState = new ResourceState("entity", "updatestate", mockActions(), "/path");
+		initialState.addTransition(new Transition.Builder().method(HttpMethod.PUT).target(updateState).build());
 		/*
 		 * construct an InteractionCommand that simply mocks the result of 
 		 * storing a resource, with no updated resource for the user agent
@@ -302,6 +297,48 @@ public class TestResponseHTTPHypermediaRIM {
 	}
 
 	/*
+	 * This test is for a PUT request that does not returns a resource; it returns
+	 * HttpStatus 200 "OK" rather than 204 because the response has some links.
+	 */
+	@Test
+	public void testPUTBuildResponseNot204NoContentTransitions() throws Exception {
+		ResourceState initialState = new ResourceState("entity", "initialstate", mockActions(), "/path");
+		ResourceState updateState = new ResourceState("entity", "updatestate", mockActions(), "/path");
+		ResourceState otherState = new ResourceState("entity", "otherstate", mockActions(), "/path");
+		initialState.addTransition(new Transition.Builder().method(HttpMethod.PUT).target(updateState).build());
+		updateState.addTransition(new Transition.Builder().method(HttpMethod.GET).target(otherState).build());
+		/*
+		 * construct an InteractionCommand that simply mocks the result of 
+		 * storing a resource, with no updated resource for the user agent
+		 * to re-display
+		 */
+		InteractionCommand mockCommand = new InteractionCommand() {
+			@Override
+			public Result execute(InteractionContext ctx) {
+				// this is how a command indicates No Content
+				ctx.setResource(null);
+				return Result.SUCCESS;
+			}
+		};
+		
+		// create mock command controller
+		CommandController mockCommandController = mock(CommandController.class);
+		when(mockCommandController.fetchCommand("GET")).thenReturn(mock(InteractionCommand.class));
+		when(mockCommandController.isValidCommand("DO")).thenReturn(true);
+		when(mockCommandController.fetchCommand("DO")).thenReturn(mockCommand);
+
+		// RIM with command controller that issues our mock InteractionCommand
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(initialState), createMockMetadata());
+		Response response = rim.put(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mock(EntityResource.class));
+		
+		// null resource for no content
+		RESTResource resource = (RESTResource) response.getEntity();
+		assertNull(resource);
+		// 200 http status for no content
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+	}
+
+	/*
 	 * This test is for a DELETE request that returns HttpStatus 204 "No Content"
 	 * A successful DELETE command does not return a new resource; where a target state
 	 * is not found we'll inform the user agent that everything went OK, but there is 
@@ -309,7 +346,7 @@ public class TestResponseHTTPHypermediaRIM {
 	 */
 	@SuppressWarnings({ "unchecked" })
 	@Test
-	public void testBuildResponseWith204NoContentNoTransition() throws Exception {
+	public void testDELETEBuildResponseWith204NoContentNoTransition() throws Exception {
 		/*
 		 * construct an InteractionContext that simply mocks the result of 
 		 * deleting a resource, with no updated resource for the user agent
@@ -342,7 +379,7 @@ public class TestResponseHTTPHypermediaRIM {
 	 */
 	@SuppressWarnings({ "unchecked" })
 	@Test
-	public void testBuildResponseWith204NoContent() throws Exception {
+	public void testDELETEBuildResponseWith204NoContent() throws Exception {
 		/*
 		 * construct an InteractionContext that simply mocks the result of 
 		 * deleting a resource, with no updated resource for the user agent
@@ -701,9 +738,9 @@ public class TestResponseHTTPHypermediaRIM {
 		 * construct an InteractionContext that simply mocks the result of 
 		 * creating a resource
 		 */
-		ResourceState initialState = new ResourceState("home", "initial", mockActions(), "/machines");
-		ResourceState createPsuedoState = new ResourceState(initialState, "create", mockActions());
-		ResourceState individualMachine = new ResourceState(initialState, "machine", mockActions(), "/{id}");
+		ResourceState initialState = new ResourceState("home", "initial", mockActions(new Action("GET", Action.TYPE.VIEW)), "/machines");
+		ResourceState createPsuedoState = new ResourceState(initialState, "create", mockActions(new Action("POST", Action.TYPE.ENTRY)));
+		ResourceState individualMachine = new ResourceState(initialState, "machine", mockActions(new Action("GET", Action.TYPE.VIEW)), "/{id}");
 		
 		// create new machine
 		initialState.addTransition(new Transition.Builder().method("POST").target(createPsuedoState).build());
@@ -712,8 +749,12 @@ public class TestResponseHTTPHypermediaRIM {
 		uriLinkageMap.put("id", "{id}");
 		createPsuedoState.addTransition(new Transition.Builder().flags(Transition.AUTO).target(individualMachine).uriParameters(uriLinkageMap).build());
 		
-		// RIM with command controller that issues commands that always return SUCCESS
-		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
+    	MapBasedCommandController cc = new MapBasedCommandController();
+    	cc.getCommandMap().put("GET", createCommand("entity", new Entity("entity", null), Result.SUCCESS));
+    	cc.getCommandMap().put("POST", createCommand("entity", null, Result.CREATED));
+
+		// RIM with command controller that issues commands that always return CREATED
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(cc, new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
 		Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mockEntityResourceWithId("123"));
 
 		// null resource
@@ -744,10 +785,10 @@ public class TestResponseHTTPHypermediaRIM {
 		 * construct an InteractionContext that simply mocks the result of 
 		 * creating a resource
 		 */
-		ResourceState initialState = new ResourceState("home", "initial", mockActions(), "/machines");
-		ResourceState createPsuedoState = new ResourceState(initialState, "create", mockActions());
-		ResourceState approvePsuedoState = new ResourceState(initialState, "approve", mockActions());
-		ResourceState individualMachine = new ResourceState(initialState, "machine", mockActions(), "/{id}");
+		ResourceState initialState = new ResourceState("home", "initial", mockActions(new Action("GET", Action.TYPE.VIEW)), "/machines");
+		ResourceState createPsuedoState = new ResourceState(initialState, "create", mockActions(new Action("POST", Action.TYPE.ENTRY)));
+		ResourceState approvePsuedoState = new ResourceState(initialState, "approve", mockActions(new Action("POST", Action.TYPE.ENTRY)));
+		ResourceState individualMachine = new ResourceState(initialState, "machine", mockActions(new Action("GET", Action.TYPE.VIEW)), "/{id}");
 		individualMachine.addTransition(new Transition.Builder().method("GET").target(initialState).build());
 		
 		// create new machine
@@ -759,8 +800,12 @@ public class TestResponseHTTPHypermediaRIM {
 		createPsuedoState.addTransition(new Transition.Builder().flags(Transition.AUTO).target(approvePsuedoState).uriParameters(uriLinkageMap).build());
 		approvePsuedoState.addTransition(new Transition.Builder().flags(Transition.AUTO).target(individualMachine).uriParameters(uriLinkageMap).build());
 				
-		// RIM with command controller that issues commands that always return SUCCESS
-		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockNoopCommandController(), new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
+    	MapBasedCommandController cc = new MapBasedCommandController();
+    	cc.getCommandMap().put("GET", createCommand("entity", new Entity("entity", null), Result.SUCCESS));
+    	cc.getCommandMap().put("POST", createCommand("entity", null, Result.CREATED));
+		
+		// RIM with command controller that issues commands that always return CREATED
+		HTTPHypermediaRIM rim = new HTTPHypermediaRIM(cc, new ResourceStateMachine(initialState, new BeanTransformer()), createMockMetadata());
 		Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mockEntityResourceWithId("123"));
 
 		assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
@@ -832,7 +877,7 @@ public class TestResponseHTTPHypermediaRIM {
         ResourceState door = new DynamicResourceState("house", "door", "locator", new String[]{"time"});
         ResourceState hallway = new ResourceState("house", "hallway", mockIncrementAction(), "/hallway", (String[])null);
         ResourceState kitchen = new ResourceState("house", "kitchen", mockSingleAction("DONE", Action.TYPE.ENTRY, "POST"), "/kitchen", new String[]{"http://temenostech.temenos.com/rels/new"});
-        ResourceState sink = new ResourceState("house", "sink", mockGetAction(), "/sink");
+        ResourceState sink = new ResourceState("house", "sink", mockActions(new Action("GET", Action.TYPE.VIEW)), "/sink");
         ResourceState lighting = new ResourceState("house", "lighting", mockSingleAction("SEE", Action.TYPE.ENTRY, "POST"), "/lighting");
         entrance.addTransition(new Transition.Builder().flags(Transition.AUTO).target(doorframe).evaluation(new ResourceGETExpression(doorframe, ResourceGETExpression.Function.OK)).build());
         doorframe.addTransition(new Transition.Builder().flags(Transition.AUTO).target(door).build());
@@ -914,7 +959,7 @@ public class TestResponseHTTPHypermediaRIM {
         HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController, new ResourceStateMachine(entrance, new BeanTransformer(), locatorProvider), createMockMetadata(), locatorProvider);
         Response response = rim.post(mock(HttpHeaders.class), "id", mockUriInfoWithParams(), mockEntityResourceWithId("123"));
         //then {the response must be HTTP 201 Created}
-        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
         //and {the response entity must not be null and must be an instance of/subtype RESTResource}
         assertNotNull(GenericEntity.class.isAssignableFrom(response.getEntity().getClass()));
         GenericEntity<?> responseEntity = (GenericEntity<?>) response.getEntity();
@@ -940,7 +985,7 @@ public class TestResponseHTTPHypermediaRIM {
         ResourceState door = new DynamicResourceState("house", "door", "locator", new String[]{"time"});
         ResourceState hallway = new ResourceState("house", "hallway", mockIncrementAction(), "/hallway", (String[])null);
         ResourceState kitchen = new ResourceState("house", "kitchen", mockSingleAction("DONE", Action.TYPE.ENTRY, "POST"), "/kitchen", new String[]{"http://temenostech.temenos.com/rels/new"});
-        ResourceState sink = new ResourceState("house", "sink", mockGetAction(), "/sink");
+        ResourceState sink = new ResourceState("house", "sink", mockSingleAction("GET", Action.TYPE.VIEW, "GET"), "/sink");
         ResourceState lighting = new ResourceState("house", "lighting", mockSingleAction("SEE", Action.TYPE.ENTRY, "POST"), "/lighting");
         entrance.addTransition(new Transition.Builder().flags(Transition.AUTO).target(doorframe).evaluation(new ResourceGETExpression(doorframe, ResourceGETExpression.Function.OK)).build());
         doorframe.addTransition(new Transition.Builder().flags(Transition.AUTO).target(door).build());
@@ -1032,7 +1077,7 @@ public class TestResponseHTTPHypermediaRIM {
         ResourceState door = new DynamicResourceState("house", "door", "locator", new String[]{"time"});
         ResourceState hallway = new ResourceState("house", "hallway", mockIncrementAction(), "/hallway", (String[])null);
         ResourceState kitchen = new ResourceState("house", "kitchen", mockSingleAction("DONE", Action.TYPE.ENTRY, "POST"), "/kitchen", new String[]{"http://temenostech.temenos.com/rels/new"});
-        ResourceState sink = new ResourceState("house", "sink", mockGetAction(), "/sink");
+        ResourceState sink = new ResourceState("house", "sink", mockSingleAction("GET", Action.TYPE.VIEW, "GET"), "/sink");
         ResourceState lighting = new ResourceState("house", "lighting", mockSingleAction("SEE", Action.TYPE.ENTRY, "POST"), "/lighting");
         entrance.addTransition(new Transition.Builder().flags(Transition.AUTO).target(doorframe).evaluation(new ResourceGETExpression(doorframe, ResourceGETExpression.Function.OK)).build());
         doorframe.addTransition(new Transition.Builder().flags(Transition.AUTO).target(door).build());
@@ -1092,7 +1137,7 @@ public class TestResponseHTTPHypermediaRIM {
         Response response = rim.post(mock(HttpHeaders.class), "id", mockUriInfoWithParams(), mockEntityResourceWithId("123"));
         
         //then {the response must be HTTP 201 Created}
-        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
         
         //and {the response entity must not be null and must be an instance of/subtype RESTResource}
         assertNotNull(GenericEntity.class.isAssignableFrom(response.getEntity().getClass()));
@@ -1111,7 +1156,6 @@ public class TestResponseHTTPHypermediaRIM {
         verify(increment, times(1)).execute(any(InteractionContext.class));
         verify(done, times(2)).execute(any(InteractionContext.class));
     }
-
     
     @Test
     public void testPOSTWithOneConditionalAutomaticTransitionAndDynamicResourceState() throws InteractionException {
@@ -1130,8 +1174,8 @@ public class TestResponseHTTPHypermediaRIM {
                 "house", "hallway", mockSingleAction("DONE", Action.TYPE.ENTRY, "POST"), 
                 "/hallway", (String[])null
         );
-        ResourceState curtains = new ResourceState("house", "curtains", mockGetAction(), "/curtains");
-        ResourceState lighting = new ResourceState("house", "lighting", mockGetAction(), "/lighting");
+        ResourceState curtains = new ResourceState("house", "curtains", mockSingleAction("GET", Action.TYPE.VIEW, "GET"), "/curtains");
+        ResourceState lighting = new ResourceState("house", "lighting", mockSingleAction("GET", Action.TYPE.VIEW, "GET"), "/lighting");
         entrance.addTransition(
                 new Transition.Builder()
                     .flags(Transition.AUTO)
@@ -1192,7 +1236,7 @@ public class TestResponseHTTPHypermediaRIM {
         Response response = rim.post(mock(HttpHeaders.class), "id", mockUriInfoWithParams(), mockEntityResourceWithId("123"));
         
         //then {the response must be HTTP 201 Created}
-        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
         
         //and {the response entity must not be null and must be an instance of/subtype RESTResource}
         assertNotNull(GenericEntity.class.isAssignableFrom(response.getEntity().getClass()));
@@ -1452,7 +1496,6 @@ public class TestResponseHTTPHypermediaRIM {
 		return uriInfo;
 	}
 	
-	@SuppressWarnings({ "unchecked" })
     private UriInfo mockUriInfoWithParams() {
         UriInfo uriInfo = mock(UriInfo.class);
         MultivaluedMap<String, String> queryParam = new MultivaluedMapImpl<String>();
@@ -1471,6 +1514,19 @@ public class TestResponseHTTPHypermediaRIM {
 		when(commandController.fetchCommand(anyString())).thenReturn(testCommand);
 		return commandController;
 	}
+
+    // create command returning the supplied entity
+    private InteractionCommand createCommand(final String entityName, final Entity entity, final InteractionCommand.Result result) {
+        InteractionCommand command = new InteractionCommand() {
+            public Result execute(InteractionContext ctx) {
+            	if (entity != null) {
+            		ctx.setResource(new EntityResource<Entity>(entityName, entity));
+            	}
+                return result;
+            }
+        };
+        return command;
+    }
 
 	private InteractionCommand mockCommand_SUCCESS() {
 		InteractionCommand mockCommand = mock(InteractionCommand.class);

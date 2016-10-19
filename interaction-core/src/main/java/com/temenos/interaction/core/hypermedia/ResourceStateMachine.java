@@ -779,7 +779,6 @@ public class ResourceStateMachine {
 		// Add path and query parameters to the list of resource properties
 		MultivaluedMap<String, String> resourceProperties = new MultivaluedMapImpl<String>();
 		resourceProperties.putAll(ctx.getPathParameters());
-		resourceProperties.putAll(ctx.getQueryParameters());
 		
 		if (null != ctx.getAttribute(CommonAttributes.O_DATA_ENTITY_ATTRIBUTE)) {
 		    resourceProperties.putSingle("profileOEntity", (String) ctx.getAttribute(CommonAttributes.O_DATA_ENTITY_ATTRIBUTE));
@@ -812,7 +811,7 @@ public class ResourceStateMachine {
 		if (selfTransition == null)
 			selfTransition = state.getSelfTransition();
 		LinkGenerator selfLinkGenerator = new LinkGeneratorImpl(this, selfTransition, null);
-		links.addAll(selfLinkGenerator.createLink(resourceProperties, null, entity));
+		links.addAll(selfLinkGenerator.createLink(resourceProperties, ctx.getQueryParameters(), entity));
 
 		/*
 		 * Add links to other application states (resources)
@@ -844,7 +843,7 @@ public class ResourceStateMachine {
 							eLinks = new ArrayList<Link>();
 						}
 						LinkGenerator linkGenerator = new LinkGeneratorImpl(this, transition, ctx);
-						Collection<Link> generatedLinks = linkGenerator.createLink(resourceProperties, null, er.getEntity());
+						Collection<Link> generatedLinks = linkGenerator.createLink(resourceProperties, ctx.getQueryParameters(), er.getEntity());
 
 						if (addLink(transition, ctx, er, rimHander)) {
 							eLinks.addAll(generatedLinks);
@@ -896,7 +895,7 @@ public class ResourceStateMachine {
 				}
 				if (addLink(transition, ctx, entityResource, rimHander)) {
 					LinkGenerator linkGenerator = new LinkGeneratorImpl(this, transition, ctx);
-					links.addAll(linkGenerator.createLink(resourceProperties, null, entity));
+					links.addAll(linkGenerator.createLink(resourceProperties, ctx.getQueryParameters(), entity));
 				}
 			}
 		}
