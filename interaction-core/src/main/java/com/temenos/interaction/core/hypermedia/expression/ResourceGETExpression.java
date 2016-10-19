@@ -30,6 +30,7 @@ import java.util.Set;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response.Status;
 
+import com.temenos.interaction.core.command.CommandHelper;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.hypermedia.HypermediaTemplateHelper;
 import com.temenos.interaction.core.hypermedia.LazyResourceState;
@@ -106,6 +107,8 @@ public class ResourceGETExpression implements Expression {
         //Create a new interaction context for this state
         MultivaluedMap<String, String> pathParameters = getPathParametersForTargetState(hypermediaEngine, ctx, ourTransition);
     	InteractionContext newCtx = new InteractionContext(ctx, null, pathParameters, null, target);
+		EntityResource<?> entityResourceCopy = CommandHelper.createEntityResource(resolveEntityResource(resource, ctx.getResource()));
+		newCtx.setResource(entityResourceCopy);
 
     	//Get the target resource
 		ResourceRequestConfig config = new ResourceRequestConfig.Builder()
@@ -113,9 +116,7 @@ public class ResourceGETExpression implements Expression {
 				.injectLinks(false)
 				.embedResources(false)
 				.build();
-		if (resource == null && ctx.getResource() instanceof EntityResource)
-			resource = (EntityResource<?>) ctx.getResource();
-		Map<Transition, ResourceRequestResult> results = new SequentialResourceRequestHandler().getResources(rimHandler, null, newCtx, resource, config);
+		Map<Transition, ResourceRequestResult> results = new SequentialResourceRequestHandler().getResources(rimHandler, null, newCtx, entityResourceCopy, config);
 		assert(results.values() != null && results.values().size() == 1);
 		ResourceRequestResult result = results.values().iterator().next();
 		
@@ -143,6 +144,16 @@ public class ResourceGETExpression implements Expression {
 		if (getFunction().equals(ResourceGETExpression.Function.NOT_FOUND))
 			sb.append("NOT_FOUND").append(getState()).append(")");
 		return sb.toString();
+	}
+
+	private EntityResource<?> resolveEntityResource(EntityResource<?> entityResource, RESTResource restResource) {
+		if (entityResource != null) {
+			return entityResource;
+		}
+		if (restResource instanceof EntityResource) {
+			return (EntityResource<?>) restResource;
+		}
+		return null;
 	}
 	
 	/*

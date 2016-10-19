@@ -125,8 +125,8 @@ public class InteractionContext {
 		this.exception = ctx.exception;
 		this.attributes = ctx.attributes;
 	}
-	
-	/** 
+
+	/**
 	 * Uri for the request, used for caching
 	 * @return
 	 */
