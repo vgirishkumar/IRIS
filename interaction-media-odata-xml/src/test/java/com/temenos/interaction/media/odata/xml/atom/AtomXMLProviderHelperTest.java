@@ -22,11 +22,15 @@ package com.temenos.interaction.media.odata.xml.atom;
  */
 
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 import org.junit.Test;
 
@@ -35,7 +39,7 @@ import com.temenos.interaction.core.entity.EntityProperty;
 public class AtomXMLProviderHelperTest {
 
 	@Test
-	public void checkAndConvertDateTimeToUTCFromNonUTCDate() throws Exception {
+	public void testCheckAndConvertDateTimeToUTCFromNonUTCDate() throws Exception {
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 		format.setTimeZone(TimeZone.getTimeZone("GMT-8:00"));
 		EntityProperty property = new EntityProperty("dateOfBirth",
@@ -45,7 +49,7 @@ public class AtomXMLProviderHelperTest {
 	}
 
 	@Test
-	public void checkAndConvertDateTimeToUTCFromUTCDate() throws Exception {
+	public void testCheckAndConvertDateTimeToUTCFromUTCDate() throws Exception {
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 		format.setTimeZone(TimeZone.getTimeZone("UTC"));
 		EntityProperty property = new EntityProperty("dateOfBirth",
@@ -55,16 +59,23 @@ public class AtomXMLProviderHelperTest {
 	}
 
 	@Test
-	public void checkAndConvertDateTimeToUTCFromLocalJodaDate()
+	public void testCheckAndConvertDateTimeToUTCFromLocalJodaDate()
 			throws Exception {
+		DateTimeZone defaultZone = DateTimeZone.getDefault();
 		LocalDateTime ldt = new LocalDateTime(2015, 12, 31, 16, 10, 0);
+		DateTimeZone.setDefault(DateTimeZone.UTC);
 		EntityProperty property = new EntityProperty("dateOfBirth", ldt);
-		assertEquals("2015-12-31T16:10:00",
+		DateTime utcTime = ldt.toDateTime();
+		String expected = "2015-12-31T" + utcTime.hourOfDay().get() + ":"
+				+ utcTime.minuteOfHour().get() + ":"
+				+ utcTime.secondOfMinute().get() + "0";
+		assertEquals(expected,
 				AtomXMLProviderHelper.checkAndConvertDateTimeToUTC(property));
+		DateTimeZone.setDefault(defaultZone);
 	}
 
 	@Test
-	public void checkAndConvertDateTimeToUTCFromInvalidType()
+	public void testCheckAndConvertDateTimeToUTCFromInvalidType()
 			throws Exception {
 		try {
 			AtomXMLProviderHelper
