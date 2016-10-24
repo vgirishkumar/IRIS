@@ -22,6 +22,7 @@ package com.temenos.useragent.generic.mediatype;
  */
 
 import static com.temenos.useragent.generic.mediatype.AtomUtil.*;
+import static com.temenos.useragent.generic.mediatype.PropertyNameUtil.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -128,7 +129,7 @@ public class AtomXmlContentHandler {
 		}
 		int expectedIndex = extractIndex(pathParts[pathParts.length - 1]);
 		String elementName = buildElementName(pathParts[pathParts.length - 1]);
-		if (isElementWithIndex(pathParts[pathParts.length - 1])) {
+		if (isPropertyNameWithIndex(pathParts[pathParts.length - 1])) {
 			parent = identifyChildElement(parent, elementName, 0);
 			elementName = "d:element";
 		}
@@ -216,18 +217,11 @@ public class AtomXmlContentHandler {
 		return parent;
 	}
 
-	private int extractIndex(String path) {
-		if (path.matches(AtomUtil.PROPERTY_NAME_WITH_INDEX)) {
-			String indexStr = path.substring(path.indexOf("(") + 1,
-					path.indexOf(")"));
-			return Integer.parseInt(indexStr);
-		}
-		return 0;
-	}
+
 
 	private String buildElementName(String path) {
 		String elementName = path;
-		if (path.matches(AtomUtil.PROPERTY_NAME_WITH_INDEX)) {
+		if (isPropertyNameWithIndex(path)) {
 			elementName = path.substring(0, path.indexOf("("));
 		}
 		return "d:" + elementName;
@@ -244,23 +238,19 @@ public class AtomXmlContentHandler {
 		} else if (expectedIndex == childElements.size()) {
 			return (Element) cloneExistingElement(parent, childName);
 		} else {
-			throw new IllegalStateException("Invalid index '" + expectedIndex
-					+ "' to set value for existing index '"
-					+ childElements.size() + "'");
+			throw new IllegalStateException(
+					"Invalid index '"
+							+ expectedIndex
+							+ "' to set value to. Only supported indexs are between '0' and '"
+							+ childElements.size() + "'");
 		}
 	}
 
-	private String[] flattenPropertyName(String fqPropertyName) {
-		if (fqPropertyName == null || fqPropertyName.isEmpty()) {
-			throw new IllegalArgumentException("Invalid property name '"
-					+ fqPropertyName + "'");
-		}
-		return fqPropertyName.split("/");
-	}
+
 
 	private void validateElementNameWithIndex(String elementName,
 			String fqPropertyName) {
-		if (!isElementWithIndex(elementName)) {
+		if (!isPropertyNameWithIndex(elementName)) {
 			throw new IllegalArgumentException("Invalid part '" + elementName
 					+ "' in fully qualified property name '" + fqPropertyName
 					+ "'");
@@ -275,9 +265,7 @@ public class AtomXmlContentHandler {
 		}
 	}
 
-	private boolean isElementWithIndex(String elementName) {
-		return elementName.matches(AtomUtil.PROPERTY_NAME_WITH_INDEX);
-	}
+
 
 	private Element identifyChildElement(Node parent, String childName,
 			int index) {
