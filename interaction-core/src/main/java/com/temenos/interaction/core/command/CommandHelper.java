@@ -100,7 +100,9 @@ public class CommandHelper {
 			clone = entityResource.clone();
 		} catch (CloneNotSupportedException e) {
 			LOGGER.debug("Cloning is not supported by entity resource, creating a copy...", e);
-			clone = createEntityResource(entityResource.getEntity(), entityResource.getEntity().getClass());
+			clone = createEntityResource(
+					entityResource.getEntity(),
+					(entityResource.getEntity() != null) ? entityResource.getEntity().getClass() : null);
 			clone.setEmbedded(entityResource.getEmbedded());
 			clone.setLinks(entityResource.getLinks());
 			clone.setEntityTag(entityResource.getEntityTag());

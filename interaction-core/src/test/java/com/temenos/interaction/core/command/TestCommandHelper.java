@@ -50,11 +50,13 @@ public class TestCommandHelper {
 
 	private static final String ENTITY_TAG = "ABCDE";
 
+	private Entity entity;
 	private Map<Transition, RESTResource> embedded;
 	private Collection<Link> links;
 
 	@Before
 	public void setup() {
+		entity = createMockEntity("Customer");;
 		embedded = new HashMap<>();
 		links = new ArrayList<>();
 	}
@@ -107,8 +109,8 @@ public class TestCommandHelper {
 	}
 
 	@Test
-	public void testCreateEntityResourceFromEntityResource() {
-		EntityResource<Entity> er = CommandHelper.createEntityResource(createMockEntity("Customer"));
+	public void testCreateEntityResourceFromClonableEntityResource() {
+		EntityResource<Entity> er = CommandHelper.createEntityResource(entity);
 		er.setEmbedded(embedded);
 		er.setLinks(links);
 		er.setEntityTag(ENTITY_TAG);
@@ -116,9 +118,63 @@ public class TestCommandHelper {
 		EntityResource<Entity> erCopy = CommandHelper.createEntityResource(er);
 
 		assertNotSame(er, erCopy);
+		assertEquals(er.getEntity(), erCopy.getEntity());
 		assertEquals(er.getEmbedded(), erCopy.getEmbedded());
 		assertEquals(er.getLinks(), erCopy.getLinks());
 		assertEquals(er.getEntityTag(), erCopy.getEntityTag());
+		assertEquals(entity, erCopy.getEntity());
+		assertEquals(embedded, erCopy.getEmbedded());
+		assertEquals(links, erCopy.getLinks());
+		assertEquals(ENTITY_TAG, erCopy.getEntityTag());
+	}
+
+	@Test
+	public void testCreateEntityResourceFromNonClonableEntityResource() {
+		EntityResource<Entity> er = new EntityResource<Entity>(entity) {
+			private Entity entity;
+			@Override
+			public EntityResource<Entity> clone() throws CloneNotSupportedException {
+				throw new CloneNotSupportedException();
+			}
+		};
+		er.setEmbedded(embedded);
+		er.setLinks(links);
+		er.setEntityTag(ENTITY_TAG);
+
+		EntityResource<Entity> erCopy = CommandHelper.createEntityResource(er);
+
+		assertNotSame(er, erCopy);
+		assertEquals(er.getEntity(), erCopy.getEntity());
+		assertEquals(er.getEmbedded(), erCopy.getEmbedded());
+		assertEquals(er.getLinks(), erCopy.getLinks());
+		assertEquals(er.getEntityTag(), erCopy.getEntityTag());
+		assertEquals(entity, erCopy.getEntity());
+		assertEquals(embedded, erCopy.getEmbedded());
+		assertEquals(links, erCopy.getLinks());
+		assertEquals(ENTITY_TAG, erCopy.getEntityTag());
+	}
+
+	@Test
+	public void testCreateEntityResourceFromNonClonableEntityResourceWithoutEntity() {
+		EntityResource<Entity> er = new EntityResource<Entity>() {
+			private Entity entity;
+			@Override
+			public EntityResource<Entity> clone() throws CloneNotSupportedException {
+				throw new CloneNotSupportedException();
+			}
+		};
+		er.setEmbedded(embedded);
+		er.setLinks(links);
+		er.setEntityTag(ENTITY_TAG);
+
+		EntityResource<Entity> erCopy = CommandHelper.createEntityResource(er);
+
+		assertNotSame(er, erCopy);
+		assertEquals(er.getEntity(), erCopy.getEntity());
+		assertEquals(er.getEmbedded(), erCopy.getEmbedded());
+		assertEquals(er.getLinks(), erCopy.getLinks());
+		assertEquals(er.getEntityTag(), erCopy.getEntityTag());
+		assertNull(erCopy.getEntity());
 		assertEquals(embedded, erCopy.getEmbedded());
 		assertEquals(links, erCopy.getLinks());
 		assertEquals(ENTITY_TAG, erCopy.getEntityTag());
