@@ -24,7 +24,6 @@ package com.temenos.interaction.core.resource;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Properties;
 
 import javax.ws.rs.core.GenericEntity;
 import javax.xml.bind.annotation.XmlTransient;
