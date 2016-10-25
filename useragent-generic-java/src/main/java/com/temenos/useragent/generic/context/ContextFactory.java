@@ -23,6 +23,7 @@ package com.temenos.useragent.generic.context;
 
 
 import com.temenos.useragent.generic.mediatype.AtomPayloadHandler;
+import com.temenos.useragent.generic.mediatype.HalJsonPayloadHandler;
 import com.temenos.useragent.generic.mediatype.PlainTextPayloadHandler;
 
 /**
@@ -98,6 +99,7 @@ public class ContextFactory {
 			registry.registerForPayload("text/plain", PlainTextPayloadHandler.class);
 			registry.registerForPayload("text/html", PlainTextPayloadHandler.class);
 			registry.registerForPayload("", PlainTextPayloadHandler.class);
+			registry.registerForPayload("application/hal+json", HalJsonPayloadHandler.class);
 			return registry;
 		}
 

@@ -1,0 +1,59 @@
+{
+  "_links" : {
+    "self" : {
+      "href" : "http://mybank/restservice/BankService/Customers('66052')"
+    },
+    "http://temenostech.temenos.com/rels/input" : [ {
+      "href" : "http://mybank/restservice/BankService/Customers('66052')",
+      "name" : "Customers>PUT(input deal)>Customer_input",
+      "title" : "input deal"
+    } ],
+    "http://temenostech.temenos.com/rels/see" : [ {
+      "href" : "http://mybank/restservice/BankService/Customers('66052')/see",
+      "name" : "Customers>GET(see record)>Customer_see",
+      "title" : "see record"
+    } ],
+    "item" : [ {
+      "href" : "http://mybank/restservice/BankService/Customers('66052')",
+      "name" : "Customers>GET>Customer",
+      "title" : "Customer"
+    } ]
+  },
+  "AccountOfficer" : "2002",
+  "AddressGroup" : [ {
+    "AddressSubGroup" : [ {
+      "LanguageCode" : "en",
+      "Address" : "94086 Main street"
+    }, {
+      "LanguageCode" : "fr",
+      "Address" : "94086 Rue principale"
+    } ]
+  } ],
+  "AllowBulkProcess" : "",
+  "CoCode" : "GB0010001",
+  "CommTypeGroup" : [ {
+    "CommType" : "1",
+    "PrefChannel" : "EMAIL"
+  }, {
+    "CommType" : "2",
+    "PrefChannel" : "MOBILE"
+  } ],
+  "EmploymentStatusGroup" : [ {
+    "EmployersAddSubGroup" : [ {
+      "EmployersAdd" : "2486 Main street"
+    } ],
+    "CustomerCurrency" : "USD"
+  }, {
+    "EmployersAddSubGroup" : [ {
+      "EmployersAdd" : "1222 Kings road"
+    }, {
+      "EmployersAdd" : "220 Kings road"
+    } ],
+    "CustomerCurrency" : "GBP"
+  } ],
+  "OverrideGroup" : [ {
+    "Override" : "INCORP/CUS*200 FROM 66052 NOT RECEIVED"
+  }, {
+    "Override" : "MEMORANDUM/CUS*200 FROM 66052 NOT RECEIVED"
+  } ]
+}

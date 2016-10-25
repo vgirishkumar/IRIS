@@ -46,8 +46,6 @@ public class AtomUtil {
 	public final static String NS_ODATA = "http://schemas.microsoft.com/ado/2007/08/dataservices";
 	public final static String NS_ODATA_METADATA = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
 
-	public final static String PROPERTY_NAME_WITH_INDEX = ".+(\\(\\d+\\))+";
-
 	public static String extractRel(String relAttributeValue) {
 		int spaceIndex = relAttributeValue.trim().indexOf(" ");
 		if (spaceIndex > 0) {
