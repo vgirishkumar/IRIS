@@ -163,6 +163,8 @@ public class TestGETEntitiesCommand {
 			fail("InteractionException is expected");
 		} catch (Exception e) {
 			assertTrue(e instanceof InteractionException);
+			assertEquals(400, ((InteractionException) e).getHttpStatus()
+					.getStatusCode());
 		}
 		
 		try {
@@ -170,6 +172,8 @@ public class TestGETEntitiesCommand {
 			fail("InteractionException is expected");
 		} catch (Exception e) {
 			assertTrue(e instanceof InteractionException);
+			assertEquals(400, ((InteractionException) e).getHttpStatus()
+					.getStatusCode());
 		}
 	}
 	
