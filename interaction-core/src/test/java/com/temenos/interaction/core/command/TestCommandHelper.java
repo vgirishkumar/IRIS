@@ -22,14 +22,21 @@ package com.temenos.interaction.core.command;
  */
 
 
+import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
+import java.util.*;
 
 import javax.ws.rs.core.GenericEntity;
 
+import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.Transition;
+import com.temenos.interaction.core.resource.RESTResource;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.temenos.interaction.core.entity.Entity;
@@ -40,6 +47,19 @@ import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
 
 public class TestCommandHelper {
+
+	private static final String ENTITY_TAG = "ABCDE";
+
+	private Entity entity;
+	private Map<Transition, RESTResource> embedded;
+	private Collection<Link> links;
+
+	@Before
+	public void setup() {
+		entity = createMockEntity("Customer");;
+		embedded = new HashMap<>();
+		links = new ArrayList<>();
+	}
 
 	@Test
 	public void testCreateEntityResource() {
@@ -87,7 +107,84 @@ public class TestCommandHelper {
 		assertEquals("Customer", ge.getEntity().getEntityName());
 		assertEquals("Customer", ge.getEntity().getEntity().getName());
 	}
-	
+
+	@Test
+	public void testCreateEntityResourceFromClonableEntityResource() {
+		EntityResource<Entity> er = CommandHelper.createEntityResource(entity);
+		er.setEmbedded(embedded);
+		er.setLinks(links);
+		er.setEntityTag(ENTITY_TAG);
+
+		EntityResource<Entity> erCopy = CommandHelper.createEntityResource(er);
+
+		assertNotSame(er, erCopy);
+		assertEquals(er.getEntity(), erCopy.getEntity());
+		assertEquals(er.getEmbedded(), erCopy.getEmbedded());
+		assertEquals(er.getLinks(), erCopy.getLinks());
+		assertEquals(er.getEntityTag(), erCopy.getEntityTag());
+		assertEquals(entity, erCopy.getEntity());
+		assertEquals(embedded, erCopy.getEmbedded());
+		assertEquals(links, erCopy.getLinks());
+		assertEquals(ENTITY_TAG, erCopy.getEntityTag());
+	}
+
+	@Test
+	public void testCreateEntityResourceFromNonClonableEntityResource() {
+		EntityResource<Entity> er = new EntityResource<Entity>(entity) {
+			private Entity entity;
+			@Override
+			public EntityResource<Entity> clone() throws CloneNotSupportedException {
+				throw new CloneNotSupportedException();
+			}
+		};
+		er.setEmbedded(embedded);
+		er.setLinks(links);
+		er.setEntityTag(ENTITY_TAG);
+
+		EntityResource<Entity> erCopy = CommandHelper.createEntityResource(er);
+
+		assertNotSame(er, erCopy);
+		assertEquals(er.getEntity(), erCopy.getEntity());
+		assertEquals(er.getEmbedded(), erCopy.getEmbedded());
+		assertEquals(er.getLinks(), erCopy.getLinks());
+		assertEquals(er.getEntityTag(), erCopy.getEntityTag());
+		assertEquals(entity, erCopy.getEntity());
+		assertEquals(embedded, erCopy.getEmbedded());
+		assertEquals(links, erCopy.getLinks());
+		assertEquals(ENTITY_TAG, erCopy.getEntityTag());
+	}
+
+	@Test
+	public void testCreateEntityResourceFromNonClonableEntityResourceWithoutEntity() {
+		EntityResource<Entity> er = new EntityResource<Entity>() {
+			private Entity entity;
+			@Override
+			public EntityResource<Entity> clone() throws CloneNotSupportedException {
+				throw new CloneNotSupportedException();
+			}
+		};
+		er.setEmbedded(embedded);
+		er.setLinks(links);
+		er.setEntityTag(ENTITY_TAG);
+
+		EntityResource<Entity> erCopy = CommandHelper.createEntityResource(er);
+
+		assertNotSame(er, erCopy);
+		assertEquals(er.getEntity(), erCopy.getEntity());
+		assertEquals(er.getEmbedded(), erCopy.getEmbedded());
+		assertEquals(er.getLinks(), erCopy.getLinks());
+		assertEquals(er.getEntityTag(), erCopy.getEntityTag());
+		assertNull(erCopy.getEntity());
+		assertEquals(embedded, erCopy.getEmbedded());
+		assertEquals(links, erCopy.getLinks());
+		assertEquals(ENTITY_TAG, erCopy.getEntityTag());
+	}
+
+	@Test
+	public void testCreateEntityResourceFromNullEntityResource() {
+		assertNull(CommandHelper.createEntityResource((EntityResource<?>) null));
+	}
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public<E> void testGetEffectiveGenericTypeVariable() {

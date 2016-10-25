@@ -28,6 +28,8 @@ import java.lang.reflect.TypeVariable;
 
 import javax.ws.rs.core.GenericEntity;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 import com.temenos.interaction.core.entity.Entity;
@@ -38,6 +40,8 @@ import java.lang.reflect.Proxy;
 
 
 public class CommandHelper {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(CommandHelper.class);
 	
 	/**
 	 * Create an Entity entity resource (entry)
@@ -76,7 +80,36 @@ public class CommandHelper {
 			}
 		};
 	}
-	
+
+	/**
+	 * Creates a new entity resource from an existing one.
+	 * If original entity resource supports cloning it will be cloned.
+	 * Otherwise a new entity resource will be created from
+	 * the entity, embedded transitions, links and entity tag
+	 * of the original entity resource.
+	 *
+	 * @param entityResource entity resource
+	 * @return entity resource
+	 */
+	public static<E> EntityResource<E> createEntityResource(EntityResource<E> entityResource) {
+		if (entityResource == null) {
+			return null;
+		}
+		EntityResource<E> clone;
+		try {
+			clone = entityResource.clone();
+		} catch (CloneNotSupportedException e) {
+			LOGGER.debug("Cloning is not supported by entity resource, creating a copy...", e);
+			clone = createEntityResource(
+					entityResource.getEntity(),
+					(entityResource.getEntity() != null) ? entityResource.getEntity().getClass() : null);
+			clone.setEmbedded(entityResource.getEmbedded());
+			clone.setLinks(entityResource.getLinks());
+			clone.setEntityTag(entityResource.getEntityTag());
+		}
+		return clone;
+	}
+
 	/*
 	 * Returns the type of the specified entity.
 	 * This method will try to evaluate entity type E. If entity type E implements exactly one interface
