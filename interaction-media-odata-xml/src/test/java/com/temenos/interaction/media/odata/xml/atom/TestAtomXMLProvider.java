@@ -986,6 +986,7 @@ public class TestAtomXMLProvider {
 			+ "<title type=\"text\">Flight</title>"
 			+ "<id>http://localhost:8080/responder/rest/FundsTransfers</id>"
 			+ "<updated>2014-02-20T08:56:32Z</updated>"
+			+ "<m:count>100</m:count>"
 				+ "<entry><id>http://localhost:8080/responder/rest/Flight('1')</id>"
 				+ "<title type=\"text\" />"
 				+ "<updated>2014-02-20T08:56:32Z</updated>"
@@ -1003,6 +1004,7 @@ public class TestAtomXMLProvider {
 			+ "<title type=\"text\">Flight</title>"
 			+ "<id>http://localhost:8080/responder/rest/FundsTransfers</id>"
 			+ "<updated>2014-02-20T08:56:32Z</updated>"
+			+ "<m:count>30</m:count>"
 				+ "<entry m:etag=\"07u1PAxpJ7RGGblAB8FicpJF18wtzngF71WGQUMlABE=\"><id>http://localhost:8080/responder/rest/Flight('1')</id>"
 				+ "<title type=\"text\" />"
 				+ "<updated>2014-02-20T08:56:32Z</updated>"
@@ -1061,6 +1063,7 @@ public class TestAtomXMLProvider {
 		entities.add(er);
 		// Create collection resource
 		CollectionResource<Entity> cr = new CollectionResource<Entity>("Flight", entities);
+		cr.setInlineCount(100);
 		GenericEntity<CollectionResource<Entity>> ge = new GenericEntity<CollectionResource<Entity>>(cr) {};
 
 		//Create provider
@@ -1111,6 +1114,7 @@ public class TestAtomXMLProvider {
 		oentities.add(er);
 		// Create collection resource
 		CollectionResource<OEntity> cr = new CollectionResource<OEntity>("Flights", oentities);
+		cr.setInlineCount(30);
 		GenericEntity<CollectionResource<OEntity>> ge = new GenericEntity<CollectionResource<OEntity>>(cr) {};
 
 		//Create provider

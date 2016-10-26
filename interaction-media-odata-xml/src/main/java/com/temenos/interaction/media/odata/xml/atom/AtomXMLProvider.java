@@ -242,8 +242,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
                 entities.add(entity);
                 linkId.put(entity, links);
             }
-            // TODO implement collection properties and get transient values for inlinecount and skiptoken
-            Integer inlineCount = null;
+            // TODO implement collection properties and get transient value for skiptoken
+            Integer inlineCount = collectionResource.getInlineCount();
             String skipToken = null;
             feedWriter.write(uriInfo, new OutputStreamWriter(buffer, UTF_8), 
                     processedLinks, 
@@ -252,8 +252,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
         } else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class)) {
             CollectionResource<Entity> collectionResource = ((CollectionResource<Entity>) resource);
             
-            // TODO implement collection properties and get transient values for inlinecount and skiptoken
-            Integer inlineCount = null;
+            // TODO implement collection properties and get transient value for skiptoken
+            Integer inlineCount = collectionResource.getInlineCount();
             String skipToken = null;
             //Write feed
             AtomEntityFeedFormatWriter entityFeedWriter = new AtomEntityFeedFormatWriter(serviceDocument, metadata);

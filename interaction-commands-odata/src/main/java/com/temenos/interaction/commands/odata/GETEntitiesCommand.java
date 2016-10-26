@@ -24,6 +24,7 @@ package com.temenos.interaction.commands.odata;
 
 import java.util.Map;
 
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response.Status;
 
@@ -31,6 +32,7 @@ import org.odata4j.core.OEntity;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.exceptions.ODataProducerException;
 import org.odata4j.producer.EntitiesResponse;
+import org.odata4j.producer.InlineCount;
 import org.odata4j.producer.ODataProducer;
 import org.odata4j.producer.QueryInfo;
 import org.odata4j.producer.resources.OptionsQueryParser;
@@ -72,6 +74,7 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 			EntitiesResponse response = producer.getEntities(entitySetName, getQueryInfo(ctx));
 			    
 			CollectionResource<OEntity> cr = CommandHelper.createCollectionResource(entitySetName, response.getEntities());
+			cr.setInlineCount(response.getInlineCount());
 			ctx.setResource(cr);
 		} catch (InteractionProducerException ipe) {
 			if (logger.isDebugEnabled()) {
@@ -99,7 +102,6 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 	 */
 	private QueryInfo getQueryInfo(InteractionContext ctx) throws InteractionException {
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
-		String inlineCount = queryParams.getFirst("$inlinecount");
 		String top = queryParams.getFirst("$top");
 		String skip = queryParams.getFirst("$skip");
 		String actionFilter = CommandHelper.getViewActionProperty(ctx, "filter");		//Filter defined as action property 
@@ -125,7 +127,7 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 		
 		try {
 			return new QueryInfo(
-					OptionsQueryParser.parseInlineCount(inlineCount),
+					validateAndGetInlineCount(queryParams),
 					OptionsQueryParser.parseTop(top),
 					OptionsQueryParser.parseSkip(skip),
 					OptionsQueryParser.parseFilter(filter),
@@ -139,5 +141,20 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 		    logger.error("Invalid query option in '" + queryParams + "'. Error: ", e);
 			throw new InteractionException(Status.BAD_REQUEST,"Invalid query option in '" + queryParams + "'. Error: ", e);
 		}
+	}
+
+	private InlineCount validateAndGetInlineCount(
+			MultivaluedMap<String, String> queryParams)
+			throws InteractionException {
+		String inlineCountParam = queryParams.getFirst("$inlinecount");
+		InlineCount inlineCount = OptionsQueryParser
+				.parseInlineCount(inlineCountParam);
+		if (inlineCountParam != null && inlineCount == null) {
+			// an invalid non-null inline count parameter should fail with 400
+			throw new InteractionException(Status.BAD_REQUEST,
+					"Invalid inline count '" + inlineCountParam
+							+ "' in query options '" + queryParams);
+		}
+		return inlineCount;
 	}
 }
