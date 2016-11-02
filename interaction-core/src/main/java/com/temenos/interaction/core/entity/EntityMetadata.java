@@ -250,6 +250,70 @@ public class EntityMetadata  {
 	}
 	
 	/**
+     * Checks whether a property is a date type or not
+     * @param propertyName The name of the property to check
+     * @return Whether the property is a date type or not
+     */
+    public boolean isPropertyDate( String propertyName )
+    {
+        boolean numberValue = false;
+        Vocabulary voc = propertyVocabularies.get(propertyName);
+        if(voc != null) {
+            TermValueType term = (TermValueType) voc.getTerm(TermValueType.TERM_NAME);
+            numberValue = term != null && term.isDate();
+        }
+        return numberValue;
+    }
+    
+    /**
+     * Checks whether a property is a timestamp type or not
+     * @param propertyName The name of the property to check
+     * @return Whether the property is a timestamp type or not
+     */
+    public boolean isPropertyTimestamp( String propertyName )
+    {
+        boolean numberValue = false;
+        Vocabulary voc = propertyVocabularies.get(propertyName);
+        if(voc != null) {
+            TermValueType term = (TermValueType) voc.getTerm(TermValueType.TERM_NAME);
+            numberValue = term != null && term.isTimestamp();
+        }
+        return numberValue;
+    }
+    
+    /**
+     * Checks whether a property is a time type or not
+     * @param propertyName The name of the property to check
+     * @return Whether the property is a time type or not
+     */
+    public boolean isPropertyTime( String propertyName )
+    {
+        boolean numberValue = false;
+        Vocabulary voc = propertyVocabularies.get(propertyName);
+        if(voc != null) {
+            TermValueType term = (TermValueType) voc.getTerm(TermValueType.TERM_NAME);
+            numberValue = term != null && term.isTime();
+        }
+        return numberValue;
+    }
+    
+    /**
+     * Checks whether a property is a boolean type or not
+     * @param propertyName The name of the property to check
+     * @return Whether the property is a boolean type or not
+     */
+    public boolean isPropertyBoolean( String propertyName )
+    {
+        boolean numberValue = false;
+        Vocabulary voc = propertyVocabularies.get(propertyName);
+        if(voc != null) {
+            TermValueType term = (TermValueType) voc.getTerm(TermValueType.TERM_NAME);
+            numberValue = term != null && term.isBoolean();
+        }
+        return numberValue;
+    }
+	
+	/**
 	 * Converts the field value in to a string (for TEXT and NUMBER types)
 	 * @param propertyName The name of the property to convert
 	 * @return The property value as a string
