@@ -155,9 +155,23 @@ public class Generator {
                         if (null != em) {                            
                             Map<String, Object> entityPropMap = new HashMap<String, Object>();                            
                             for (String propertySimple : em.getTopLevelProperties()) {                                
-                                if(!em.isPropertyList(propertySimple)) {
-                                    String propertyName = em.getSimplePropertyName(propertySimple);
-                                    entityPropMap.put(propertyName, "string");
+                                if(!em.isPropertyList(propertySimple)) {                                    
+                                    if (em.isPropertyNumber(propertySimple)) {
+                                        String propertyName = em.getSimplePropertyName(propertySimple);
+                                        entityPropMap.put(propertyName, "double");
+                                    } else if (em.isPropertyDate(propertySimple)) { 
+                                        String propertyName = em.getSimplePropertyName(propertySimple);
+                                        entityPropMap.put(propertyName, "date");
+                                    } else if (em.isPropertyTime(propertySimple)) { 
+                                        String propertyName = em.getSimplePropertyName(propertySimple);
+                                        entityPropMap.put(propertyName, "dateTime");
+                                    } else if (em.isPropertyBoolean(propertySimple)) { 
+                                        String propertyName = em.getSimplePropertyName(propertySimple);
+                                        entityPropMap.put(propertyName, "boolean");
+                                    } else {
+                                        String propertyName = em.getSimplePropertyName(propertySimple);
+                                        entityPropMap.put(propertyName, "string");
+                                    }
                                 } else {                                    
                                     String propertyName = em.getSimplePropertyName(propertySimple);
                                     entityPropMap.put(propertyName, complexTypeHandler(propertySimple, em));
@@ -219,7 +233,15 @@ public class Generator {
 	                while(matcher.find()) {
 	                    String propertyCapture = matcher.group(1);
 	                    if(em.getSimplePropertyName(property).equals(propertyCapture)) {
-	                        map.put(em.getSimplePropertyName(property),"string");
+	                        if (em.isPropertyNumber(property)) {                                
+	                            map.put(em.getSimplePropertyName(property), "double");
+                            } else if (em.isPropertyDate(property)) { 
+                                map.put(em.getSimplePropertyName(property), "date");
+                            } else if (em.isPropertyBoolean(property)) { 
+                                map.put(em.getSimplePropertyName(property), "boolean");
+                            } else {
+                                map.put(em.getSimplePropertyName(property), "string");
+                            }
 	                    }
 	                }
 	            }
