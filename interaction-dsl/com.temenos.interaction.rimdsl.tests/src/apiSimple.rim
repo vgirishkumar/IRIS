@@ -1,5 +1,5 @@
 domain SimpleDomain {
-    rim Simple @ Api : tags ( "Simple" ) {
+    rim Simple @ Annotation : tags ( "Simple" ) {
         event POST { method: POST }
 
         command GetEntity
