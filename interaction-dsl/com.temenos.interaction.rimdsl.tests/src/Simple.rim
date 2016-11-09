@@ -1,6 +1,6 @@
 // test comment
 domain SimpleModel {
-	rim Simple @ Api : tags ( "Simple" ) {
+	rim Simple @ Annotation : tags ( "Simple" ) {
 
 		event GET { method: GET }
 		event PUT { method: PUT }

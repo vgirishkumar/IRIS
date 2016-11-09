@@ -80,6 +80,7 @@ class RIMDslGeneratorSwagger implements IGenerator {
             «IF path != null && showResource(path,rim,interactionsByPath,stateByMethodPath)»
                 «var interactions = interactionsByPath.get(path)»
                 «IF interactions != null»
+                    «IF positionPath >= 1»,«ENDIF»
                     «IF rim.basepath != null && !rim.basepath.name.isNullOrEmpty && rim.basepath.name.contains("{")»
                         "«rim.basepath.name + path»": {
                             «toOperations(path, rim, interactionsByPath, stateByMethodPath)»
@@ -89,7 +90,7 @@ class RIMDslGeneratorSwagger implements IGenerator {
                             «toOperations(path, rim, interactionsByPath, stateByMethodPath)»
                         }
                     «ENDIF»
-                    «IF positionPath < paths.size - 1»,«setPathPosition(positionPath+1)»«ENDIF»
+                    «IF positionPath < paths.size - 1»«setPathPosition(positionPath+1)»«ENDIF»
                 «ENDIF»
             «ENDIF»
         «ENDFOR»
@@ -444,7 +445,7 @@ class RIMDslGeneratorSwagger implements IGenerator {
         
         if (annotations != null && annotations.size > 0) {
             for (MdfAnnotation annotation : annotations) {
-                if(annotation.namespace.equals("Api") && annotation.name.equals(name)) {
+                if(annotation.namespace.equals("Annotation") && annotation.name.equals(name)) {
                     value = annotation.properties.get(0);
                 }
             }
@@ -455,7 +456,7 @@ class RIMDslGeneratorSwagger implements IGenerator {
         
     def boolean findAnnotation (EList<MdfAnnotation> annotations, String name) {
         for (MdfAnnotation annotation : annotations) {
-            if (annotation.namespace.equals("Api") && annotation.name.equals(name)) {
+            if (annotation.namespace.equals("Annotation") && annotation.name.equals(name)) {
                 return true;
             }
         }
@@ -469,7 +470,7 @@ class RIMDslGeneratorSwagger implements IGenerator {
     def getTags (EList<MdfAnnotation> annotations) '''
         «IF annotations != null»
             «FOR MdfAnnotation annotation : annotations»
-                «IF annotation.namespace.equals("Api") && annotation.name.equals("tags")»
+                «IF annotation.namespace.equals("Annotation") && annotation.name.equals("tags")»
                     «FOR String tag : annotation.properties SEPARATOR ','»
                         "«tag»"
                     «ENDFOR»
