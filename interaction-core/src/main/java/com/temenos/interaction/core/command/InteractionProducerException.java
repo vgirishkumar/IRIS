@@ -55,6 +55,13 @@ public class InteractionProducerException extends ODataProducerException {
 		this.entitySetName = entitySetName;
 		this.entityResource = entityResource;
 	}
+	
+	public InteractionProducerException(StatusType httpStatus, String message, String entitySetName, EntityResource<?> entityResource, Throwable cause) {
+        super(message, cause);
+        this.httpStatus = httpStatus;
+        this.entitySetName = entitySetName;
+        this.entityResource = entityResource;
+    }
 
 	@Override
 	public StatusType getHttpStatus() {
