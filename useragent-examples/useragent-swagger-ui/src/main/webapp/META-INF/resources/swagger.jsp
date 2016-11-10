@@ -26,7 +26,6 @@
     request.setAttribute("API_DOCS_URL", request.getContextPath() + "/api-docs");
     
     String pathName = request.getRealPath(request.getServletPath());
-    //pathName += "/api-docs";
     File jsp = new File(pathName);
     File dir = jsp.getParentFile();
     File[] list = dir.listFiles();
@@ -78,7 +77,6 @@
 <script type="text/javascript">
     $(function () {
 	      var url = window.location.search.match(/url=([^&]+)/);
-	      //var originalBasePath = "";
 	      var pathArray = location.href.split( '/' );
 	      var protocol = pathArray[0];
 	      var host = pathArray[2];
@@ -124,69 +122,10 @@
                             });
                         }
                         
-                        /*
-                        originalBasePath = window.swaggerUi.api.basePath;
-                        
-                        if($("input#input_company").val() != '') {                        	
-                        	$.each(window.swaggerUi.api.apis, function(key, val) {
-                        		if(typeof val.apis != 'undefined') {
-                                    $.each(val.apis, function(key1, val1) {
-                                        val.apis[key1].basePath = originalBasePath.replace("{companyId}", $("input#input_company").val()); 
-                                        console.log("changed the basePath for " + key1);
-                                    });
-                                }                  		  
-                            });                        	
-                        	window.swaggerUi.api.basePath = originalBasePath.replace("{companyId}", $("input#input_company").val());
-                        } else {
-                        	$.each(window.swaggerUi.api.apis, function(key, val) {
-                        		if(typeof val.apis != 'undefined') {
-                        			$.each(val.apis, function(key1, val1) {
-                        				val.apis[key1].basePath = originalBasePath.replace("{companyId}","");
-                                        console.log("changed the basePath for " + key1);
-                                    });
-                        		}
-                        		//window.swaggerUi.api.apis.[key].apis.get_Accounts_ArrangementId_Overview.basePath
-                                //window.swaggerUi.api.apis[key].basePath = originalBasePath.replace("{companyId}","");
-                            });
-                        	window.swaggerUi.api.basePath = originalBasePath.replace("{companyId}","");
-                        }
-                        */
                         $('pre code').each(function(i, e) {
                             hljs.highlightBlock(e)
                         });
-                        /*
-                        $("input.submit").each(function(){
-                            var button = $(this);
-                            button.prop('disabled', true);
-                            console.log("changed the button " + button);
-                            $("input#input_company").change(function() {
-                            	var inputCompany = $(this);
-                                if(inputCompany.val() != '') {
-                                     button.prop('disabled', false);
-                                     window.swaggerUi.api.basePath = originalBasePath.replace("{companyId}",$(this).val());
-                                     $.each(window.swaggerUi.api.apis, function(key, val) {    
-                                         if(typeof val.apis != 'undefined') {
-                                             $.each(val.apis, function(key1, val1) {
-                                                 val.apis[key1].basePath = originalBasePath.replace("{companyId}",inputCompany.val());
-                                                 console.log("changed the basePath for " + key1);
-                                             });
-                                         }
-                                     });
-                                } else {
-                                     button.prop('disabled', true);
-                                     window.swaggerUi.api.basePath = originalBasePath.replace("{companyId}","");
-                                     $.each(window.swaggerUi.api.apis, function(key, val) {
-                                    	 if(typeof val.apis != 'undefined') {
-                                             $.each(val.apis, function(key1, val1) {
-                                                 val.apis[key1].basePath = originalBasePath.replace("{companyId}","");
-                                                 console.log("changed the basePath for " + key1);
-                                             });
-                                         }
-                                     });
-                                }
-                            });
-                        });
-						*/
+
                         if (window.SwaggerTranslator) {
                             window.SwaggerTranslator.translate();
                         }
@@ -226,11 +165,9 @@
 			<a id="logo" href="http://swagger.io"><img class="logo__img" alt="swagger" height="30" width="30"
 				src="images/logo_small.png" /><span class="logo__title">swagger</span></a>
 			<form id='api_selector'>
-				<!--<div class='input'><input placeholder="http://example.com/api" id="input_baseUrl" name="baseUrl" type="text"/></div> -->
 				<div class="input">
 					<select id="input_baseUrl" name="baseUrl">
 					</select>
-					<!--<input placeholder="{companyId}" id="input_company" name="companyId" type="text"/> -->
 				</div>
 				<div id='auth_container'></div>
 				<div class='input'>

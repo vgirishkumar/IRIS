@@ -460,12 +460,7 @@ class RIMDslGeneratorSwagger implements IGenerator {
                 return true;
             }
         }
-    }
-    
-    def void setPath(String path, String composed) {
-        
-    }
-    
+    }    
     	
     def getTags (EList<MdfAnnotation> annotations) '''
         «IF annotations != null»
