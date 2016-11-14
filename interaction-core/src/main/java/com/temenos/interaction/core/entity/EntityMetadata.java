@@ -217,6 +217,15 @@ public class EntityMetadata  {
 		return complexGroup;
 	}
 	
+	private TermValueType getTermValueType (String propertyName) {
+		TermValueType term = null;
+		Vocabulary voc = propertyVocabularies.get(propertyName);
+		if(voc != null) {
+			term = (TermValueType) voc.getTerm(TermValueType.TERM_NAME);
+		}
+		return term;
+	}
+	
 	/**
 	 * Checks whether a property is a text type or not
 	 * @param propertyName The name of the property to check
@@ -225,11 +234,8 @@ public class EntityMetadata  {
 	public boolean isPropertyText( String propertyName )
 	{
 		boolean textValue = true;
-		Vocabulary voc = propertyVocabularies.get(propertyName);
-		if(voc != null) {
-			TermValueType term = (TermValueType) voc.getTerm(TermValueType.TERM_NAME);
-			textValue = term == null || term.isText();
-		}
+		TermValueType term = getTermValueType(propertyName);
+		textValue = term == null || term.isText();
 		return textValue;
 	}
 	
@@ -241,10 +247,9 @@ public class EntityMetadata  {
 	public boolean isPropertyNumber( String propertyName )
 	{
 		boolean numberValue = false;
-		Vocabulary voc = propertyVocabularies.get(propertyName);
-		if(voc != null) {
-			TermValueType term = (TermValueType) voc.getTerm(TermValueType.TERM_NAME);
-			numberValue = term != null && term.isNumber();
+		TermValueType term = getTermValueType(propertyName);
+		if(term != null) {
+			numberValue = term.isNumber();
 		}
 		return numberValue;
 	}
@@ -256,14 +261,13 @@ public class EntityMetadata  {
      */
     public boolean isPropertyDate( String propertyName )
     {
-        boolean numberValue = false;
-        Vocabulary voc = propertyVocabularies.get(propertyName);
-        if(voc != null) {
-            TermValueType term = (TermValueType) voc.getTerm(TermValueType.TERM_NAME);
-            numberValue = term != null && term.isDate();
-        }
-        return numberValue;
-    }
+		boolean dateType = false;
+		TermValueType term = getTermValueType(propertyName);
+		if(term != null) {
+			dateType = term.isDate();
+		}
+		return dateType;
+	}
     
     /**
      * Checks whether a property is a timestamp type or not
@@ -272,13 +276,12 @@ public class EntityMetadata  {
      */
     public boolean isPropertyTimestamp( String propertyName )
     {
-        boolean numberValue = false;
-        Vocabulary voc = propertyVocabularies.get(propertyName);
-        if(voc != null) {
-            TermValueType term = (TermValueType) voc.getTerm(TermValueType.TERM_NAME);
-            numberValue = term != null && term.isTimestamp();
+        boolean timestampType = false;
+        TermValueType term = getTermValueType(propertyName);
+        if(term != null) {
+            timestampType = term.isTimestamp();
         }
-        return numberValue;
+        return timestampType;
     }
     
     /**
@@ -288,13 +291,12 @@ public class EntityMetadata  {
      */
     public boolean isPropertyTime( String propertyName )
     {
-        boolean numberValue = false;
-        Vocabulary voc = propertyVocabularies.get(propertyName);
-        if(voc != null) {
-            TermValueType term = (TermValueType) voc.getTerm(TermValueType.TERM_NAME);
-            numberValue = term != null && term.isTime();
+        boolean timeType = false;
+        TermValueType term = getTermValueType(propertyName);
+        if(term != null) {
+            timeType = term.isTime();
         }
-        return numberValue;
+        return timeType;
     }
     
     /**
@@ -303,14 +305,13 @@ public class EntityMetadata  {
      * @return Whether the property is a boolean type or not
      */
     public boolean isPropertyBoolean( String propertyName )
-    {
-        boolean numberValue = false;
-        Vocabulary voc = propertyVocabularies.get(propertyName);
-        if(voc != null) {
-            TermValueType term = (TermValueType) voc.getTerm(TermValueType.TERM_NAME);
-            numberValue = term != null && term.isBoolean();
+    {   
+        boolean booelanType = false;
+        TermValueType term = getTermValueType(propertyName);
+        if(term != null) {
+            booelanType = term.isBoolean();
         }
-        return numberValue;
+        return booelanType;
     }
 	
 	/**
