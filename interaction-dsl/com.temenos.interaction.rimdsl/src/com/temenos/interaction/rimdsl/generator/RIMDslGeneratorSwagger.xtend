@@ -80,10 +80,17 @@ class RIMDslGeneratorSwagger implements IGenerator {
             «IF path != null && showResource(path,rim,interactionsByPath,stateByMethodPath)»
                 «var interactions = interactionsByPath.get(path)»
                 «IF interactions != null»
-                    "«path»": {
-                        «toOperations(path, rim, interactionsByPath, stateByMethodPath)»
-                    }
-                    «IF positionPath < paths.size - 1»,«setPathPosition(positionPath+1)»«ENDIF»
+                    «IF positionPath >= 1»,«ENDIF»
+                    «IF rim.basepath != null && !rim.basepath.name.isNullOrEmpty && rim.basepath.name.contains("{")»
+                        "«rim.basepath.name + path»": {
+                            «toOperations(path, rim, interactionsByPath, stateByMethodPath)»
+                        }
+                    «ELSE»
+                        "«path»": {
+                            «toOperations(path, rim, interactionsByPath, stateByMethodPath)»
+                        }
+                    «ENDIF»
+                    «IF positionPath < paths.size - 1»«setPathPosition(positionPath+1)»«ENDIF»
                 «ENDIF»
             «ENDIF»
         «ENDFOR»
@@ -141,14 +148,30 @@ class RIMDslGeneratorSwagger implements IGenerator {
                 «setNextComma(false)» 
                 «FOR methodCommand : methods»
                     «FOR propertie : methodCommand.command.properties SEPARATOR ','»
-                    {
-                        "name": "«propertie.name»",
-                        "in": "query",
-                        "required": false,
-                        "type": "string",
-                        "default" : ""
-                    }
-                    «setNextComma(true)» 
+                        «IF propertie.name.equals("filter") && propertie.name.contains("{")»
+                            «var pattern = Pattern.compile("(?:.*\\{)(.*)(?:\\}.*)")»
+                            «var matcher = pattern.matcher(path)»
+                            «IF matcher.find()»
+                                «var value = matcher.group(1)»
+                                {
+                                    "name": "«value»",
+                                    "in": "query",
+                                    "required": false,
+                                    "type": "string",
+                                    "default" : ""
+                                }
+                                «setNextComma(true)»
+                            «ENDIF»
+                        «ELSE»
+                            {
+                                "name": "«propertie.name»",
+                                "in": "query",
+                                "required": false,
+                                "type": "string",
+                                "default" : ""
+                            }
+                            «setNextComma(true)» 
+                        «ENDIF»
                     «ENDFOR»
                 «ENDFOR»
                 «IF path.contains("{") »
@@ -166,6 +189,11 @@ class RIMDslGeneratorSwagger implements IGenerator {
                         }
                         «setNextComma(true)» 
                     «ENDIF»
+                «ENDIF»
+                «IF rim.basepath.name.contains("{") »
+                    «IF nextComma»,«ENDIF»
+                    «getBasePathParams(rim.basepath)»
+                    «setNextComma(true)» 
                 «ENDIF»
                 «IF method == "POST" || method == "PUT"»
                     «IF nextComma»,«ENDIF»
@@ -336,7 +364,15 @@ class RIMDslGeneratorSwagger implements IGenerator {
             «FOR property : entityProps.keySet SEPARATOR ','»
             "«property»" : {
                 «IF entityProps.get(property) instanceof String»
-                "type" : "«entityProps.get(property)»"
+                    «IF entityProps.get(property).equals("double")»
+                        "type" : "number",
+                        "format" : "«entityProps.get(property)»"
+                    «ELSEIF entityProps.get(property).equals("date") || entityProps.get(property).equals("dateTime")»
+                        "type" : "string",
+                        "format" : "«entityProps.get(property)»"
+                    «ELSE»
+                        "type" : "«entityProps.get(property)»"
+                    «ENDIF»
                 «ELSE»
                 «var drilldown = entityProps.get(property) as HashMap<String, Object>»
                 «paramDrillPrint(drilldown)»
@@ -355,7 +391,15 @@ class RIMDslGeneratorSwagger implements IGenerator {
             «FOR property : drilldown.keySet SEPARATOR ','»
             "«property»" : {
                 «IF drilldown.get(property) instanceof String»
-                    "type" : "«drilldown.get(property)»"
+                    «IF drilldown.get(property).equals("double")»
+                        "type" : "number",
+                        "format" : "«drilldown.get(property)»"
+                    «ELSEIF drilldown.get(property).equals("date")»
+                        "type" : "string",
+                        "format" : "«drilldown.get(property)»"
+                     «ELSE»
+                        "type" : "«drilldown.get(property)»"
+                    «ENDIF»
                 «ELSE»
                     «var drill = drilldown.get(property) as HashMap<String, Object>»
                     «paramDrillPrint(drill)»
@@ -366,13 +410,42 @@ class RIMDslGeneratorSwagger implements IGenerator {
     }
 	'''
 	
+	def String getBasePathParams (BasePath basePath) {
+	    
+	    var nextComma = false;
+	    var valueComposer = new StringBuilder();
+	    if(basePath != null && !basePath.name.isNullOrEmpty) {
+	        var pattern = Pattern.compile("(?:.*\\{)(.*)(?:\\}.*)"); 
+            var matcher = pattern.matcher(basePath.name);
+            while (matcher.find()) {
+                
+                if(nextComma) {
+                    valueComposer.append(",");
+                }
+                
+                valueComposer.append("{")
+                valueComposer.append(" \"name\": \"").append(matcher.group(1)).append("\",");
+                valueComposer.append(" \"in\": \"path\",");
+                valueComposer.append(" \"description\": \"\",");
+                valueComposer.append(" \"required\": true,");
+                valueComposer.append(" \"type\": \"string\"");
+                valueComposer.append("}");
+                
+                nextComma = true;
+            }
+	    }
+
+	    return valueComposer.toString();
+	    
+	}
+	
     def String getAnnotation (EList<MdfAnnotation> annotations, String name) {
         
         var value = "";
         
         if (annotations != null && annotations.size > 0) {
             for (MdfAnnotation annotation : annotations) {
-                if(annotation.namespace.equals("Api") && annotation.name.equals(name)) {
+                if(annotation.namespace.equals("Annotation") && annotation.name.equals(name)) {
                     value = annotation.properties.get(0);
                 }
             }
@@ -383,17 +456,16 @@ class RIMDslGeneratorSwagger implements IGenerator {
         
     def boolean findAnnotation (EList<MdfAnnotation> annotations, String name) {
         for (MdfAnnotation annotation : annotations) {
-            if (annotation.namespace.equals("Api") && annotation.name.equals(name)) {
+            if (annotation.namespace.equals("Annotation") && annotation.name.equals(name)) {
                 return true;
             }
         }
-    }
-    
+    }    
     	
     def getTags (EList<MdfAnnotation> annotations) '''
         «IF annotations != null»
             «FOR MdfAnnotation annotation : annotations»
-                «IF annotation.namespace.equals("Api") && annotation.name.equals("tags")»
+                «IF annotation.namespace.equals("Annotation") && annotation.name.equals("tags")»
                     «FOR String tag : annotation.properties SEPARATOR ','»
                         "«tag»"
                     «ENDFOR»

@@ -26,7 +26,6 @@
     request.setAttribute("API_DOCS_URL", request.getContextPath() + "/api-docs");
     
     String pathName = request.getRealPath(request.getServletPath());
-    //pathName += "/api-docs";
     File jsp = new File(pathName);
     File dir = jsp.getParentFile();
     File[] list = dir.listFiles();
@@ -122,7 +121,7 @@
                                 additionalQueryStringParams : {}
                             });
                         }
-
+                        
                         $('pre code').each(function(i, e) {
                             hljs.highlightBlock(e)
                         });
@@ -166,7 +165,6 @@
 			<a id="logo" href="http://swagger.io"><img class="logo__img" alt="swagger" height="30" width="30"
 				src="images/logo_small.png" /><span class="logo__title">swagger</span></a>
 			<form id='api_selector'>
-				<!--<div class='input'><input placeholder="http://example.com/api" id="input_baseUrl" name="baseUrl" type="text"/></div> -->
 				<div class="input">
 					<select id="input_baseUrl" name="baseUrl">
 					</select>

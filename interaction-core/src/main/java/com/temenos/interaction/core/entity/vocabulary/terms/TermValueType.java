@@ -67,6 +67,34 @@ public class TermValueType implements Term {
 		return valueType.equals(NUMBER) || valueType.equals(INTEGER_NUMBER);
 	}
 	
+	/**
+     * @return Whether the value is of type DATE or not
+     */
+    public boolean isDate() {
+        return valueType.equals(DATE);
+    }
+    
+    /**
+     * @return Whether the value is of type DATE or not
+     */
+    public boolean isTimestamp() {
+        return valueType.equals(TIMESTAMP);
+    }
+    
+    /**
+     * @return Whether the value is of type TIMESTAMP or not
+     */
+    public boolean isTime() {
+        return valueType.equals(TIME);
+    }
+    
+    /**
+     * @return Whether the value is of type TIMESTAMP or not
+     */
+    public boolean isBoolean() {
+        return valueType.equals(BOOLEAN);
+    }
+	
 	@Override
 	public String getName() {
 		return TERM_NAME;

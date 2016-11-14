@@ -92,10 +92,20 @@ public class TestMetadata {
 		vocDob.setTerm(new TermMandatory(true));
 		vocs.setPropertyVocabulary("dateOfBirth", vocDob);
 
+		Vocabulary vocTimestamp = new Vocabulary();
+		vocTimestamp.setTerm(new TermComplexType(false));
+		vocTimestamp.setTerm(new TermValueType(TermValueType.TIMESTAMP));
+        vocs.setPropertyVocabulary("timestamp", vocTimestamp);
+		
 		Vocabulary vocTime = new Vocabulary();
 		vocTime.setTerm(new TermComplexType(false));
 		vocTime.setTerm(new TermValueType(TermValueType.TIME));
 		vocs.setPropertyVocabulary("time", vocTime);
+		
+		Vocabulary vocKids = new Vocabulary();
+		vocKids.setTerm(new TermComplexType(false));
+		vocKids.setTerm(new TermValueType(TermValueType.BOOLEAN));
+        vocs.setPropertyVocabulary("kids", vocKids);
 
 		Vocabulary vocSector = new Vocabulary();
 		vocSector.setTerm(new TermComplexType(false));
@@ -112,7 +122,7 @@ public class TestMetadata {
 	public void testPropertyVocabularyKeySet()
 	{	
 		Set<String> propertyKeys = vocs.getPropertyVocabularyKeySet();
-		Assert.assertEquals(10, propertyKeys.size());
+		Assert.assertEquals(12, propertyKeys.size());
 		Assert.assertTrue(propertyKeys.contains("name"));
 		Assert.assertTrue(propertyKeys.contains("address"));
 		Assert.assertTrue(propertyKeys.contains("address.number"));
@@ -122,6 +132,9 @@ public class TestMetadata {
 		Assert.assertTrue(propertyKeys.contains("dateOfBirth"));
 		Assert.assertTrue(propertyKeys.contains("sector"));
 		Assert.assertTrue(propertyKeys.contains("industry"));
+		Assert.assertTrue(propertyKeys.contains("time"));
+		Assert.assertTrue(propertyKeys.contains("timestamp"));
+		Assert.assertTrue(propertyKeys.contains("kids"));
 	}
 	
 	@Test
@@ -179,6 +192,68 @@ public class TestMetadata {
 		Assert.assertFalse(vocs.isPropertyNumber("sector"));
 		Assert.assertFalse(vocs.isPropertyNumber("industry"));
 	}
+	
+	@Test
+    public void testIsPropertyDate()
+    {       
+        Assert.assertFalse(vocs.isPropertyDate("name"));
+        Assert.assertFalse(vocs.isPropertyDate("address"));
+        Assert.assertFalse(vocs.isPropertyDate("address.number"));
+        Assert.assertFalse(vocs.isPropertyDate("address.street"));
+        Assert.assertFalse(vocs.isPropertyDate("address.town"));
+        Assert.assertFalse(vocs.isPropertyDate("address.postCode"));
+        Assert.assertTrue(vocs.isPropertyDate("dateOfBirth"));
+        Assert.assertFalse(vocs.isPropertyDate("sector"));
+        Assert.assertFalse(vocs.isPropertyDate("industry"));
+    }
+	
+	@Test
+    public void testIsPropertyTimestamp()
+    {       
+        Assert.assertFalse(vocs.isPropertyTimestamp("name"));
+        Assert.assertFalse(vocs.isPropertyTimestamp("address"));
+        Assert.assertFalse(vocs.isPropertyTimestamp("address.number"));
+        Assert.assertFalse(vocs.isPropertyTimestamp("address.street"));
+        Assert.assertFalse(vocs.isPropertyTimestamp("address.town"));
+        Assert.assertFalse(vocs.isPropertyTimestamp("address.postCode"));
+        Assert.assertFalse(vocs.isPropertyTimestamp("dateOfBirth"));
+        Assert.assertTrue(vocs.isPropertyTimestamp("timestamp"));
+        Assert.assertFalse(vocs.isPropertyTimestamp("sector"));
+        Assert.assertFalse(vocs.isPropertyTimestamp("industry"));
+    }
+	
+	@Test
+    public void testIsPropertyTime()
+    {       
+        Assert.assertFalse(vocs.isPropertyTime("name"));
+        Assert.assertFalse(vocs.isPropertyTime("address"));
+        Assert.assertFalse(vocs.isPropertyTime("address.number"));
+        Assert.assertFalse(vocs.isPropertyTime("address.street"));
+        Assert.assertFalse(vocs.isPropertyTime("address.town"));
+        Assert.assertFalse(vocs.isPropertyTime("address.postCode"));
+        Assert.assertFalse(vocs.isPropertyTime("dateOfBirth"));
+        Assert.assertFalse(vocs.isPropertyTime("timestamp"));
+        Assert.assertTrue(vocs.isPropertyTime("time"));
+        Assert.assertFalse(vocs.isPropertyTime("sector"));
+        Assert.assertFalse(vocs.isPropertyTime("industry"));
+    }
+	
+	@Test
+    public void testIsPropertyBoolean()
+    {       
+        Assert.assertFalse(vocs.isPropertyBoolean("name"));
+        Assert.assertFalse(vocs.isPropertyBoolean("address"));
+        Assert.assertFalse(vocs.isPropertyBoolean("address.number"));
+        Assert.assertFalse(vocs.isPropertyBoolean("address.street"));
+        Assert.assertFalse(vocs.isPropertyBoolean("address.town"));
+        Assert.assertFalse(vocs.isPropertyBoolean("address.postCode"));
+        Assert.assertFalse(vocs.isPropertyBoolean("dateOfBirth"));
+        Assert.assertFalse(vocs.isPropertyBoolean("timestamp"));
+        Assert.assertFalse(vocs.isPropertyBoolean("time"));
+        Assert.assertFalse(vocs.isPropertyBoolean("sector"));
+        Assert.assertFalse(vocs.isPropertyBoolean("industry"));
+        Assert.assertTrue(vocs.isPropertyBoolean("kids"));
+    }
 	
 	@Test
 	public void testIdFields() {
@@ -285,4 +360,22 @@ public class TestMetadata {
 		Assert.assertTrue(em.isPropertyFilterOnly("Sect"));
 		Assert.assertFalse(em.isPropertyDisplayOnly("Sect"));
 	}
+	
+	@Test
+    public void testGetSimplePropertyName() {
+	    Assert.assertNotNull(vocs.getSimplePropertyName("sector"));
+	    Assert.assertEquals(vocs.getSimplePropertyName("sector"), "sector");
+	}
+	
+	@Test
+    public void testGetVocabulary() {
+	    Vocabulary voc = new Vocabulary();
+	    vocs.setVocabulary(voc);	    
+        Assert.assertNotNull(vocs.getVocabulary());
+    }
+	
+	@Test
+    public void testGetTopLevelPropertiesy() {     
+        Assert.assertNotNull(vocs.getTopLevelProperties());
+    }
 }
