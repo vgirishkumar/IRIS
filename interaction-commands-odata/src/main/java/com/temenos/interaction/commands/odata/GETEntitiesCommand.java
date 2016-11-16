@@ -106,10 +106,9 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 		String skip = queryParams.getFirst("$skip");
 		String actionFilter = CommandHelper.getViewActionProperty(ctx, "filter");		//Filter defined as action property 
 		String filter = queryParams.getFirst("$filter");								//Query filter
-		if (filter == null 
-				&& actionFilter != null && !actionFilter.isEmpty()
+		if (actionFilter != null && !actionFilter.isEmpty()
 				&& !actionFilter.contains("{") && !actionFilter.contains("}")) {
-			filter = actionFilter;
+			filter = filter != null ? actionFilter + " and " + filter : actionFilter;
 		}
 		String orderBy = queryParams.getFirst("$orderby");
 		String skipToken = queryParams.getFirst("$skiptoken");
