@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
@@ -55,6 +56,11 @@ import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmType;
+import org.odata4j.expression.AndExpression;
+import org.odata4j.expression.BoolCommonExpression;
+import org.odata4j.expression.EntitySimpleProperty;
+import org.odata4j.expression.EqExpression;
+import org.odata4j.expression.StringLiteral;
 import org.odata4j.producer.EntitiesResponse;
 import org.odata4j.producer.EntityQueryInfo;
 import org.odata4j.producer.EntityResponse;
@@ -66,6 +72,7 @@ import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.command.InteractionProducerException;
 import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.EntityResource;
 
@@ -154,6 +161,119 @@ public class TestGETEntitiesCommand {
 			assertNotNull(mockContext.getResource());
 			assertEquals(mockContext.getResource().getEntityName(), "Errors");
 		}
+	}
+	
+	@Test
+	public void testExecuteWithQueryOptionFilterAndActionFilter()
+			throws Exception {
+		ODataProducer mockProducer = createMockODataProducer("MyEntity",
+				"Edm.String");
+		Properties actionFilter = new Properties();
+		actionFilter.put("filter", "foo1 eq 'bar1'");
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+		queryParams.add("$filter", "foo2 eq 'bar2'");
+		executeWithFilters(mockProducer,
+				actionFilter, queryParams);
+		
+		verify(mockProducer).getEntities(any(String.class),
+				argThat(new ArgumentMatcher<QueryInfo>() {
+
+					@Override
+					public boolean matches(Object argument) {
+						QueryInfo queryInfo = (QueryInfo) argument;
+						BoolCommonExpression filter = queryInfo.filter;
+
+						verifyAndExpression((AndExpression) filter,
+								new String[] { "foo1", "foo2" }, new String[] {
+										"bar1", "bar2" });
+						return true;
+					}
+				}));
+
+	}
+
+	@Test
+	public void testExecuteWithActionFilterOnly() throws Exception {
+
+		ODataProducer mockProducer = createMockODataProducer("MyEntity",
+				"Edm.String");
+		Properties actionFilter = new Properties();
+		actionFilter.put("filter", "foo eq 'bar'");
+		executeWithFilters(mockProducer,
+				actionFilter, new MultivaluedMapImpl<String>());
+
+		verify(mockProducer).getEntities(any(String.class),
+				argThat(new ArgumentMatcher<QueryInfo>() {
+
+					@Override
+					public boolean matches(Object argument) {
+						QueryInfo queryInfo = (QueryInfo) argument;
+						BoolCommonExpression filter = queryInfo.filter;
+						verifyEqExpression((EqExpression) filter, "foo",
+								"bar");
+						return true;
+					}
+				}));
+
+	}
+	
+	@Test
+	public void testExecuteWithQueryOptionFilterOnly() throws Exception {
+
+		ODataProducer mockProducer = createMockODataProducer("MyEntity",
+				"Edm.String");
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+		queryParams.add("$filter", "foo eq 'bar'");
+		executeWithFilters(mockProducer,
+				new Properties(), queryParams);
+
+		verify(mockProducer).getEntities(any(String.class),
+				argThat(new ArgumentMatcher<QueryInfo>() {
+
+					@Override
+					public boolean matches(Object argument) {
+						QueryInfo queryInfo = (QueryInfo) argument;
+						BoolCommonExpression filter = queryInfo.filter;
+						verifyEqExpression((EqExpression) filter, "foo",
+								"bar");
+						return true;
+					}
+				}));
+
+	}
+	
+	// executes on supplied producer with query option and action filters
+	private void executeWithFilters(
+			ODataProducer mockProducer, Properties actionFilter,
+			MultivaluedMap<String, String> queryParams)
+			throws InteractionException {
+		Action mockAction = mock(Action.class);
+		when(mockAction.getProperties()).thenReturn(actionFilter);
+		ResourceState mockResourceState = mock(ResourceState.class);
+		when(mockResourceState.getViewAction()).thenReturn(mockAction);
+		when(mockResourceState.getEntityName()).thenReturn("MyEntity");
+		InteractionContext mockContext = mock(InteractionContext.class);
+		when(mockContext.getCurrentState()).thenReturn(mockResourceState);
+		when(mockContext.getQueryParameters()).thenReturn(queryParams);
+		GETEntitiesCommand command = new GETEntitiesCommand(mockProducer);
+		command.execute(mockContext);
+	}
+
+	// only supports 'eq' on both lhs and rhs
+	private void verifyAndExpression(AndExpression andExpr,
+			String[] expectedPropNames, String[] expectedPropValues) {
+		verifyEqExpression((EqExpression) andExpr.getLHS(),
+				expectedPropNames[0], expectedPropValues[0]);
+		verifyEqExpression((EqExpression) andExpr.getRHS(),
+				expectedPropNames[1], expectedPropValues[1]);
+	}
+
+	// only supports EntitySimpleProperty at lhs and StringLiteral at rhs
+	private void verifyEqExpression(EqExpression eqExpr, String expectedLhs,
+			String expectedRhs) {
+		assertEquals(expectedLhs,
+				((EntitySimpleProperty) eqExpr.getLHS()).getPropertyName());
+		assertEquals(expectedRhs, ((StringLiteral) eqExpr.getRHS()).getValue());
 	}
 	
 	@Test
