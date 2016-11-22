@@ -146,32 +146,39 @@ public class Generator {
 		Resource resource = resourceSet.getResource(URI.createFileURI(inputPath), true);
         
 		if(metadata!=null) {		    
-		    Map<String, Object> entitiesMap = new HashMap<String, Object>();		    
+		    Map<String, Object> entitiesMap = new HashMap<String, Object>();	
 		    for(State key : Iterables.<State>filter(IteratorExtensions.<EObject>toIterable(resource.getAllContents()), State.class)) {		        
                 String entity = key.getEntity().getName();                
                 if (StringUtils.isNotEmpty(entity)) {                
                     try {                        
                         EntityMetadata em = metadata.getEntityMetadata(entity);                        
                         if (null != em) {                            
-                            Map<String, Object> entityPropMap = new HashMap<String, Object>();                            
-                            for (String propertySimple : em.getTopLevelProperties()) {                                
-                                if(!em.isPropertyList(propertySimple)) {                                    
-                                    if (em.isPropertyNumber(propertySimple)) {
-                                        String propertyName = em.getSimplePropertyName(propertySimple);
-                                        entityPropMap.put(propertyName, "double");
-                                    } else if (em.isPropertyDate(propertySimple)) { 
-                                        String propertyName = em.getSimplePropertyName(propertySimple);
-                                        entityPropMap.put(propertyName, "date");
-                                    } else if (em.isPropertyTime(propertySimple)) { 
-                                        String propertyName = em.getSimplePropertyName(propertySimple);
-                                        entityPropMap.put(propertyName, "dateTime");
-                                    } else if (em.isPropertyBoolean(propertySimple)) { 
-                                        String propertyName = em.getSimplePropertyName(propertySimple);
-                                        entityPropMap.put(propertyName, "boolean");
+                            Map<String, Object> entityPropMap = new HashMap<String, Object>();
+                            for (String propertySimple : em.getTopLevelProperties()) {                           
+                                if(!em.isPropertyList(propertySimple)) {
+                                    
+                                    ArrayList<String> obj = new ArrayList<String>();
+                                    
+                                    String propertyName = em.getSimplePropertyName(propertySimple);
+                                                                       
+                                    if (em.isPropertyNumber(propertySimple)) {                                        
+                                        obj.add(0, "double");
+                                    } else if (em.isPropertyDate(propertySimple)) {                                        
+                                        obj.add(0, "date");
+                                    } else if (em.isPropertyTime(propertySimple)) {                        
+                                        obj.add(0, "dateTime");
+                                    } else if (em.isPropertyBoolean(propertySimple)) {      
+                                        obj.add(0, "boolean");
                                     } else {
-                                        String propertyName = em.getSimplePropertyName(propertySimple);
-                                        entityPropMap.put(propertyName, "string");
+                                        obj.add(0, "string");
                                     }
+                                   
+                                    String description = em.getTermValue(propertySimple, "TERM_DESCRIPTION");
+                                    description = (null != description) ? description : "";
+                                    obj.add(1, description);
+                                    
+                                    entityPropMap.put(propertyName, obj);
+                                    
                                 } else {                                    
                                     String propertyName = em.getSimplePropertyName(propertySimple);
                                     entityPropMap.put(propertyName, complexTypeHandler(propertySimple, em));
@@ -233,15 +240,22 @@ public class Generator {
 	                while(matcher.find()) {
 	                    String propertyCapture = matcher.group(1);
 	                    if(em.getSimplePropertyName(property).equals(propertyCapture)) {
-	                        if (em.isPropertyNumber(property)) {                                
-	                            map.put(em.getSimplePropertyName(property), "double");
+                            ArrayList<String> obj = new ArrayList<String>();
+	                        if (em.isPropertyNumber(property)) {                  
+	                            obj.add(0, "double");
                             } else if (em.isPropertyDate(property)) { 
-                                map.put(em.getSimplePropertyName(property), "date");
+                                obj.add(0, "date");
                             } else if (em.isPropertyBoolean(property)) { 
-                                map.put(em.getSimplePropertyName(property), "boolean");
+                                obj.add(0, "boolean");
                             } else {
-                                map.put(em.getSimplePropertyName(property), "string");
+                                obj.add(0, "string");
                             }
+
+	                        String description = em.getTermValue(property, "TERM_DESCRIPTION");
+                            description = (null != description) ? description : "";
+                            obj.add(1, description);
+                            
+	                        map.put(em.getSimplePropertyName(property), obj);
 	                    }
 	                }
 	            }
