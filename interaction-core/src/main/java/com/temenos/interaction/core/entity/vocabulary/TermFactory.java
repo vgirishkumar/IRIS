@@ -24,6 +24,7 @@ package com.temenos.interaction.core.entity.vocabulary;
 
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermDescription;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermLangType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermListType;
@@ -81,7 +82,10 @@ public class TermFactory {
 		}
 		else if(name.equalsIgnoreCase(TermLangType.TERM_NAME)) {
 			term = new TermLangType(value.equalsIgnoreCase("true"));
-		}		
+		}
+		else if(name.equalsIgnoreCase(TermDescription.TERM_NAME)) {
+            term = new TermDescription(value);
+        }
 		else if(name.equalsIgnoreCase(TermRange.TERM_NAME)) {
 			String[] minmax = value.split(",");
 			if(minmax.length == 2) {
