@@ -363,15 +363,19 @@ class RIMDslGeneratorSwagger implements IGenerator {
         "properties": {
             «FOR property : entityProps.keySet SEPARATOR ','»
             "«property»" : {
-                «IF entityProps.get(property) instanceof String»
-                    «IF entityProps.get(property).equals("double")»
+                «IF entityProps.get(property) instanceof ArrayList<?>»
+                    «var arraylistObj = entityProps.get(property) as ArrayList<String>»
+                    «IF arraylistObj.get(0).equals("double")»
                         "type" : "number",
-                        "format" : "«entityProps.get(property)»"
-                    «ELSEIF entityProps.get(property).equals("date") || entityProps.get(property).equals("dateTime")»
+                        "format" : "«arraylistObj.get(0)»",
+                        "description" : "«arraylistObj.get(1)»"
+                    «ELSEIF arraylistObj.get(0).equals("date") || arraylistObj.get(0).equals("dateTime")»
                         "type" : "string",
-                        "format" : "«entityProps.get(property)»"
+                        "format" : "«arraylistObj.get(0)»",
+                        "description" : "«arraylistObj.get(1)»"
                     «ELSE»
-                        "type" : "«entityProps.get(property)»"
+                        "type" : "«arraylistObj.get(0)»",
+                        "description" : "«arraylistObj.get(1)»"
                     «ENDIF»
                 «ELSE»
                 «var drilldown = entityProps.get(property) as HashMap<String, Object>»
@@ -390,15 +394,19 @@ class RIMDslGeneratorSwagger implements IGenerator {
         "properties" : {
             «FOR property : drilldown.keySet SEPARATOR ','»
             "«property»" : {
-                «IF drilldown.get(property) instanceof String»
-                    «IF drilldown.get(property).equals("double")»
+                «IF drilldown.get(property) instanceof ArrayList<?>»
+                    «var drillArrayListObj = drilldown.get(property) as ArrayList<String>»
+                    «IF drillArrayListObj.get(0).equals("double")»
                         "type" : "number",
-                        "format" : "«drilldown.get(property)»"
-                    «ELSEIF drilldown.get(property).equals("date")»
+                        "format" : "«drillArrayListObj.get(0)»",
+                        "description" : "«drillArrayListObj.get(1)»"
+                    «ELSEIF drillArrayListObj.get(0).equals("date")»
                         "type" : "string",
-                        "format" : "«drilldown.get(property)»"
+                        "format" : "«drillArrayListObj.get(0)»",
+                        "description" : "«drillArrayListObj.get(1)»"
                      «ELSE»
-                        "type" : "«drilldown.get(property)»"
+                        "type" : "«drillArrayListObj.get(0)»",
+                        "description" : "«drillArrayListObj.get(1)»"
                     «ENDIF»
                 «ELSE»
                     «var drill = drilldown.get(property) as HashMap<String, Object>»
