@@ -25,6 +25,7 @@ package com.temenos.interaction.core.entity.vocabulary;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.temenos.interaction.core.entity.vocabulary.terms.TermDescription;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermRange;
 
@@ -96,4 +97,16 @@ public class TestTermFactory {
 			Assert.fail(e.getMessage());
 		}
 	}
+	
+	@Test
+    public void testTermDescription() {
+        try {
+            Term term = new TermFactory().createTerm(TermDescription.TERM_NAME, "Pinguin");
+            Assert.assertTrue(term instanceof TermDescription);
+            Assert.assertFalse(((TermDescription) term).getValue().isEmpty());
+        }
+        catch(Exception e) {
+            Assert.fail(e.getMessage());
+        }
+    }
 }

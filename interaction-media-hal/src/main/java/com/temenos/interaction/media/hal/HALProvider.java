@@ -77,6 +77,7 @@ import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.hypermedia.DefaultResourceStateProvider;
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.MethodNotAllowedException;
@@ -360,11 +361,11 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					String simpleName = simpleOPropertyName(entityMetadata, property);
 					String qualifiedName = lengthenPrefix(prefix, simpleName);
 
-					if (entityMetadata.getPropertyVocabulary(qualifiedName) != null
-						&& property.getValue() != null) {
-						map.put(simpleName, buildFromOObject(entityMetadata,
-															 qualifiedName,
-															 property.getValue()));
+					if (entityMetadata.getPropertyVocabulary(qualifiedName) != null) {					    
+					    String mandatory = entityMetadata.getTermValue(qualifiedName, TermMandatory.TERM_NAME);		                
+		                if(property.getValue() != null || (null != mandatory && "true".equals(mandatory))) {
+		                    map.put(simpleName, buildFromOObject(entityMetadata, qualifiedName, property.getValue()));
+		                }
 					} else {
 						logger.debug(String.format("not adding property %s [%s], value %s",
 												   property.getName(), qualifiedName, property.getValue()));
@@ -373,7 +374,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				return map;
 			}
 		} else
-			return any.toString();
+			return any;
 	}
 
 	/** populate a Map with the properties of an OEntity
@@ -387,9 +388,11 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			// add properties if they are present on the resolved entity
 
 			String simpleName = simpleOPropertyName(entityMetadata, property);
-			if (entityMetadata.getPropertyVocabulary(simpleName) != null
-				&& property.getValue() != null) {
-				map.put(simpleName, buildFromOObject(entityMetadata, simpleName, property.getValue()));
+			if (entityMetadata.getPropertyVocabulary(simpleName) != null) {
+			    String mandatory = entityMetadata.getTermValue(simpleName, TermMandatory.TERM_NAME);                
+                if(property.getValue() != null || (null != mandatory && "true".equals(mandatory))) {
+			        map.put(simpleName, buildFromOObject(entityMetadata, simpleName, property.getValue()));
+			    }
 			}
 			else {
 				logger.debug(String.format("not adding property %s, value %s",
