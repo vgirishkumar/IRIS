@@ -361,15 +361,9 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					String simpleName = simpleOPropertyName(entityMetadata, property);
 					String qualifiedName = lengthenPrefix(prefix, simpleName);
 
-					if (entityMetadata.getPropertyVocabulary(qualifiedName) != null) {
-					    
-					    boolean mandatory = false;
-		                
-		                if(null!=entityMetadata.getPropertyVocabulary(qualifiedName).getTerm(TermMandatory.TERM_NAME)) {
-		                    mandatory = ((TermMandatory) entityMetadata.getPropertyVocabulary(qualifiedName).getTerm(TermMandatory.TERM_NAME)).isMandatory();
-		                }
-		                
-		                if(property.getValue() != null || mandatory) {
+					if (entityMetadata.getPropertyVocabulary(qualifiedName) != null) {					    
+					    String mandatory = entityMetadata.getTermValue(qualifiedName, TermMandatory.TERM_NAME);		                
+		                if(property.getValue() != null || (null != mandatory && "true".equals(mandatory))) {
 		                    map.put(simpleName, buildFromOObject(entityMetadata, qualifiedName, property.getValue()));
 		                }
 					} else {
@@ -395,13 +389,8 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 
 			String simpleName = simpleOPropertyName(entityMetadata, property);
 			if (entityMetadata.getPropertyVocabulary(simpleName) != null) {
-			    boolean mandatory = false;
-			    
-			    if(null!=entityMetadata.getPropertyVocabulary(simpleName).getTerm(TermMandatory.TERM_NAME)) {
-			        mandatory = ((TermMandatory) entityMetadata.getPropertyVocabulary(simpleName).getTerm(TermMandatory.TERM_NAME)).isMandatory();
-			    }
-
-			    if(property.getValue() != null || mandatory) {
+			    String mandatory = entityMetadata.getTermValue(simpleName, TermMandatory.TERM_NAME);                
+                if(property.getValue() != null || (null != mandatory && "true".equals(mandatory))) {
 			        map.put(simpleName, buildFromOObject(entityMetadata, simpleName, property.getValue()));
 			    }
 			}
