@@ -9,6 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 
@@ -21,6 +22,7 @@ import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermDescription;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermListType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.rimdsl.RIMDslStandaloneSetup;
@@ -300,9 +302,10 @@ public class GeneratorTest {
     }
 
 	@Test
-	public void testComplexTypeHandler() {
+	public void testComplexTypeHandler() throws Exception {
 	    Injector injector = new RIMDslStandaloneSetupSpringPRD().createInjectorAndDoEMFRegistration();
-	    Generator generator = injector.getInstance(Generator.class);	    
+	    Generator generator = injector.getInstance(Generator.class);
+	    //Read the metadata file
 	    EntityMetadata em = new EntityMetadata("Riders");	    
 	    Vocabulary vocId = new Vocabulary();
 	    vocId.setTerm(new TermValueType(TermValueType.TEXT));
@@ -317,10 +320,12 @@ public class GeneratorTest {
         Vocabulary vocHorseName = new Vocabulary();
         vocHorseName.setTerm(new TermValueType(TermValueType.TEXT));
         vocHorseName.setTerm(new TermComplexGroup("rides"));
+        vocHorseName.setTerm(new TermDescription("Horse Name"));
         em.setPropertyVocabulary("HorseName", vocHorseName, Collections.enumeration(Collections.singletonList("rides")));        
         Vocabulary vocHorseSize = new Vocabulary();
         vocHorseSize.setTerm(new TermValueType(TermValueType.TEXT));
         vocHorseSize.setTerm(new TermComplexGroup("rides"));
+        vocHorseSize.setTerm(new TermDescription("Horse Size"));
         em.setPropertyVocabulary("HorseSize", vocHorseSize, Collections.enumeration(Collections.singletonList("rides")));
         
         Map<String, Object> getRides = generator.complexTypeHandler("rides", em);
@@ -329,8 +334,12 @@ public class GeneratorTest {
 	    assertEquals(2,getRides.size());
 	    assertTrue(getRides.containsKey("HorseName"));
 	    assertTrue(getRides.containsKey("HorseSize"));
-	    assertEquals("string",getRides.get("HorseName"));
-	    assertEquals("string",getRides.get("HorseSize"));
+	    assertNotNull(getRides.get("HorseName"));
+	    assertNotNull(getRides.get("HorseSize"));
+	    assertEquals("string",((ArrayList<?>) getRides.get("HorseName")).get(0));
+	    assertEquals("string",((ArrayList<?>) getRides.get("HorseSize")).get(0));
+	    assertEquals("Horse Name",((ArrayList<?>) getRides.get("HorseName")).get(1));
+	    assertEquals("Horse Size",((ArrayList<?>) getRides.get("HorseSize")).get(1));
 	    
 	    Map<String, Object> getAge = generator.complexTypeHandler("age", em);
 	    assertNotNull(getAge);
