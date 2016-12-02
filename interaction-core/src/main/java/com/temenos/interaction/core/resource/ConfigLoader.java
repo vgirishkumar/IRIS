@@ -39,7 +39,7 @@ import java.util.Set;
  * This class provides an abstraction from the underlying mechanism used to load config files  
  *
  */
-public class ConfigLoader { 
+public class ConfigLoader {
 	private String irisConfigDirPath;
 	private Set<String> irisConfigDirPaths = new LinkedHashSet<>();
 	
@@ -54,6 +54,8 @@ public class ConfigLoader {
 	 * @param irisConfigDirPath The IRIS configuration location
 	 */
 	public void setIrisConfigDirPath(String irisConfigDirPath) {
+		irisConfigDirPath = null;
+		irisConfigDirPaths.clear();
 		StringBuilder onlyExistingPaths = new StringBuilder();
 		for(String pathString : irisConfigDirPath.split(",")) {
 			Path path = Paths.get(pathString.trim());
