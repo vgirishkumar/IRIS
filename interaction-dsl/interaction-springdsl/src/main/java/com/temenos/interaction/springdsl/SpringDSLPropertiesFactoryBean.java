@@ -24,9 +24,7 @@ package com.temenos.interaction.springdsl;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
@@ -64,6 +62,7 @@ public class SpringDSLPropertiesFactoryBean extends PropertiesFactoryBean {
 	@Override
 	public void setLocations(Resource[] locations) {
 		List<Resource> tmpLocations = new ArrayList<Resource>();
+		Map<String, Boolean> fileNames = new HashMap<String, Boolean>();
 		tmpLocations.addAll(Arrays.asList(locations));
 
 		for(String pathToDirectory : configLoader.getIrisConfigDirPaths()) {
@@ -76,10 +75,13 @@ public class SpringDSLPropertiesFactoryBean extends PropertiesFactoryBean {
 			});
 			for(File file: files) {
 				// Create a resource for a current file and add it to the collection of properties resources
-				tmpLocations.add(new FileSystemResource(file));
+				if(!fileNames.containsKey(file.getName())) {
+					fileNames.put(file.getName(),true);
+					tmpLocations.add(new FileSystemResource(file));
+				}
 			}
 		}
 
-		super.setLocations(tmpLocations.toArray(new Resource[0]));		
+		super.setLocations(tmpLocations.toArray(new Resource[0]));
 	}
 }
