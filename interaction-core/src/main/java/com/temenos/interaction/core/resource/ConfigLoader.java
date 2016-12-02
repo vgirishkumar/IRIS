@@ -54,7 +54,7 @@ public class ConfigLoader {
 	 * @param irisConfigDirPath The IRIS configuration location
 	 */
 	public void setIrisConfigDirPath(String irisConfigDirPath) {
-		irisConfigDirPath = null;
+		this.irisConfigDirPath = null;
 		irisConfigDirPaths.clear();
 		StringBuilder onlyExistingPaths = new StringBuilder();
 		for(String pathString : irisConfigDirPath.split(",")) {
