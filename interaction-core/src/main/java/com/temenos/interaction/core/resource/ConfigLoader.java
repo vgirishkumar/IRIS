@@ -73,18 +73,9 @@ public class ConfigLoader {
 		}
 	}	
 
-	/**
-	 * @return The path of the overridden IRIS configuration location
-	 */
-	public String getIrisConfigDirPath() {
-		return irisConfigDirPath;
-	}
-
 	public Set<String> getIrisConfigDirPaths() {
 		return irisConfigDirPaths;
 	}
-
-
 
 	public boolean isExist(String filename) {
 		if(irisConfigDirPaths.isEmpty()) {
@@ -95,7 +86,7 @@ public class ConfigLoader {
 		}
 	}
 
-	public InputStream load(String filename) throws FileNotFoundException, Exception {
+	public InputStream load(String filename) throws Exception {
 		InputStream is = null;
 		
 		if(irisConfigDirPaths.isEmpty()) {
