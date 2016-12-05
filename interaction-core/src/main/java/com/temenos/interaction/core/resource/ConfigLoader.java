@@ -40,7 +40,6 @@ import java.util.Set;
  *
  */
 public class ConfigLoader {
-	private String irisConfigDirPath;
 	private Set<String> irisConfigDirPaths = new LinkedHashSet<>();
 	
 	// Webapp context param defining the location of the unpacked IRIS configuration files
@@ -54,24 +53,15 @@ public class ConfigLoader {
 	 * @param irisConfigDirPath The IRIS configuration location
 	 */
 	public void setIrisConfigDirPath(String irisConfigDirPath) {
-		this.irisConfigDirPath = null;
 		irisConfigDirPaths.clear();
-		StringBuilder onlyExistingPaths = new StringBuilder();
 		for(String pathString : irisConfigDirPath.split(",")) {
 			Path path = Paths.get(pathString.trim());
 			if(Files.exists(path) && Files.isDirectory(path)) {
 				irisConfigDirPaths.add(path.toString());
-				if(onlyExistingPaths.length() != 0) {
-					onlyExistingPaths.append(",");
-				}
-				onlyExistingPaths.append(path.toString());
 			}
 		}
-		if(onlyExistingPaths.length() == 0) {
-			this.irisConfigDirPath = null;
+		if(irisConfigDirPaths.isEmpty()) {
 			logger.error("None of the given directories exists (" + irisConfigDirPath + ") !");
-		} else {
-			this.irisConfigDirPath = onlyExistingPaths.toString();
 		}
 	}	
 
