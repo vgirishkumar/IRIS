@@ -48,9 +48,9 @@ public class ConfigLoader {
 	private final static Logger logger = LoggerFactory.getLogger(ConfigLoader.class);	
 		
 	/**
-	 * Overrides the default IRIS configuration location with the paths given
+	 * Overrides the default IRIS configuration location with the paths given (separated by comma)
 	 * 
-	 * @param irisConfigDirPath The IRIS configuration location
+	 * @param irisConfigDirPath The IRIS configuration locations, they are separated by comma
 	 */
 	public void setIrisConfigDirPath(String irisConfigDirPath) {
 		irisConfigDirPaths.clear();
