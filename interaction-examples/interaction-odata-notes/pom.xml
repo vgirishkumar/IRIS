@@ -41,7 +41,7 @@
       <plugin>
         <groupId>com.temenos.interaction</groupId>
         <artifactId>interaction-sdk-plugin</artifactId>
-        <version>0.13.5</version>
+        <version>0.13.8</version>
 <!--		
 		<executions>
           <execution>

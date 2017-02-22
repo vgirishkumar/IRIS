@@ -28,7 +28,7 @@
       <plugin>
         <groupId>com.temenos.interaction</groupId>
         <artifactId>interaction-sdk-plugin</artifactId>
-        <version>0.13.5</version>
+        <version>0.13.8</version>
         <configuration>
           <edmxFile>${basedir}/src/main/resources/edmx.xml</edmxFile>
           <srcTargetDirectory>${basedir}/src/main/java</srcTargetDirectory>
