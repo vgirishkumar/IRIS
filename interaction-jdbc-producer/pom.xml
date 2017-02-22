@@ -87,7 +87,7 @@
 		<dependency>
 			<groupId>com.temenos.interaction</groupId>
 			<artifactId>interaction-commands-authorization</artifactId>
-			<version>0.13.5</version>
+			<version>0.13.8</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jencks</groupId>

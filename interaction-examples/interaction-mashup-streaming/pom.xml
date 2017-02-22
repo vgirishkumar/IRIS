@@ -162,7 +162,7 @@
     									interaction-sdk-plugin
     								</artifactId>
     								<versionRange>
-    									[0.13.5,)
+    									[0.13.8,)
     								</versionRange>
     								<goals>
     									<goal>rim-generate</goal>
@@ -181,7 +181,7 @@
     									interaction-sdk-rim-plugin
     								</artifactId>
     								<versionRange>
-    									[0.13.5,)
+    									[0.13.8,)
     								</versionRange>
     								<goals>
     									<goal>rim-generate</goal>
